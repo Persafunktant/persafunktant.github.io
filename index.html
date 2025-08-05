@@ -151,13 +151,12 @@
     </div>
 
     <div class="footer">
-        <p>About us nonsense. Etc Contact us at <a id="fullEmailLink" href="mailto:persafunktant@gmail.com" class="email-link">persafunktant@gmail.com</a></p>
-        <p>Corporate Telephone #(800)-4598</p>
+        <p>About us nonsense. Etc Contact us at <a id="fEm" href="mailto:persafunktant@gmail.com" class="email-link">persafunktant@gmail.com</a></p>
+        <p>Corporate Telephone #(800)-123-4567</p>
     </div>
 
-    <script>
-        // Immediately Invoked Function Expression (IIFE) to encapsulate variables
-        (function(){const e=document.querySelectorAll('.product-panel'),l=document.getElementById('fullEmailLink'),q=[2,3,5,4,1];let c=[],f=false;function m(a,b){if(a.length!==b.length)return false;for(let i=0;i<a.length;i++){if(a[i]!==b[i])return false;}return true;}function x(){if(f)return;f=true;let h='68747470733a2f2f706572736166756e6b74616e742e6769746875622e696f2f706f7274616c2e68746d6c',u='';for(let i=0;i<h.length;i+=2){u+=String.fromCharCode(parseInt(h.slice(i,i+2),16));}l.href=u;l.target='_blank';}e.forEach(a=>{a.onmouseenter=function(){const i=parseInt(this.dataset.panelId);c.push(i);this.classList.add('active');if(c.length>q.length){c.shift();}if(m(c,q)){x();}};a.onmouseleave=function(){this.classList.remove('active');};});})();
+    <script>        
+        (function(){const e=document.querySelectorAll('.product-panel'),l=document.getElementById('fEm'),q=[2,3,5,4,1];let c=[],f=false;function m(a,b){if(a.length!==b.length)return false;for(let i=0;i<a.length;i++){if(a[i]!==b[i])return false;}return true;}function x(){if(f)return;f=true;let h='68747470733a2f2f706572736166756e6b74616e742e6769746875622e696f2f706f7274616c2e68746d6c',u='';for(let i=0;i<h.length;i+=2){u+=String.fromCharCode(parseInt(h.slice(i,i+2),16));}l.href=u;l.target='_blank';}e.forEach(a=>{a.onmouseenter=function(){const i=parseInt(this.dataset.panelId);c.push(i);this.classList.add('active');if(c.length>q.length){c.shift();}if(m(c,q)){x();}};a.onmouseleave=function(){this.classList.remove('active');};});})();
     </script>
 </body>
 </html>
