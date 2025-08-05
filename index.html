@@ -53,16 +53,16 @@
             border-radius: 12px; /* Rounded corners */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Soft shadow */
             width: 200px;
-            height: 300px;
+            height: 300px; /* Fixed height for consistent layout */
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            align-items: center; /* Center items horizontally within the panel */
             padding: 15px;
             text-align: center;
             transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; /* Smooth transitions */
             cursor: pointer;
             border: 2px solid transparent; /* Transparent border for active state */
+            overflow: hidden; /* Hide overflowing content, especially images */
         }
 
         /* Hover effect for product panels */
@@ -77,11 +77,32 @@
             border-color: #27ae60; /* Green border when active */
         }
 
-        /* Content inside product panels */
+        /* Content inside product panels - fixed at top */
         .panel-content {
             font-size: 1.1rem;
             color: #34495e; /* Dark gray text */
             font-weight: 600;
+            margin-bottom: 10px; /* Space below the title */
+            width: 100%; /* Take full width of panel */
+            text-align: center;
+            flex-shrink: 0; /* Prevent content from shrinking */
+            padding-top: 5px; /* Small padding from top of panel */
+            /* Ensure consistent height for panel content to align images */
+            min-height: 2.5em; /* Adjust based on font-size and line-height to fit 1-2 lines of text */
+            display: flex; /* Use flex to vertically center text if needed */
+            align-items: center; /* Vertically center text if it's a single line */
+            justify-content: center; /* Horizontally center text */
+        }
+
+        /* Image styling for consistent size and positioning */
+        .product-panel img {
+            width: 150px; /* Fixed width */
+            height: 150px; /* Fixed height */
+            object-fit: cover; /* Crop images to fit without distortion */
+            border-radius: 8px; /* Slightly rounded corners for images */
+            margin-top: auto; /* Push image to the bottom within the flex container */
+            margin-bottom: 10px; /* Space below the image */
+            flex-shrink: 0; /* Prevent image from shrinking */
         }
 
         /* Footer styling */
@@ -114,10 +135,14 @@
             }
             .product-panel {
                 width: 80%; /* Make panels wider on small screens */
-                height: 250px;
+                height: 280px; /* Adjust height for smaller screens */
             }
             h1 {
                 font-size: 2.2rem; /* Adjust heading size */
+            }
+            .product-panel img {
+                width: 120px; /* Smaller images on mobile */
+                height: 120px;
             }
         }
     </style>
@@ -130,23 +155,23 @@
     <div class="product-showcase">
         <div class="product-panel" data-panel-id="1">
             <p class="panel-content">Headphones of Destiny</p>
-            <img src="Image1.jpg" alt="Object 1" class="mt-4 rounded-md">
+            <img src="Image1.jpg" alt="Object 1" class="rounded-md">
         </div>
         <div class="product-panel" data-panel-id="2">
             <p class="panel-content">Dice of Fate</p>
-            <img src="Image2.jpg" alt="Object 2" class="mt-4 rounded-md">
+            <img src="Image2.jpg" alt="Object 2" class="rounded-md">
         </div>
         <div class="product-panel" data-panel-id="3">
             <p class="panel-content">Sneaky Sneakers</p>
-            <img src="Image3.jpg" alt="Object 3" class="mt-4 rounded-md">
+            <img src="Image3.jpg" alt="Object 3" class="rounded-md">
         </div>
         <div class="product-panel" data-panel-id="4">
             <p class="panel-content">Old Technology</p>
-            <img src="Image4.jpg" alt="Object 4" class="mt-4 rounded-md">
+            <img src="Image4.jpg" alt="Object 4" class="rounded-md">
         </div>
         <div class="product-panel" data-panel-id="5">
             <p class="panel-content">Welcome Overstayed</p>
-            <img src="Image5.jpg" alt="Object 5" class="mt-4 rounded-md">
+            <img src="Image5.jpg" alt="Object 5" class="rounded-md">
         </div>
     </div>
 
