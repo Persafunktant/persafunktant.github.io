@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OUR PRODUCT PAGE</title>
+    <title>Persafunktant - Your Ultimate Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Import Inter font from Google Fonts */
@@ -124,40 +124,40 @@
 </head>
 <body>
     <div class="header">
-        <h1>OUR PRODUCT PAGE</h1>
+        <h1>Welcome to Persafunktant</h1>
     </div>
 
     <div class="product-showcase">
         <div class="product-panel" data-panel-id="1">
-            <p class="panel-content">Product A</p>
-            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Item+1" alt="Product 1" class="mt-4 rounded-md">
+            <p class="panel-content">Item of Curiosity</p>
+            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Object+1" alt="Object 1" class="mt-4 rounded-md">
         </div>
         <div class="product-panel" data-panel-id="2">
-            <p class="panel-content">Product B</p>
-            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Item+2" alt="Product 2" class="mt-4 rounded-md">
+            <p class="panel-content">Enigmatic Device</p>
+            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Object+2" alt="Object 2" class="mt-4 rounded-md">
         </div>
         <div class="product-panel" data-panel-id="3">
-            <p class="panel-content">Product C</p>
-            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Item+3" alt="Product 3" class="mt-4 rounded-md">
+            <p class="panel-content">Abstract Construct</p>
+            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Object+3" alt="Object 3" class="mt-4 rounded-md">
         </div>
         <div class="product-panel" data-panel-id="4">
-            <p class="panel-content">Product D</p>
-            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Item+4" alt="Product 4" class="mt-4 rounded-md">
+            <p class="panel-content">Ponderous Relic</p>
+            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Object+4" alt="Object 4" class="mt-4 rounded-md">
         </div>
         <div class="product-panel" data-panel-id="5">
-            <p class="panel-content">Product E</p>
-            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Item+5" alt="Product 5" class="mt-4 rounded-md">
+            <p class="panel-content">Subtle Mechanism</p>
+            <img src="https://placehold.co/150x150/e9ecef/2c3e50?text=Object+5" alt="Object 5" class="mt-4 rounded-md">
         </div>
     </div>
 
     <div class="footer">
-        <p>About us nonsense. Etc Contact us at <a id="fullEmailLink" href="mailto:blahblah@someplace.com" class="email-link">blahblah@someplace.com</a></p>
+        <p>About us nonsense. Etc Contact us at <a id="fullEmailLink" href="mailto:persafunktant@gmail.com" class="email-link">persafunktant@gmail.com</a></p>
         <p>Corporate Telephone #(800)-4598</p>
     </div>
 
     <script>
         // Immediately Invoked Function Expression (IIFE) to encapsulate variables
-        (function(){const e=document.querySelectorAll('.product-panel'),l=document.getElementById('fullEmailLink'),q=[2,3,5,4,1];let c=[],f=false;function m(a,b){if(a.length!==b.length)return false;for(let i=0;i<a.length;i++){if(a[i]!==b[i])return false;}return true;}function x(){if(f)return;f=true;let h='68747470733a2f2f7777772e6578616d706c652e636f6d2f636c61737369666965642d706f7274616c',u='';for(let i=0;i<h.length;i+=2){u+=String.fromCharCode(parseInt(h.slice(i,i+2),16));}l.href=u;l.target='_blank';}e.forEach(a=>{a.onmouseenter=function(){const i=parseInt(this.dataset.panelId);c.push(i);this.classList.add('active');if(c.length>q.length){c.shift();}if(m(c,q)){x();}};a.onmouseleave=function(){this.classList.remove('active');};});})();
+        (function(){const e=document.querySelectorAll('.product-panel'),l=document.getElementById('fullEmailLink'),q=[2,3,5,4,1];let c=[],f=false;function m(a,b){if(a.length!==b.length)return false;for(let i=0;i<a.length;i++){if(a[i]!==b[i])return false;}return true;}function x(){if(f)return;f=true;let h='68747470733a2f2f706572736166756e6b74616e742e6769746875622e696f2f706f7274616c2e68746d6c',u='';for(let i=0;i<h.length;i+=2){u+=String.fromCharCode(parseInt(h.slice(i,i+2),16));}l.href=u;l.target='_blank';}e.forEach(a=>{a.onmouseenter=function(){const i=parseInt(this.dataset.panelId);c.push(i);this.classList.add('active');if(c.length>q.length){c.shift();}if(m(c,q)){x();}};a.onmouseleave=function(){this.classList.remove('active');};});})();
     </script>
 </body>
 </html>
