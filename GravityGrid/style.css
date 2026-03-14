@@ -38,6 +38,106 @@ canvas {
     height: 100vh;
 }
 
+/* UI Overlays */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; /* Clicks pass through to canvas by default */
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sys-btn {
+    pointer-events: auto; /* Buttons catch clicks */
+    position: absolute;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+    backdrop-filter: blur(5px);
+}
+.sys-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.fullscreen-btn {
+    top: 10px;
+    right: 10px;
+}
+
+.pause-btn {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    border-radius: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+.pause-btn:hover {
+    transform: translateX(-50%) scale(1.05);
+}
+
+.menu-overlay {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.85);
+    padding: 50px 60px;
+    border-radius: 24px;
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 50px rgba(0, 242, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    backdrop-filter: blur(12px);
+    transition: opacity 0.3s;
+}
+
+.game-title {
+    font-size: 64px;
+    font-weight: 900;
+    margin: 0 0 20px 0;
+    color: white;
+    text-shadow: 0 0 20px var(--primary);
+    text-align: center;
+    letter-spacing: 4px;
+}
+
+.menu-btn {
+    background: rgba(0, 242, 255, 0.05);
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 15px 40px;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: 'Outfit';
+    border-radius: 12px;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.3s;
+    letter-spacing: 2px;
+}
+.menu-btn:hover {
+    background: var(--primary);
+    color: black;
+    box-shadow: 0 0 20px var(--primary);
+    transform: translateY(-2px);
+}
+
 /* Editor Specific */
 #editor-panel {
     position: absolute;

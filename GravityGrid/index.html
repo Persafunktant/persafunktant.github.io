@@ -13,8 +13,14 @@
     <canvas id="game-canvas"></canvas>
     
     <div id="ui-layer">
-        <div class="hud">
-            <!-- Score etc can Go Here -->
+        <button id="btn-fullscreen" class="sys-btn fullscreen-btn">⛶</button>
+        <button id="btn-pause" class="sys-btn pause-btn" style="display:none;">⏸ PAUSE</button>
+
+        <div id="main-menu" class="menu-overlay">
+            <h1 class="game-title">GRAVITY GRID</h1>
+            <button id="btn-resume" class="menu-btn" style="display:none;">RESUME</button>
+            <button id="btn-start" class="menu-btn">NEW GAME</button>
+            <button id="btn-options" class="menu-btn">OPTIONS</button>
         </div>
     </div>
 

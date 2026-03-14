@@ -4,9 +4,9 @@
 
 const CONFIG = {
     TILE_SIZE: 40,
-    GRAVITY: 0.5,
+    GRAVITY: 0.4,
     JUMP_FORCE: 12,
-    SCROLL_SPEED: 4,
+    SCROLL_SPEED: 3.5,
     CANVAS_W: 1280,
     CANVAS_H: 780
 };
@@ -17,8 +17,8 @@ class Player {
     }
 
     reset() {
-        this.x = 200;
-        this.y = (GRID_H - 2) * CONFIG.TILE_SIZE; // Grounded on bottom floor
+        this.x = 300;
+        this.y = (GRID_H - 6) * CONFIG.TILE_SIZE; // Grounded on bottom floor
         this.w = 32;
         this.h = 32;
         this.vy = 0;
@@ -222,6 +222,14 @@ class Game {
         this.hasMoreLevels = true;
         this.levelTitleAlpha = 1.0;
         this.levelTitleText = "Level 1";
+
+        // HTML UI Elements
+        this.uiMenu = document.getElementById('main-menu');
+        this.btnStart = document.getElementById('btn-start');
+        this.btnResume = document.getElementById('btn-resume');
+        this.btnPause = document.getElementById('btn-pause');
+        this.btnFullscreen = document.getElementById('btn-fullscreen');
+
         this.init();
     }
 
@@ -247,18 +255,36 @@ class Game {
 
         window.onkeydown = (e) => {
             if (e.code === 'Space') this.keys.left = true;
+            if (e.code === 'Escape') {
+                if (this.state === 'PLAYING') this.pause();
+                else if (this.state === 'PAUSED') this.resume();
+            }
         };
         window.onkeyup = (e) => {
             if (e.code === 'Space') this.keys.left = false;
         };
 
+        // HTML Button Events
+        this.btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        this.btnStart.addEventListener('click', () => this.start(true));
+        this.btnResume.addEventListener('click', () => this.resume());
+        this.btnPause.addEventListener('click', () => this.pause());
+
         // Mobile Touch Controls
         window.addEventListener('touchstart', (e) => {
-            if (e.target === this.canvas) e.preventDefault();
-            if (this.state !== 'PLAYING') {
-                this.start();
-                return;
-            }
+            if (e.target === this.canvas || e.target === document.body) e.preventDefault();
+            if (this.state !== 'PLAYING') return;
             for (let i = 0; i < e.touches.length; i++) {
                 if (e.touches[i].clientX < window.innerWidth / 2) {
                     this.keys.left = true;
@@ -320,23 +346,47 @@ class Game {
         };
     }
 
-    start() {
+    start(isNewGame = false) {
+        if (isNewGame) {
+            this.currentLevelNum = 1;
+        }
         this.state = 'PLAYING';
+        this.uiMenu.style.display = 'none';
+        this.btnPause.style.display = 'block';
         this.reset();
         audio.start();
+    }
+
+    pause() {
+        this.state = 'PAUSED';
+        this.uiMenu.style.display = 'flex';
+        this.btnPause.style.display = 'none';
+        this.btnResume.style.display = 'block';
+        this.btnStart.textContent = 'RESTART LEVEL 1';
+    }
+
+    resume() {
+        this.state = 'PLAYING';
+        this.uiMenu.style.display = 'none';
+        this.btnPause.style.display = 'block';
     }
 
     reset() {
         this.player.reset();
         this.scrollX = 0;
         this.currentDistance = 0;
-        this.currentLevelNum = 1;
         this.hasMoreLevels = true;
         this.levelTitleAlpha = 1.0;
-        this.levelTitleText = "Level 1";
-        this.level = JSON.parse(JSON.stringify(LEVELS["Level 1"]));
+        this.levelTitleText = "Level " + this.currentLevelNum;
+        this.level = JSON.parse(JSON.stringify(LEVELS["Level " + this.currentLevelNum]));
         this.keys = { left: false, right: false };
         this.particles = [];
+
+        // Ensure menu resets state if player dies
+        if (this.state === 'PLAYING') {
+            this.uiMenu.style.display = 'none';
+            this.btnPause.style.display = 'block';
+        }
     }
 
     update() {
@@ -380,7 +430,7 @@ class Game {
             p.life -= p.decay;
             if (p.life <= 0) this.particles.splice(i, 1);
         }
-        
+
         if (this.levelTitleAlpha > 0) {
             this.levelTitleAlpha -= 0.005;
         }
@@ -533,17 +583,7 @@ class Game {
             }
         }
 
-        if (this.state === 'MENU') {
-            ctx.fillStyle = 'rgba(0,0,0,0.7)';
-            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 48px Outfit';
-            ctx.fillText('GRAVITY GRID', this.canvas.width / 2, this.canvas.height / 2 - 20);
-            ctx.font = '24px Outfit';
-            ctx.fillText('LEFT CLICK: JUMP | RIGHT CLICK: FLIP', this.canvas.width / 2, this.canvas.height / 2 + 40);
-            ctx.fillText('CLICK TO START', this.canvas.width / 2, this.canvas.height / 2 + 80);
-        }
+        // Removed old canvas menu drawing, now handled by DOM elements
     }
 
     loop() {
