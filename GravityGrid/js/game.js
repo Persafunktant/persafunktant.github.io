@@ -238,12 +238,45 @@ class Player {
                             game.particles.push({
                                 x: tileLeft + CONFIG.TILE_SIZE / 2,
                                 y: tileTop + CONFIG.TILE_SIZE / 2,
-                                vx: (Math.random() - 0.5) * 6,
-                                vy: (Math.random() - 0.5) * 6,
+                                vx: (Math.random() - 1.5) * 6,
+                                vy: (Math.random() - 1.5) * 6,
                                 size: Math.random() * 6 + 2,
                                 color: '#fff600',
                                 life: 1,
                                 decay: 0.03
+                            });
+                        }
+                    }
+                }
+
+                // Small Coin (Tile 9)
+                if (tile === 9) {
+                    grid[ty][tx] = 0;
+                    if (game) {
+                        game.levelCoins += 100;
+                        audio.playSfx('coin');
+
+                        // Create Floating Text
+                        game.floatingTexts.push({
+                            text: '+100',
+                            x: tileLeft + CONFIG.TILE_SIZE / 2,
+                            y: tileTop,
+                            life: 1.0,
+                            vx: 0,
+                            vy: -1.5
+                        });
+
+                        // Shine particles (fewer for small coin)
+                        for (let i = 0; i < 5; i++) {
+                            game.particles.push({
+                                x: tileLeft + CONFIG.TILE_SIZE / 2,
+                                y: tileTop + CONFIG.TILE_SIZE / 2,
+                                vx: (Math.random() - 0.5) * 4,
+                                vy: (Math.random() - 0.5) * 4,
+                                size: Math.random() * 4 + 2,
+                                color: '#fff600',
+                                life: 1,
+                                decay: 0.04
                             });
                         }
                     }
@@ -750,27 +783,33 @@ class Game {
                     ctx.strokeStyle = '#fff';
                     ctx.lineWidth = 2;
                     ctx.stroke();
-                } else if (tile === 8) { // Coin
+                } else if (tile === 8 || tile === 9) { // Coin or Small Coin
                     const ts = CONFIG.TILE_SIZE;
                     const bob = Math.sin(Date.now() / 200) * 4;
                     ctx.translate(0, bob);
 
+                    const scale = (tile === 8 ? 1.0 : 0.6);
+                    const outerRadius = ts / 3.5 * scale;
+                    const innerRadius = ts / 4 * scale;
+                    const highlightOffset = 3 * scale;
+                    const highlightRadius = 2 * scale;
+
                     // Outer Shaded Edge
                     ctx.fillStyle = '#cc9900';
                     ctx.beginPath();
-                    ctx.arc(ts / 2, ts / 2, ts / 3.5, 0, Math.PI * 2);
+                    ctx.arc(ts / 2, ts / 2, outerRadius, 0, Math.PI * 2);
                     ctx.fill();
 
                     // Main Coin Body
                     ctx.fillStyle = '#ffdf00';
                     ctx.beginPath();
-                    ctx.arc(ts / 2, ts / 2 - 1, ts / 4, 0, Math.PI * 2);
+                    ctx.arc(ts / 2, ts / 2 - 1, innerRadius, 0, Math.PI * 2);
                     ctx.fill();
 
                     // Highlight
                     ctx.fillStyle = '#ffffff';
                     ctx.beginPath();
-                    ctx.arc(ts / 2 - 3, ts / 2 - 4, 2, 0, Math.PI * 2);
+                    ctx.arc(ts / 2 - highlightOffset, ts / 2 - highlightOffset - 1, highlightRadius, 0, Math.PI * 2);
                     ctx.fill();
 
                     // Edge Details

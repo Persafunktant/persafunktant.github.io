@@ -102,6 +102,7 @@
             <button class="tool-btn" data-id="6"><div class="color-box" style="background:#666; border: 1px dashed #fff;"></div> Crumbling</button>
             <button class="tool-btn" data-id="7"><div class="color-box" style="background:#ff00ff; border-radius: 50%; border: 2px solid #fff;"></div> Switcher</button>
             <button class="tool-btn" data-id="8"><div class="color-box" style="background:#ffcc00; border-radius: 50%; border: 1px solid #fff; transform: scale(0.6);"></div> Coin</button>
+            <button class="tool-btn" data-id="9"><div class="color-box" style="background:#ffcc00; border-radius: 50%; border: 1px solid #fff; transform: scale(0.4);"></div> Small Coin</button>
             <button class="tool-btn" data-id="0"><div class="color-box" style="background:#000;"></div> Eraser</button>
             <hr style="width: 100%; border-color: #333; margin: 5px 0;">
             <button class="tool-btn" data-id="clone"><div class="color-box" style="background:transparent; border: 1px dashed #00f2ff;"></div> Clone Area</button>
@@ -929,26 +930,28 @@
                         ctx.strokeStyle = '#fff';
                         ctx.lineWidth = 2;
                         ctx.stroke();
-                    } else if (tile === 8) { // Coin
+                    } else if (tile === 8 || tile === 9) { // Coin or Small Coin
                         const bob = Math.sin(Date.now() / 200) * 4;
                         ctx.translate(0, bob);
+                        
+                        const scale = (tile === 8 ? 1.0 : 0.6);
                         
                         // Outer Shaded Edge
                         ctx.fillStyle = '#cc9900';
                         ctx.beginPath();
-                        ctx.arc(TS/2, TS/2, TS/3.5, 0, Math.PI * 2);
+                        ctx.arc(TS/2, TS/2, (TS/3.5) * scale, 0, Math.PI * 2);
                         ctx.fill();
                         
                         // Main Coin Body
                         ctx.fillStyle = '#ffdf00';
                         ctx.beginPath();
-                        ctx.arc(TS/2, TS/2 - 1, TS/4, 0, Math.PI * 2);
+                        ctx.arc(TS/2, TS/2 - 1, (TS/4) * scale, 0, Math.PI * 2);
                         ctx.fill();
                         
                         // Highlight
                         ctx.fillStyle = '#ffffff';
                         ctx.beginPath();
-                        ctx.arc(TS/2 - 3, TS/2 - 4, 2, 0, Math.PI * 2);
+                        ctx.arc(TS/2 - 3 * scale, TS/2 - 4 * scale, 2 * scale, 0, Math.PI * 2);
                         ctx.fill();
 
                         // Edge Details
