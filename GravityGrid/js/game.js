@@ -5,7 +5,7 @@
 const CONFIG = {
     TILE_SIZE: 40,
     GRAVITY: 0.4,
-    JUMP_FORCE: 12,
+    JUMP_FORCE: 11.5,
     SCROLL_SPEED: 3.5,
     CANVAS_W: 1280,
     CANVAS_H: 780
@@ -16,16 +16,18 @@ class Player {
         this.reset();
     }
 
-    reset() {
-        this.x = 300;
-        this.y = (GRID_H - 6) * CONFIG.TILE_SIZE; // Grounded on bottom floor
+    reset(preserveState = false) {
+        if (!preserveState) {
+            this.x = 300;
+            this.y = (GRID_H - 6) * CONFIG.TILE_SIZE; // Grounded on bottom floor
+            this.vy = 0;
+            this.gravityDir = 1; // 1 = Normal, -1 = Inverted
+            this.rotation = 0;
+            this.targetRotation = 0;
+        }
         this.w = 32;
         this.h = 32;
-        this.vy = 0;
-        this.gravityDir = 1; // 1 = Normal, -1 = Inverted
         this.isGrounded = false;
-        this.rotation = 0;
-        this.targetRotation = 0;
         this.canAction = true;
         this.dead = false;
     }
@@ -155,8 +157,61 @@ class Player {
                 if (tile === 4 || tile === 5) {
                     this.die();
                 }
+
+                // Gravity Switcher (Tile 7)
+                if (tile === 7) {
+                    if (!this.lastSwitcherTile || this.lastSwitcherTile.x !== tx || this.lastSwitcherTile.y !== ty) {
+                        this.gravityDir *= -1;
+                        this.targetRotation += Math.PI;
+                        audio.playSfx('flip');
+                        this.lastSwitcherTile = { x: tx, y: ty };
+                    }
+                } else if (this.lastSwitcherTile && (this.lastSwitcherTile.x === tx && this.lastSwitcherTile.y === ty)) {
+                    // Reset switcher contact if we move off it (handled by the loop only hitting current tiles)
+                }
+
+                // Coin (Tile 8)
+                if (tile === 8) {
+                    grid[ty][tx] = 0;
+                    if (game) {
+                        game.levelCoins += 1000;
+                        audio.playSfx('coin');
+
+                        // Create Floating Text
+                        game.floatingTexts.push({
+                            text: '+1000',
+                            x: tileLeft + CONFIG.TILE_SIZE / 2,
+                            y: tileTop,
+                            life: 1.0,
+                            vx: 0,
+                            vy: -1.5
+                        });
+
+                        // Shine particles
+                        for (let i = 0; i < 8; i++) {
+                            game.particles.push({
+                                x: tileLeft + CONFIG.TILE_SIZE / 2,
+                                y: tileTop + CONFIG.TILE_SIZE / 2,
+                                vx: (Math.random() - 0.5) * 6,
+                                vy: (Math.random() - 0.5) * 6,
+                                size: Math.random() * 6 + 2,
+                                color: '#fff600',
+                                life: 1,
+                                decay: 0.03
+                            });
+                        }
+                    }
+                }
             }
         }
+        // Clear switcher contact if not touching any switcher
+        let touchingSwitcher = false;
+        for (let ty = startTileY; ty <= endTileY; ty++) {
+            for (let tx = startTileX; tx <= endTileX; tx++) {
+                if (grid[ty] && grid[ty][tx] === 7) touchingSwitcher = true;
+            }
+        }
+        if (!touchingSwitcher) this.lastSwitcherTile = null;
     }
 
     die() {
@@ -182,7 +237,7 @@ class Player {
                 });
             }
         }
-        setTimeout(() => game && game.reset(), 1500);
+        setTimeout(() => game && game.reset(false), 1500);
     }
 
     draw(ctx) {
@@ -216,12 +271,18 @@ class Game {
         this.state = 'MENU';
         this.keys = { left: false, right: false };
         this.particles = [];
+        this.floatingTexts = [];
         this.highScore = parseInt(localStorage.getItem('gravityGridHighScore_v2')) || 0;
+        this.checkpointScore = 0;
+        this.levelCoins = 0;
+        this.score = 0;
         this.currentDistance = 0;
         this.currentLevelNum = 1;
         this.hasMoreLevels = true;
         this.levelTitleAlpha = 1.0;
         this.levelTitleText = "Level 1";
+        this.isTransitioning = false;
+        this.transitionBoundaryX = 0;
 
         // HTML UI Elements
         this.uiMenu = document.getElementById('main-menu');
@@ -230,7 +291,7 @@ class Game {
         this.btnPause = document.getElementById('btn-pause');
         this.btnFullscreen = document.getElementById('btn-fullscreen');
 
-        this.init();
+        if (this.canvas) this.init();
     }
 
     init() {
@@ -277,9 +338,14 @@ class Game {
             }
         });
 
-        this.btnStart.addEventListener('click', () => this.start(true));
-        this.btnResume.addEventListener('click', () => this.resume());
-        this.btnPause.addEventListener('click', () => this.pause());
+        if (this.btnStart) this.btnStart.addEventListener('click', () => this.start(true));
+        if (this.btnResume) this.btnResume.addEventListener('click', () => this.resume());
+        if (this.btnPause) this.btnPause.addEventListener('click', () => this.pause());
+        if (document.getElementById('btn-options')) {
+            document.getElementById('btn-options').addEventListener('click', () => {
+                alert("Options menu coming soon! Music is currently enabled by default.");
+            });
+        }
 
         // Mobile Touch Controls
         window.addEventListener('touchstart', (e) => {
@@ -346,46 +412,73 @@ class Game {
         };
     }
 
+    getNextLevelNum(currentNum) {
+        const keys = Object.keys(LEVELS);
+        const levelNums = keys
+            .map(k => parseInt(k.replace("Level ", "")))
+            .filter(n => !isNaN(n) && n > currentNum)
+            .sort((a, b) => a - b);
+        return levelNums.length > 0 ? levelNums[0] : null;
+    }
+
     start(isNewGame = false) {
         if (isNewGame) {
             this.currentLevelNum = 1;
         }
         this.state = 'PLAYING';
-        this.uiMenu.style.display = 'none';
-        this.btnPause.style.display = 'block';
+        if (this.uiMenu) this.uiMenu.style.display = 'none';
+        if (this.btnPause) this.btnPause.style.display = 'block';
         this.reset();
         audio.start();
     }
 
     pause() {
         this.state = 'PAUSED';
-        this.uiMenu.style.display = 'flex';
-        this.btnPause.style.display = 'none';
-        this.btnResume.style.display = 'block';
-        this.btnStart.textContent = 'RESTART LEVEL 1';
+        if (this.uiMenu) this.uiMenu.style.display = 'flex';
+        if (this.btnPause) this.btnPause.style.display = 'none';
+        if (this.btnResume) this.btnResume.style.display = 'block';
+        if (this.btnStart) this.btnStart.textContent = 'RESTART LEVEL ' + this.currentLevelNum;
     }
 
     resume() {
         this.state = 'PLAYING';
-        this.uiMenu.style.display = 'none';
-        this.btnPause.style.display = 'block';
+        if (this.uiMenu) this.uiMenu.style.display = 'none';
+        if (this.btnPause) this.btnPause.style.display = 'block';
     }
 
-    reset() {
-        this.player.reset();
-        this.scrollX = 0;
+    reset(isNewGame = false, preservePlayerState = false) {
+        if (isNewGame) {
+            this.currentLevelNum = 1;
+            this.checkpointScore = 0;
+        }
+        this.player.reset(preservePlayerState);
+        this.scrollX = 0; // The level array is fresh/re-sliced for the current level
         this.currentDistance = 0;
+        this.levelCoins = 0;
         this.hasMoreLevels = true;
         this.levelTitleAlpha = 1.0;
         this.levelTitleText = "Level " + this.currentLevelNum;
-        this.level = JSON.parse(JSON.stringify(LEVELS["Level " + this.currentLevelNum]));
+        this.isTransitioning = false;
+        this.transitionBoundaryX = 0;
+        this.nextLevelNumFound = null;
+
+        // Safety check if level name exists
+        const levelData = LEVELS["Level " + this.currentLevelNum];
+        if (levelData) {
+            this.level = JSON.parse(JSON.stringify(levelData));
+        } else {
+            console.error("Level " + this.currentLevelNum + " not found!");
+            this.hasMoreLevels = false;
+        }
+
         this.keys = { left: false, right: false };
         this.particles = [];
+        this.floatingTexts = [];
 
         // Ensure menu resets state if player dies
         if (this.state === 'PLAYING') {
-            this.uiMenu.style.display = 'none';
-            this.btnPause.style.display = 'block';
+            if (this.uiMenu) this.uiMenu.style.display = 'none';
+            if (this.btnPause) this.btnPause.style.display = 'block';
         }
     }
 
@@ -397,28 +490,57 @@ class Game {
 
         if (!this.player.dead) {
             this.scrollX += CONFIG.SCROLL_SPEED;
-            this.currentDistance = Math.floor((this.player.x + this.scrollX) / CONFIG.TILE_SIZE);
-            if (this.currentDistance > this.highScore) {
-                this.highScore = this.currentDistance; // Update high score dynamically while playing
+
+            // Calculate current total score: checkpoint + distance + coins
+            const totalDistance = Math.floor((this.player.x + this.scrollX) / CONFIG.TILE_SIZE);
+            this.score = this.checkpointScore + totalDistance + this.levelCoins;
+
+            if (this.score > this.highScore) {
+                this.highScore = this.score;
+                localStorage.setItem('gravityGridHighScore_v2', Math.floor(this.highScore));
             }
 
-            if (this.hasMoreLevels) {
-                const levelEndX = this.level[0].length * CONFIG.TILE_SIZE;
-                // If within 800 pixels of the end of the loaded level array, stitch the next one!
-                if (this.scrollX + this.canvas.width + 800 >= levelEndX) {
-                    this.currentLevelNum++;
-                    this.levelTitleAlpha = 1.0;
-                    this.levelTitleText = "Level " + this.currentLevelNum;
-                    const nextLevelData = LEVELS["Level " + this.currentLevelNum];
-                    if (nextLevelData && nextLevelData.length > 0) {
+            if (this.hasMoreLevels && !this.isTransitioning) {
+                const currentLevelWidth = this.level[0].length * CONFIG.TILE_SIZE;
+                // If we are getting close to the end, prepare the next level
+                if (this.scrollX + this.canvas.width >= currentLevelWidth) {
+                    const nextLevelNum = this.getNextLevelNum(this.currentLevelNum);
+                    const nextLevelData = nextLevelNum ? LEVELS["Level " + nextLevelNum] : null;
+
+                    if (nextLevelData) {
+                        // Append next level data row by row
                         for (let y = 0; y < this.level.length; y++) {
-                            const rowToAdd = nextLevelData[y] ? nextLevelData[y] : Array(nextLevelData[0].length).fill(0);
-                            this.level[y] = this.level[y].concat(JSON.parse(JSON.stringify(rowToAdd)));
+                            this.level[y] = this.level[y].concat(JSON.parse(JSON.stringify(nextLevelData[y])));
                         }
+                        this.isTransitioning = true;
+                        this.transitionBoundaryX = currentLevelWidth;
+                        this.nextLevelNumFound = nextLevelNum; // Store which one we found
                     } else {
-                        this.hasMoreLevels = false; // No more levels defined, game continues into the void
+                        // No more levels found
+                        this.hasMoreLevels = false;
                     }
                 }
+            }
+
+            // Handle the official level crossing once the camera is fully in the new section
+            if (this.isTransitioning && this.scrollX >= this.transitionBoundaryX) {
+                // Checkpoint! Add distance & coins from the just-finished level
+                const distToSubtract = Math.floor(this.transitionBoundaryX / CONFIG.TILE_SIZE);
+                this.checkpointScore += (distToSubtract + this.levelCoins);
+                this.levelCoins = 0;
+
+                // Trim the old level data from the array
+                const tilesToTrim = distToSubtract;
+                for (let y = 0; y < this.level.length; y++) {
+                    this.level[y] = this.level[y].slice(tilesToTrim);
+                }
+
+                // Shift coordinates
+                this.scrollX -= this.transitionBoundaryX;
+                this.currentLevelNum = this.nextLevelNumFound || (this.currentLevelNum + 1);
+                this.levelTitleText = "Level " + this.currentLevelNum;
+                this.levelTitleAlpha = 1.0;
+                this.isTransitioning = false;
             }
         }
         this.player.update(this.level, this.scrollX);
@@ -429,6 +551,14 @@ class Game {
             p.y += p.vy;
             p.life -= p.decay;
             if (p.life <= 0) this.particles.splice(i, 1);
+        }
+
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            const ft = this.floatingTexts[i];
+            ft.x += ft.vx;
+            ft.y += ft.vy;
+            ft.life -= 0.02;
+            if (ft.life <= 0) this.floatingTexts.splice(i, 1);
         }
 
         if (this.levelTitleAlpha > 0) {
@@ -470,16 +600,19 @@ class Game {
         ctx.save();
         ctx.translate(0, headerH);
 
+        // Draw Level Grid
         ctx.save();
         ctx.translate(-Math.floor(this.scrollX), 0);
 
-        // Draw Level Grid
         const startTileX = Math.floor(this.scrollX / CONFIG.TILE_SIZE);
         const endTileX = startTileX + Math.ceil(this.canvas.width / CONFIG.TILE_SIZE) + 1;
 
         for (let y = 0; y < this.level.length; y++) {
+            const row = this.level[y];
+            if (!row) continue;
             for (let x = startTileX; x < endTileX; x++) {
-                const tile = this.level[y][x];
+                if (x < 0 || x >= row.length) continue;
+                const tile = row[x];
                 if (!tile) continue;
 
                 ctx.save();
@@ -535,6 +668,43 @@ class Game {
                     ctx.fillStyle = '#cc0000'; // Dark side
                     ctx.beginPath(); ctx.moveTo(ts / 2, ts - 5); ctx.lineTo(ts / 2, 5); ctx.lineTo(ts - 5, 5); ctx.fill();
                 }
+                if (tile === 7) { // Gravity Switcher
+                    const ts = CONFIG.TILE_SIZE;
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.arc(ts / 2, ts / 2, ts / 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (tile === 8) { // Coin
+                    const ts = CONFIG.TILE_SIZE;
+                    const bob = Math.sin(Date.now() / 200) * 4;
+                    ctx.translate(0, bob);
+
+                    // Outer Shaded Edge
+                    ctx.fillStyle = '#cc9900';
+                    ctx.beginPath();
+                    ctx.arc(ts / 2, ts / 2, ts / 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Main Coin Body
+                    ctx.fillStyle = '#ffdf00';
+                    ctx.beginPath();
+                    ctx.arc(ts / 2, ts / 2 - 1, ts / 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Highlight
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(ts / 2 - 3, ts / 2 - 4, 2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Edge Details
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
 
                 ctx.restore();
             }
@@ -561,16 +731,31 @@ class Game {
         ctx.strokeStyle = 'rgba(0, 242, 255, 0.5)';
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(this.canvas.width, 60); ctx.stroke();
+        // Draw floating texts in translated space
+        ctx.save(); // Save for floating texts
+        ctx.translate(-Math.floor(this.scrollX), 0); // Translate floating texts with the game world
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 24px Outfit';
+        for (const ft of this.floatingTexts) {
+            ctx.fillStyle = `rgba(255, 223, 0, ${ft.life})`;
+            ctx.fillText(ft.text, ft.x, ft.y);
+        }
+        ctx.restore(); // Restore for floating texts
+        // End internal translate (this was the ctx.translate(-Math.floor(this.scrollX), 0) for game elements)
+        // The previous ctx.restore() already handled the game area translation.
+        // The instruction snippet had an extra ctx.restore() which seems to be a misunderstanding of the context.
+        // The floating texts should be drawn in the translated game space, so they need their own save/restore.
 
         // Draw HUD
         if (this.state === 'PLAYING') {
-            ctx.fillStyle = 'white';
+            // HUD
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 28px Outfit';
             ctx.textAlign = 'left';
-            ctx.font = '24px Outfit';
-            ctx.fillText(`DISTANCE: ${this.currentDistance}`, 20, 38);
+            ctx.fillText(`SCORE: ${Math.floor(this.score)}`, 20, 45);
 
             ctx.textAlign = 'right';
-            ctx.fillText(`HIGH SCORE: ${this.highScore}`, this.canvas.width - 20, 38);
+            ctx.fillText(`BEST: ${Math.floor(this.highScore)}`, CONFIG.CANVAS_W - 20, 45);
 
             // Draw Level Title
             if (this.levelTitleAlpha > 0) {
@@ -596,5 +781,8 @@ class Game {
 const audio = new ChiptuneEngine();
 let game;
 window.onload = () => {
-    game = new Game();
+    // Only auto-instantiate if the main game canvas is present
+    if (document.getElementById('game-canvas')) {
+        game = new Game();
+    }
 };

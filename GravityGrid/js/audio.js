@@ -126,6 +126,20 @@ class ChiptuneEngine {
             g.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
             osc.connect(g); g.connect(this.masterVolume);
             osc.start(); osc.stop(now + 0.1);
+        } else if (type === 'coin') {
+            const osc = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            osc.type = 'sine';
+            osc2.type = 'sine';
+            osc.frequency.setValueAtTime(987.77, now); // B5
+            osc2.frequency.setValueAtTime(1318.51, now); // E6
+            const g = this.ctx.createGain();
+            g.gain.setValueAtTime(0.1, now);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+            osc.connect(g); osc2.connect(g);
+            g.connect(this.masterVolume);
+            osc.start(); osc2.start();
+            osc.stop(now + 0.5); osc2.stop(now + 0.5);
         }
     }
 }

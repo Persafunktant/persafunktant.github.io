@@ -26,6 +26,9 @@
             display: flex;
             flex-direction: column;
             z-index: 10;
+            overflow-y: auto;
+            max-height: 100vh;
+            flex-shrink: 0;
         }
 
         h1 { margin-top: 0; font-size: 24px; color: #00f2ff; text-align: center; letter-spacing: 1px; }
@@ -74,6 +77,7 @@
             position: relative;
             background: #050508;
             cursor: crosshair;
+            overflow: hidden;
         }
         canvas { display: block; }
         
@@ -96,10 +100,36 @@
             <button class="tool-btn" data-id="4"><div class="color-box" style="background:#ff3333; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); border:none;"></div> Spike Up</button>
             <button class="tool-btn" data-id="5"><div class="color-box" style="background:#ff3333; clip-path: polygon(50% 100%, 0% 0%, 100% 0%); border:none;"></div> Spike Down</button>
             <button class="tool-btn" data-id="6"><div class="color-box" style="background:#666; border: 1px dashed #fff;"></div> Crumbling</button>
+            <button class="tool-btn" data-id="7"><div class="color-box" style="background:#ff00ff; border-radius: 50%; border: 2px solid #fff;"></div> Switcher</button>
+            <button class="tool-btn" data-id="8"><div class="color-box" style="background:#ffcc00; border-radius: 50%; border: 1px solid #fff; transform: scale(0.6);"></div> Coin</button>
             <button class="tool-btn" data-id="0"><div class="color-box" style="background:#000;"></div> Eraser</button>
             <hr style="width: 100%; border-color: #333; margin: 5px 0;">
             <button class="tool-btn" data-id="clone"><div class="color-box" style="background:transparent; border: 1px dashed #00f2ff;"></div> Clone Area</button>
             <button class="tool-btn" data-id="stamp" id="stamp-btn" style="opacity: 0.5; pointer-events: none;"><div class="color-box" style="background:rgba(0, 242, 255, 0.5);"></div> Stamp Area</button>
+            <button class="tool-btn" data-id="gen"><div class="color-box" style="background:#00ff66; border: 1px solid #fff;"></div> Gen Area</button>
+            
+            <div id="pcg-settings" style="display:none; background: #222; padding: 10px; border-radius: 8px; border: 1px solid #444; margin-top: 5px;">
+                <label style="font-size: 11px; color: #aaa;">SPAWN DENSITY</label>
+                <input type="range" id="gen-density" min="1" max="10" value="4" style="width: 100%; margin-bottom: 8px;">
+                
+                <label style="font-size: 11px; color: #aaa;">STRUCTURE MIX (Straight vs Elbow)</label>
+                <input type="range" id="gen-mix" min="0" max="100" value="30" style="width: 100%; margin-bottom: 8px;">
+
+                <label style="font-size: 11px; color: #aaa;">HAZARD DENSITY</label>
+                <input type="range" id="gen-hazard-density" min="0" max="100" value="40" style="width: 100%; margin-bottom: 8px;">
+
+                <label style="font-size: 11px; color: #aaa;">COIN DENSITY</label>
+                <input type="range" id="gen-coin-density" min="0" max="100" value="10" style="width: 100%; margin-bottom: 8px;">
+                
+                <label style="font-size: 11px; color: #aaa;">STYLE</label>
+                <select id="gen-style" style="width: 100%; padding: 5px; font-size: 14px; margin-bottom: 10px;">
+                    <option value="pillars">Pillars</option>
+                    <option value="elbows">Elbows & Lines</option>
+                    <option value="hybrid">Hybrid Mix</option>
+                </select>
+            </div>
+            <hr style="width: 100%; border-color: #333; margin: 10px 0;">
+            <button class="action-btn" id="test-btn" style="background:#00ff66; color:#000;" onclick="toggleTestMode()">Test Level</button>
         </div>
 
         <div class="export-section">
@@ -123,6 +153,8 @@
     </div>
 
     <script src="js/levels.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
     <script>
         // --- Core Data ---
         // GRID_H is loaded from levels.js
@@ -131,14 +163,36 @@
         let levelData = [];
         let selectedTile = 1;
         let scrollX = 0;
+        let scrollY = 0;
         let isPainting = false;
 
-        // Clone & Stamp
-        let isCloning = false;
-        let cloneStart = null;
-        let cloneEnd = null;
-        let clonedData = null;
+        // Playtest State
+        let isTesting = false;
+        let testKeys = { left: false, right: false };
+        let isPlacingSpawn = false;
+        let testPlayer = null;
+        let testSpawnGridX = 0;
+        let testSpawnGridY = 0;
+        let originalScrollX = 0;
+        let originalScrollY = 0;
+        let originalLevelData = null;
+        
+        // Dummy game object for particles/compatibility
+        window.game = {
+            particles: [],
+            floatingTexts: [],
+            checkpointScore: 0,
+            levelCoins: 0,
+            score: 0,
+            highScore: parseInt(localStorage.getItem('gravityGridHighScore_v2')) || 0
+        };
+
         let mouseGridPos = {x: 0, y: 0};
+
+        // Area Selection State (Gen/Erase)
+        let isAreaSelecting = false;
+        let areaStart = null;
+        let areaEnd = null;
 
         // --- Level Loading ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -161,9 +215,10 @@
             const name = document.getElementById('levelSelect').value;
             if (typeof LEVELS !== 'undefined' && LEVELS[name]) {
                 levelData = JSON.parse(JSON.stringify(LEVELS[name]));
-                document.getElementById('levelName').value = name;
                 document.getElementById('levelLength').value = levelData[0].length;
+                document.getElementById('levelName').value = name;
                 scrollX = 0;
+                scrollY = 0;
             } else {
                 alert("Level not found.");
             }
@@ -211,6 +266,7 @@
         function resizeCanvas() {
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
+            if (isTesting) stopTest(); // Stop testing if window resized to avoid layout issues
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -225,9 +281,14 @@
                 btn.classList.add('active');
                 const id = btn.getAttribute('data-id');
                 selectedTile = isNaN(parseInt(id)) ? id : parseInt(id);
+                
+                // Show/hide PCG settings
+                document.getElementById('pcg-settings').style.display = (selectedTile === 'gen') ? 'block' : 'none';
+                
                 cloneStart = null;
                 cloneEnd = null;
                 isCloning = false;
+                isAreaSelecting = false;
             });
         });
 
@@ -238,16 +299,17 @@
             const mouseY = e.clientY - rect.top;
             
             const gridX = Math.floor((mouseX + scrollX) / TILE_SIZE);
-            const gridY = Math.floor(mouseY / TILE_SIZE);
+            const gridY = Math.floor((mouseY + scrollY) / TILE_SIZE);
             return { x: gridX, y: gridY };
         }
 
-        function paint(e) {
+        function paint(e, forceTile = null) {
+            if (isTesting || isPlacingSpawn) return;
             if (!levelData[0] || selectedTile === 'clone' || selectedTile === 'stamp') return;
             if (!isPainting) return;
             const cord = getCoords(e);
             if (cord.x >= 0 && cord.x < levelData[0].length && cord.y >= 0 && cord.y < GRID_H) {
-                levelData[cord.y][cord.x] = selectedTile;
+                levelData[cord.y][cord.x] = (forceTile !== null) ? forceTile : selectedTile;
             }
         }
 
@@ -298,6 +360,7 @@
         }
 
         function handleStamp(e) {
+            if (isTesting || isPlacingSpawn) return;
             if (!clonedData) return;
             const cord = getCoords(e);
             for (let cy = 0; cy < clonedData.length; cy++) {
@@ -311,41 +374,326 @@
             }
         }
 
+        // --- PCG & Area Logic ---
+        function handleAreaStart(e) {
+            const cord = getCoords(e);
+            isAreaSelecting = true;
+            areaStart = cord;
+            areaEnd = cord;
+        }
+
+        function handleAreaMove(e) {
+            if (isAreaSelecting) {
+                areaEnd = getCoords(e);
+            }
+            mouseGridPos = getCoords(e);
+        }
+
+        let areaButton = 0; // track which button started the area select
+
+        function handleAreaEnd() {
+            if (!isAreaSelecting) return;
+            isAreaSelecting = false;
+            if (areaStart && areaEnd) {
+                const startX = Math.min(areaStart.x, areaEnd.x);
+                const endX = Math.max(areaStart.x, areaEnd.x);
+                const startY = Math.min(areaStart.y, areaEnd.y);
+                const endY = Math.max(areaStart.y, areaEnd.y);
+                
+                if (selectedTile === 'gen') {
+                    if (areaButton === 0) {
+                        generateInArea(startX, endX, startY, endY);
+                    } else {
+                        clearArea(startX, endX, startY, endY);
+                    }
+                } else if (selectedTile === 0) {
+                    clearArea(startX, endX, startY, endY);
+                }
+            }
+        }
+
+        function clearArea(startX, endX, startY, endY) {
+            for (let y = startY; y <= endY; y++) {
+                if (y < 0 || y >= GRID_H) continue;
+                for (let x = startX; x <= endX; x++) {
+                    if (x < 0 || x >= levelData[0].length) continue;
+                    levelData[y][x] = 0;
+                }
+            }
+        }
+
+        function generateInArea(startX, endX, startY, endY) {
+            const spawnDensity = parseInt(document.getElementById('gen-density').value) / 10;
+            const style = document.getElementById('gen-style').value;
+            const structMix = parseInt(document.getElementById('gen-mix').value) / 100;
+            const hazardDensity = parseInt(document.getElementById('gen-hazard-density').value) / 100;
+            const coinDensity = parseInt(document.getElementById('gen-coin-density').value) / 100;
+
+            const areaH = endY - startY + 1;
+
+            // Helper to only place spikes if supported by a block
+            const tryPlaceSpike = (x, y, type) => {
+                if (x < 0 || x >= levelData[0].length || y < 0 || y >= GRID_H) return;
+                // Don't overwrite existing blocks
+                if (levelData[y][x] >= 1 && levelData[y][x] <= 3) return;
+                
+                let supported = false;
+                if (type === 4) { // Upward spike needs block below
+                    if (y < GRID_H - 1) {
+                        const below = levelData[y+1][x];
+                        if (below >= 1 && below <= 3 || below === 6) supported = true;
+                    }
+                } else if (type === 5) { // Downward spike needs block above
+                    if (y > 0) {
+                        const above = levelData[y-1][x];
+                        if (above >= 1 && above <= 3 || above === 6) supported = true;
+                    }
+                }
+                if (supported) levelData[y][x] = type;
+            };
+
+            // Boundary Hazards (only if touching supported surface)
+            if (hazardDensity > 0.1 && Math.random() < hazardDensity) {
+                const onFloor = Math.random() > 0.5;
+                const rowY = onFloor ? endY : startY;
+                const spikeID = onFloor ? 4 : 5;
+                for (let x = startX; x <= endX; x++) {
+                    if (Math.random() < hazardDensity) tryPlaceSpike(x, rowY, spikeID);
+                }
+            }
+
+            if (style === 'pillars') {
+                for (let x = startX; x <= endX; x++) {
+                    if (Math.random() < spawnDensity * 0.3) {
+                        const h = Math.floor(Math.random() * (areaH * 0.5)) + 2;
+                        const fromFloor = Math.random() > 0.5;
+                        const material = Math.floor(Math.random() * 3) + 1;
+                        for (let i = 0; i < h; i++) {
+                            const ty = fromFloor ? (endY - i) : (startY + i);
+                            if (ty >= startY && ty <= endY && ty < GRID_H) {
+                                levelData[ty][x] = material;
+                            }
+                        }
+                        if (Math.random() < hazardDensity) {
+                            const spikeY = fromFloor ? (endY - h) : (startY + h);
+                            tryPlaceSpike(x, spikeY, fromFloor ? 4 : 5);
+                        }
+                        x += 2;
+                    }
+                }
+            } else {
+                let x = startX;
+                while (x <= endX) {
+                    if (Math.random() < spawnDensity) {
+                        const isT = (style === 'hybrid' || style === 'elbows') && Math.random() < 0.25;
+                        const len = Math.floor(Math.random() * 8) + 6;
+                        let curY = Math.floor(Math.random() * (areaH - 4)) + startY + 2; 
+                        const material = Math.floor(Math.random() * 3) + 1;
+                        
+                        if (isT) {
+                            const isUpright = Math.random() > 0.5;
+                            const stemH = Math.floor(Math.random() * 3) + 2;
+                            const stemX = x + Math.floor(len / 2);
+                            for (let i = 0; i < len; i++) {
+                                if (x + i <= endX && curY < GRID_H) levelData[curY][x + i] = material;
+                            }
+                            for (let i = 1; i <= stemH; i++) {
+                                const sy = isUpright ? curY + i : curY - i;
+                                if (sy >= startY && sy <= endY && sy < GRID_H && stemX <= endX) {
+                                    levelData[sy][stemX] = material;
+                                }
+                            }
+                            if (Math.random() < hazardDensity) {
+                                const spikeY = isUpright ? curY + stemH + 1 : curY - stemH - 1;
+                                tryPlaceSpike(stemX, spikeY, isUpright ? 4 : 5);
+                            }
+                        } else {
+                            const hasCrumble = Math.random() < 0.2;
+                            const isElbow = Math.random() < structMix;
+                            for (let i = 0; i < len; i++) {
+                                const curX = x + i;
+                                if (curX > endX) break;
+                                if (curY >= 0 && curY < GRID_H) {
+                                    const isMid = i > 1 && i < len - 2;
+                                    levelData[curY][curX] = (hasCrumble && isMid) ? 6 : material;
+                                    if (Math.random() < coinDensity * 0.4) {
+                                        if (curY > 0 && levelData[curY-1][curX] === 0) levelData[curY-1][curX] = 8;
+                                    }
+                                    if (Math.random() < hazardDensity * 0.3) {
+                                        const onTop = Math.random() > 0.5;
+                                        tryPlaceSpike(curX, onTop ? curY - 1 : curY + 1, onTop ? 4 : 5);
+                                    }
+                                }
+                                if (isElbow && Math.random() < 0.15) {
+                                    curY += (Math.random() > 0.5 ? 1 : -1);
+                                    curY = Math.max(startY + 1, Math.min(endY - 1, curY));
+                                }
+                            }
+                        }
+                        x += len + 3;
+                    } else {
+                        x++;
+                    }
+                }
+            }
+        }
+
         canvas.addEventListener('mousedown', (e) => { 
+            if (isPlacingSpawn) {
+                const cord = getCoords(e);
+                startTest(cord.x, cord.y);
+                return;
+            }
+            if (isTesting) {
+                if (e.button === 0) testKeys.left = true;
+                if (e.button === 2) testKeys.right = true;
+                return;
+            }
+            
+            // Right mouse button (2) erases by default in editor mode
             if (selectedTile === 'clone') {
                 handleCloneStart(e);
+            } else if (selectedTile === 'gen' || (selectedTile === 0 && e.button === 0)) {
+                areaButton = e.button;
+                handleAreaStart(e);
             } else if (selectedTile === 'stamp') {
                 handleStamp(e);
             } else {
                 isPainting = true; 
-                paint(e); 
+                paint(e, (e.button === 2 ? 0 : null)); 
             }
         });
         canvas.addEventListener('mousemove', (e) => {
             if (selectedTile === 'clone' || selectedTile === 'stamp') {
                 handleCloneMove(e);
+            } else if (selectedTile === 'gen' || selectedTile === 0) {
+                handleAreaMove(e);
             } else {
-                paint(e);
+                paint(e, (e.buttons === 2 ? 0 : null));
             }
         });
-        window.addEventListener('mouseup', () => { 
+        // Global prevent default for right-click context menu
+        window.addEventListener('contextmenu', (e) => e.preventDefault());
+        window.addEventListener('mouseup', (e) => { 
+            if (isTesting) {
+                if (e.button === 0) testKeys.left = false;
+                if (e.button === 2) testKeys.right = false;
+            }
             isPainting = false;
             handleCloneEnd();
+            handleAreaEnd();
         });
 
         // Scrolling
-        window.addEventListener('wheel', (e) => {
+        container.addEventListener('wheel', (e) => {
             if (!levelData[0]) return;
-            scrollX += e.deltaY;
-            scrollX = Math.max(0, Math.min(scrollX, (levelData[0].length * TILE_SIZE) - canvas.width));
-        });
+            e.preventDefault();
+            
+            // Revert to horizontal-first behavior (classic)
+            // Shift+Wheel or Alt+Wheel for vertical
+            if (e.shiftKey || e.altKey) {
+                scrollY += e.deltaY;
+            } else {
+                // deltaY moves level sideways as before
+                scrollX += (e.deltaX || e.deltaY);
+            }
+            
+            scrollX = Math.max(0, Math.min(scrollX, Math.max(0, (levelData[0].length * TILE_SIZE) - canvas.width)));
+            scrollY = Math.max(0, Math.min(scrollY, Math.max(0, (GRID_H * TILE_SIZE) - canvas.height)));
+        }, { passive: false });
+
         window.addEventListener('keydown', (e) => {
+            if (document.activeElement === document.getElementById('levelName') || document.activeElement === document.getElementById('levelLength')) return;
+            
+            if (isTesting) {
+                if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') testKeys.left = true;
+                if (e.key === 'Shift') testKeys.right = true;
+                if (e.key === 'Escape') stopTest();
+                return;
+            }
+
             if (!levelData[0]) return;
-            if (document.activeElement === document.getElementById('levelName') || document.activeElement === document.getElementById('levelLength')) return; // Don't scroll when typing
+            
             if (e.key === 'ArrowRight' || e.key === 'd') scrollX += 100;
             if (e.key === 'ArrowLeft' || e.key === 'a') scrollX -= 100;
-            scrollX = Math.max(0, Math.min(scrollX, (levelData[0].length * TILE_SIZE) - canvas.width));
+            if (e.key === 'ArrowDown' || e.key === 's') scrollY += 100;
+            if (e.key === 'ArrowUp' || e.key === 'w') scrollY -= 100;
+            
+            scrollX = Math.max(0, Math.min(scrollX, Math.max(0, (levelData[0].length * TILE_SIZE) - canvas.width)));
+            scrollY = Math.max(0, Math.min(scrollY, Math.max(0, (GRID_H * TILE_SIZE) - canvas.height)));
+
+            if (e.key === 't' && !e.ctrlKey) toggleTestMode();
         });
+
+        window.addEventListener('keyup', (e) => {
+            if (isTesting) {
+                if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') testKeys.left = false;
+                if (e.key === 'Shift') testKeys.right = false;
+            }
+        });
+
+        // --- Playtest Core ---
+        function toggleTestMode() {
+            if (isTesting || isPlacingSpawn) {
+                stopTest();
+            } else {
+                isPlacingSpawn = true;
+                const btn = document.getElementById('test-btn');
+                btn.innerText = 'CANCEL SPAWN';
+                btn.style.background = '#ff3333';
+                btns.forEach(b => b.classList.remove('active'));
+                selectedTile = -1; // Deselect tools
+            }
+        }
+
+        function startTest(gridX, gridY) {
+            isPlacingSpawn = false;
+            isTesting = true;
+            
+            testSpawnGridX = gridX;
+            testSpawnGridY = gridY;
+            originalScrollX = scrollX;
+            originalScrollY = scrollY;
+            // Backup level data so we can collect coins safely
+            originalLevelData = JSON.parse(JSON.stringify(levelData));
+            
+            resetTestPlayer();
+            
+            document.getElementById('test-btn').innerText = 'STOP TEST (ESC)';
+            document.getElementById('test-btn').style.background = '#ff3333';
+            
+            audio.start();
+        }
+
+        function resetTestPlayer() {
+            testPlayer = new Player();
+            testPlayer.x = 200;
+            // Align scroll so player is where we clicked
+            scrollX = testSpawnGridX * TILE_SIZE - testPlayer.x;
+            testPlayer.y = testSpawnGridY * TILE_SIZE;
+            window.game.particles = [];
+        }
+
+        function stopTest() {
+            isTesting = false;
+            isPlacingSpawn = false;
+            // Restore level data (in case coins were collected)
+            levelData = JSON.parse(JSON.stringify(originalLevelData));
+            scrollX = originalScrollX;
+            scrollY = originalScrollY;
+            window.game.particles = [];
+            window.game.floatingTexts = [];
+            window.game.checkpointScore = 0;
+            window.game.levelCoins = 0;
+            window.game.score = 0;
+            testKeys = { left: false, right: false };
+            
+            document.getElementById('test-btn').innerText = 'Test Level';
+            document.getElementById('test-btn').style.background = '#00ff66';
+            btns[0].click(); // Re-select first tool
+            
+            audio.stop();
+        }
 
         // --- Export ---
         function exportData() {
@@ -372,11 +720,13 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.save();
-            ctx.translate(-Math.floor(scrollX), 0);
+            ctx.translate(-Math.floor(scrollX), -Math.floor(scrollY));
 
             // Grid Layout (Only draw what's visible)
             const startCol = Math.floor(scrollX / TILE_SIZE);
             const endCol = startCol + Math.ceil(canvas.width / TILE_SIZE) + 1;
+            const startRow = Math.floor(scrollY / TILE_SIZE);
+            const endRow = startRow + Math.ceil(canvas.height / TILE_SIZE) + 1;
 
             ctx.strokeStyle = '#1a1a1a';
             ctx.lineWidth = 1;
@@ -390,7 +740,7 @@
                 ctx.stroke();
             }
             // Horiz Lines
-            for (let y = 0; y <= GRID_H; y++) {
+            for (let y = Math.max(0, startRow); y <= Math.min(GRID_H, endRow); y++) {
                 ctx.beginPath();
                 ctx.moveTo(startCol * TILE_SIZE, y * TILE_SIZE);
                 ctx.lineTo(endCol * TILE_SIZE, y * TILE_SIZE);
@@ -398,7 +748,8 @@
             }
 
             // Draw Level Data
-            for (let y = 0; y < GRID_H; y++) {
+            for (let y = startRow; y <= endRow; y++) {
+                if (y >= GRID_H) break;
                 for (let x = startCol; x <= endCol; x++) {
                     if (x >= levelData[0].length) break;
                     const tile = levelData[y][x];
@@ -446,9 +797,99 @@
                 ctx.setLineDash([]);
             }
 
+            // Draw Area Selection Box (Gen or Erase)
+            if (isAreaSelecting) {
+                const isErase = (selectedTile === 0) || (selectedTile === 'gen' && areaButton === 2);
+                const sx = Math.min(areaStart.x, areaEnd.x) * TILE_SIZE;
+                const sy = Math.min(areaStart.y, areaEnd.y) * TILE_SIZE;
+                const sw = (Math.abs(areaEnd.x - areaStart.x) + 1) * TILE_SIZE;
+                const sh = (Math.abs(areaEnd.y - areaStart.y) + 1) * TILE_SIZE;
+                
+                ctx.fillStyle = isErase ? 'rgba(255, 51, 51, 0.2)' : 'rgba(0, 255, 102, 0.2)';
+                ctx.fillRect(sx, sy, sw, sh);
+                ctx.strokeStyle = isErase ? '#ff3333' : '#00ff66';
+                ctx.lineWidth = 2;
+                ctx.setLineDash(isErase ? [5, 2] : [10, 5]);
+                ctx.strokeRect(sx, sy, sw, sh);
+                ctx.setLineDash([]);
+            }
+
             ctx.restore();
 
-            document.getElementById('hud').innerText = `Scroll X: ${Math.floor(scrollX)}px | Tile X: ${startCol} / ${levelData[0] ? levelData[0].length : 0}`;
+            if (isTesting) {
+                // Update score logic for editor (distance + coins)
+                const currentDist = Math.floor(scrollX / TILE_SIZE);
+                window.game.score = window.game.checkpointScore + currentDist + window.game.levelCoins;
+
+                // Testing HUD
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 28px Outfit';
+                ctx.textAlign = 'left';
+                ctx.fillText(`SCORE: ${Math.floor(window.game.score)}`, 20, 45);
+
+                ctx.textAlign = 'right';
+                ctx.fillText(`BEST: ${Math.floor(window.game.highScore)}`, ctx.canvas.width - 20, 45);
+                
+                // Draw particles and floating texts
+                ctx.save();
+                ctx.translate(-Math.floor(scrollX), -Math.floor(scrollY));
+                
+                for (const p of window.game.particles) {
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life;
+                    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+                }
+                ctx.globalAlpha = 1.0;
+                
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 24px Outfit';
+                for (const ft of window.game.floatingTexts) {
+                    ctx.fillStyle = `rgba(255, 223, 0, ${ft.life})`;
+                    ctx.fillText(ft.text, ft.x, ft.y);
+                }
+                
+                ctx.restore();
+            
+                // Draw player (screen horizontal, world vertical)
+                ctx.save();
+                ctx.translate(0, -Math.floor(scrollY));
+                testPlayer.draw(ctx);
+                ctx.restore();
+                
+                if (testKeys.left) testPlayer.jump();
+                if (testKeys.right) testPlayer.toggleGravity();
+
+                scrollX += CONFIG.SCROLL_SPEED;
+                testPlayer.update(levelData, scrollX);
+                
+                // Particle Step
+                for (let i = window.game.particles.length - 1; i >= 0; i--) {
+                    const p = window.game.particles[i];
+                    p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+                    if (p.life <= 0) window.game.particles.splice(i, 1);
+                }
+                
+                // Floating Text Step
+                for (let i = window.game.floatingTexts.length - 1; i >= 0; i--) {
+                    const ft = window.game.floatingTexts[i];
+                    ft.y += ft.vy;
+                    ft.life -= 0.02;
+                    if (ft.life <= 0) window.game.floatingTexts.splice(i, 1);
+                }
+            
+                if (testPlayer.dead && window.game.particles.length === 0) {
+                    resetTestPlayer(); // Restart at spawn instead of exiting
+                }
+            } else if (isPlacingSpawn) {
+                ctx.fillStyle = 'rgba(0, 255, 102, 0.3)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 20px Outfit';
+                ctx.fillText('CLICK TO SPAWN PLAYER', canvas.width/2, canvas.height/2);
+            }
+
+            document.getElementById('hud').innerText = `Scroll: ${Math.floor(scrollX)}, ${Math.floor(scrollY)} | Tile: ${startCol}, ${startRow}`;
 
             requestAnimationFrame(render);
         }
@@ -480,9 +921,42 @@
                         ctx.strokeStyle = '#aaa'; 
                         ctx.lineWidth = 1;
                         ctx.strokeRect(6, 6, TS-12, TS-12);
+                    } else if (tile === 7) { // Switcher
+                        ctx.fillStyle = '#ff00ff';
+                        ctx.beginPath();
+                        ctx.arc(TS/2, TS/2, TS/3, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    } else if (tile === 8) { // Coin
+                        const bob = Math.sin(Date.now() / 200) * 4;
+                        ctx.translate(0, bob);
+                        
+                        // Outer Shaded Edge
+                        ctx.fillStyle = '#cc9900';
+                        ctx.beginPath();
+                        ctx.arc(TS/2, TS/2, TS/3.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Main Coin Body
+                        ctx.fillStyle = '#ffdf00';
+                        ctx.beginPath();
+                        ctx.arc(TS/2, TS/2 - 1, TS/4, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        // Highlight
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(TS/2 - 3, TS/2 - 4, 2, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Edge Details
+                        ctx.strokeStyle = '#fff';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
                     }
 
-                    ctx.restore();
                     ctx.restore();
         }
 
