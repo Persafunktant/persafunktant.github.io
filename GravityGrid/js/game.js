@@ -8,7 +8,8 @@ const CONFIG = {
     JUMP_FORCE: 11.5,
     SCROLL_SPEED: 3.5,
     CANVAS_W: 1280,
-    CANVAS_H: 780
+    CANVAS_H: 780,
+    STARTING_LEVEL_NAME: "Level 1"
 };
 
 class Player {
@@ -346,7 +347,7 @@ class Game {
         this.ctx = this.canvas.getContext('2d');
         this.player = new Player();
         this.scrollX = 0;
-        this.level = JSON.parse(JSON.stringify(LEVELS["Level 1"]));
+        this.level = JSON.parse(JSON.stringify(LEVELS[CONFIG.STARTING_LEVEL_NAME] || LEVELS["Level 1"]));
         this.state = 'MENU';
         this.keys = { left: false, right: false };
         this.particles = [];
@@ -356,10 +357,10 @@ class Game {
         this.levelCoins = 0;
         this.score = 0;
         this.currentDistance = 0;
-        this.currentLevelNum = 1;
+        this.currentLevelNum = parseInt(CONFIG.STARTING_LEVEL_NAME.replace("Level ", "")) || 1;
         this.hasMoreLevels = true;
         this.levelTitleAlpha = 1.0;
-        this.levelTitleText = "Level 1";
+        this.levelTitleText = CONFIG.STARTING_LEVEL_NAME;
         this.isTransitioning = false;
         this.transitionBoundaryX = 0;
 
@@ -511,7 +512,7 @@ class Game {
 
     start(isNewGame = false) {
         if (isNewGame) {
-            this.currentLevelNum = 1;
+            this.currentLevelNum = parseInt(CONFIG.STARTING_LEVEL_NAME.replace("Level ", "")) || 1;
         }
         this.state = 'PLAYING';
         if (this.uiMenu) this.uiMenu.style.display = 'none';
@@ -553,7 +554,7 @@ class Game {
 
     reset(isNewGame = false, preservePlayerState = false) {
         if (isNewGame) {
-            this.currentLevelNum = 1;
+            this.currentLevelNum = parseInt(CONFIG.STARTING_LEVEL_NAME.replace("Level ", "")) || 1;
             this.checkpointScore = 0;
         }
         this.player.reset(preservePlayerState);
