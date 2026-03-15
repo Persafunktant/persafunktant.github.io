@@ -93,6 +93,12 @@ class ChiptuneEngine {
 
     stop() { this.isPlaying = false; }
 
+    setVolume(value) {
+        if (this.masterVolume) {
+            this.masterVolume.gain.setTargetAtTime(value, this.ctx.currentTime, 0.05);
+        }
+    }
+
     playSfx(type) {
         if (!this.ctx) return;
         const now = this.ctx.currentTime;

@@ -138,6 +138,38 @@ canvas {
     transform: translateY(-2px);
 }
 
+.menu-title {
+    font-size: 48px;
+    margin: 0 0 20px 0;
+    color: white;
+    text-shadow: 0 0 15px var(--primary);
+    letter-spacing: 2px;
+}
+
+.option-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+input[type="range"] {
+    flex-grow: 1;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
+input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: var(--primary);
+}
+
 /* Editor Specific */
 #editor-panel {
     position: absolute;

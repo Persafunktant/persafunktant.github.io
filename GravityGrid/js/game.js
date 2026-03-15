@@ -30,6 +30,8 @@ class Player {
         this.isGrounded = false;
         this.canAction = true;
         this.dead = false;
+        this.jumpTrailTimer = 0;
+        this.flipTrailTimer = 0;
     }
 
     jump() {
@@ -38,8 +40,11 @@ class Player {
             this.isGrounded = false;
             this.canAction = false;
             // CW from floor, CCW from ceiling
-            this.targetRotation += (this.gravityDir === 1 ? Math.PI / 2 : -Math.PI / 2);
+            this.targetRotation += (this.gravityDir === 1 ? Math.PI * 2 : -Math.PI * 2);
             audio.playSfx('jump');
+
+            // Set Jump Trail Timer (Doubled to 50)
+            this.jumpTrailTimer = 50;
         }
     }
 
@@ -51,6 +56,9 @@ class Player {
             // Add a half rotation flip when toggling gravity
             this.targetRotation += Math.PI;
             audio.playSfx('flip');
+
+            // Set Flip Trail Timer
+            this.flipTrailTimer = 30;
         }
     }
 
@@ -82,6 +90,44 @@ class Player {
 
         // Bounds Check
         if (this.y < -100 || this.y > CONFIG.CANVAS_H + 100) this.die();
+
+        // Particle Trails
+        if (game && !this.dead) {
+            const px = this.x + game.scrollX + this.w / 2;
+            const py = this.y + this.h / 2;
+
+            if (this.jumpTrailTimer > 0) {
+                for (let i = 0; i < 2; i++) {
+                    game.particles.push({
+                        x: px + (Math.random() - 0.5) * 10,
+                        y: py + (Math.random() - 0.5) * 10,
+                        vx: (Math.random() - 0.5) * 1,
+                        vy: (Math.random() - 0.5) * 1,
+                        size: Math.random() * 6 + 4,
+                        color: this.gravityDir === 1 ? '#00f2ff' : '#ff007a',
+                        life: 0.8,
+                        decay: 0.02
+                    });
+                }
+                this.jumpTrailTimer--;
+            }
+
+            if (this.flipTrailTimer > 0) {
+                for (let i = 0; i < 3; i++) {
+                    game.particles.push({
+                        x: px + (Math.random() - 0.5) * 15,
+                        y: py + (Math.random() - 0.5) * 15,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        size: Math.random() * 4 + 2, // Smaller particles (2-6px)
+                        color: Math.random() > 0.5 ? '#00f2ff' : '#ff007a',
+                        life: 0.8,
+                        decay: 0.025
+                    });
+                }
+                this.flipTrailTimer--;
+            }
+        }
     }
 
     checkCollisions(grid, scrollX) {
@@ -286,10 +332,15 @@ class Game {
 
         // HTML UI Elements
         this.uiMenu = document.getElementById('main-menu');
-        this.btnStart = document.getElementById('btn-start');
+        this.optionsMenu = document.getElementById('options-menu');
+        this.btnRestartGame = document.getElementById('btn-restart-game');
+        this.btnRestartLevel = document.getElementById('btn-restart-level');
         this.btnResume = document.getElementById('btn-resume');
+        this.btnOptions = document.getElementById('btn-options');
+        this.btnOptionsBack = document.getElementById('btn-options-back');
         this.btnPause = document.getElementById('btn-pause');
         this.btnFullscreen = document.getElementById('btn-fullscreen');
+        this.sliderVolume = document.getElementById('slider-volume');
 
         if (this.canvas) this.init();
     }
@@ -300,12 +351,12 @@ class Game {
 
         // Input
         window.onmousedown = (e) => {
-            if (this.state !== 'PLAYING') {
+            if (this.state === 'PLAYING') {
+                if (e.button === 0) this.keys.left = true;
+                if (e.button === 2) this.keys.right = true;
+            } else if (this.state === 'MENU' && e.target === this.canvas) {
                 this.start();
-                return;
             }
-            if (e.button === 0) this.keys.left = true;
-            if (e.button === 2) this.keys.right = true;
         };
         window.onmouseup = (e) => {
             if (e.button === 0) this.keys.left = false;
@@ -338,12 +389,16 @@ class Game {
             }
         });
 
-        if (this.btnStart) this.btnStart.addEventListener('click', () => this.start(true));
+        if (this.btnRestartGame) this.btnRestartGame.addEventListener('click', () => this.start(true));
+        if (this.btnRestartLevel) this.btnRestartLevel.addEventListener('click', () => this.start(false));
         if (this.btnResume) this.btnResume.addEventListener('click', () => this.resume());
         if (this.btnPause) this.btnPause.addEventListener('click', () => this.pause());
-        if (document.getElementById('btn-options')) {
-            document.getElementById('btn-options').addEventListener('click', () => {
-                alert("Options menu coming soon! Music is currently enabled by default.");
+        if (this.btnOptions) this.btnOptions.addEventListener('click', () => this.openOptions());
+        if (this.btnOptionsBack) this.btnOptionsBack.addEventListener('click', () => this.closeOptions());
+
+        if (this.sliderVolume) {
+            this.sliderVolume.addEventListener('input', (e) => {
+                audio.setVolume(parseFloat(e.target.value));
             });
         }
 
@@ -435,15 +490,32 @@ class Game {
     pause() {
         this.state = 'PAUSED';
         if (this.uiMenu) this.uiMenu.style.display = 'flex';
+        if (this.optionsMenu) this.optionsMenu.style.display = 'none';
         if (this.btnPause) this.btnPause.style.display = 'none';
+
         if (this.btnResume) this.btnResume.style.display = 'block';
-        if (this.btnStart) this.btnStart.textContent = 'RESTART LEVEL ' + this.currentLevelNum;
+        if (this.btnRestartLevel) {
+            this.btnRestartLevel.style.display = 'block';
+            this.btnRestartLevel.textContent = 'RESTART LEVEL ' + this.currentLevelNum;
+        }
+        if (this.btnRestartGame) this.btnRestartGame.textContent = 'RESTART GAME';
     }
 
     resume() {
         this.state = 'PLAYING';
         if (this.uiMenu) this.uiMenu.style.display = 'none';
+        if (this.optionsMenu) this.optionsMenu.style.display = 'none';
         if (this.btnPause) this.btnPause.style.display = 'block';
+    }
+
+    openOptions() {
+        if (this.uiMenu) this.uiMenu.style.display = 'none';
+        if (this.optionsMenu) this.optionsMenu.style.display = 'flex';
+    }
+
+    closeOptions() {
+        if (this.optionsMenu) this.optionsMenu.style.display = 'none';
+        if (this.uiMenu) this.uiMenu.style.display = 'flex';
     }
 
     reset(isNewGame = false, preservePlayerState = false) {
@@ -478,6 +550,7 @@ class Game {
         // Ensure menu resets state if player dies
         if (this.state === 'PLAYING') {
             if (this.uiMenu) this.uiMenu.style.display = 'none';
+            if (this.optionsMenu) this.optionsMenu.style.display = 'none';
             if (this.btnPause) this.btnPause.style.display = 'block';
         }
     }
