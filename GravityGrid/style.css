@@ -170,61 +170,7 @@ input[type="checkbox"] {
     accent-color: var(--primary);
 }
 
-/* Editor Specific */
-#editor-panel {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    width: 250px;
-    background: var(--panel);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.tile-btn {
-    padding: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: transparent;
-    color: white;
-    cursor: pointer;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-radius: 6px;
-}
-
-.tile-btn.active {
-    border-color: var(--primary);
-    background: rgba(0, 242, 255, 0.1);
-}
-
-.tile-preview {
-    width: 20px;
-    height: 20px;
-    border: 1px solid #fff;
-}
-
-button.action {
-    background: var(--primary);
-    color: black;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-
-button.action:hover {
-    filter: brightness(1.2);
-}
-
+/* Overlay Fallback */
 #overlay {
     position: fixed;
     top: 0;

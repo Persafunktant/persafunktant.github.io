@@ -12,6 +12,53 @@ const CONFIG = {
     STARTING_LEVEL_NAME: "Level 1"
 };
 
+// ── Spritesheet Atlas ──────────────────────────────────────────────────────
+// 512×512 PNG, 8×8 grid, each cell is 64×64px.
+// Lookup: tile ID → { col, row } in the grid.
+const SPRITE_CELL = 64;
+const SPRITE_MAP = {
+    1: { col: 0, row: 0 }, // Platform A (cyan)
+    2: { col: 1, row: 0 }, // Platform B (pink)
+    3: { col: 2, row: 0 }, // Platform C (yellow)
+    4: { col: 3, row: 0 }, // Spike Up
+    5: { col: 4, row: 0 }, // Spike Down
+    6: { col: 5, row: 0 }, // Crumble Block
+    7: { col: 6, row: 0 }, // Gravity Switcher
+    8: { col: 7, row: 0 }, // Coin (large)
+    9: { col: 0, row: 1 }, // Small Coin
+};
+// Player sprites are kept separate to allow a dedicated animation sheet later.
+const PLAYER_SPRITE = {
+    1: { col: 1, row: 1 }, // Normal gravity
+    '-1': { col: 2, row: 1 }, // Flipped gravity
+};
+
+// Load the shared spritesheet once at startup.
+const spritesheet = new Image();
+spritesheet.src = 'assets/spritesheet.png';
+let spritesheetReady = false;
+spritesheet.onload = () => { spritesheetReady = true; };
+
+/**
+ * Draw one tile from the spritesheet.
+ * Falls back to a coloured rect if the sheet isn't loaded yet.
+ */
+function drawSpriteCell(ctx, tileId, x, y, size) {
+    const cell = SPRITE_MAP[tileId];
+    if (spritesheetReady && cell) {
+        ctx.drawImage(
+            spritesheet,
+            cell.col * SPRITE_CELL, cell.row * SPRITE_CELL, SPRITE_CELL, SPRITE_CELL,
+            x, y, size, size
+        );
+    } else {
+        // Fallback: coloured rect so the game is never broken without the asset
+        const fallbackColors = { 1: '#00f2ff', 2: '#ff007a', 3: '#ffcc00', 4: '#ff3333', 5: '#ff3333', 6: '#888', 7: '#ff00ff', 8: '#ffdf00', 9: '#ffdf00' };
+        ctx.fillStyle = fallbackColors[tileId] || '#444';
+        ctx.fillRect(x, y, size, size);
+    }
+}
+
 class Player {
     constructor() {
         this.reset();
@@ -326,16 +373,27 @@ class Player {
         ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
         ctx.rotate(this.rotation);
 
-        // Draw Core
-        ctx.fillStyle = this.gravityDir === 1 ? '#00f2ff' : '#ff007a';
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = ctx.fillStyle;
-        ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+        // Glow — applied to drawImage the same as fillRect
+        const glowColor = this.gravityDir === 1 ? '#00f2ff' : '#ff007a';
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = glowColor;
 
-        // Detail
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(-this.w / 2 + 4, -this.h / 2 + 4, this.w - 8, this.h - 8);
+        if (spritesheetReady) {
+            // Draw player sprite from sheet (row 1; col 1 = normal, col 2 = flipped)
+            const pCell = PLAYER_SPRITE[String(this.gravityDir)];
+            ctx.drawImage(
+                spritesheet,
+                pCell.col * SPRITE_CELL, pCell.row * SPRITE_CELL, SPRITE_CELL, SPRITE_CELL,
+                -this.w / 2, -this.h / 2, this.w, this.h
+            );
+        } else {
+            // Fallback while sheet loads
+            ctx.fillStyle = glowColor;
+            ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-this.w / 2 + 4, -this.h / 2 + 4, this.w - 8, this.h - 8);
+        }
 
         ctx.restore();
     }
@@ -345,6 +403,7 @@ class Game {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
+        this.ctx.imageSmoothingEnabled = false; // Global setting for crisp pixel art
         this.player = new Player();
         this.scrollX = 0;
         this.level = JSON.parse(JSON.stringify(LEVELS[CONFIG.STARTING_LEVEL_NAME] || LEVELS["Level 1"]));
@@ -714,6 +773,9 @@ class Game {
         const startTileX = Math.floor(this.scrollX / CONFIG.TILE_SIZE);
         const endTileX = startTileX + Math.ceil(this.canvas.width / CONFIG.TILE_SIZE) + 1;
 
+        // Pre-compute coin bob once per frame (avoids calling Date.now() per tile)
+        const coinBob = Math.sin(Date.now() / 200) * 4;
+
         for (let y = 0; y < this.level.length; y++) {
             const row = this.level[y];
             if (!row) continue;
@@ -722,104 +784,20 @@ class Game {
                 const tile = row[x];
                 if (!tile) continue;
 
-                ctx.save();
-                ctx.translate(x * CONFIG.TILE_SIZE, y * CONFIG.TILE_SIZE);
+                const px = x * CONFIG.TILE_SIZE;
+                const py = y * CONFIG.TILE_SIZE;
+                const ts = CONFIG.TILE_SIZE;
 
-                if (tile === 1 || tile === 2 || tile === 3 || tile === 6) {
-                    let baseColor = '#666';
-                    if (tile === 1) baseColor = '#00f2ff';
-                    if (tile === 2) baseColor = '#ff007a';
-                    if (tile === 3) baseColor = '#ffcc00';
-
-                    ctx.fillStyle = baseColor;
-                    ctx.fillRect(0, 0, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
-
-                    const ts = CONFIG.TILE_SIZE;
-                    const b = 6; // border width
-
-                    // Highlight top/left
-                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0); ctx.lineTo(ts, 0); ctx.lineTo(ts - b, b); ctx.lineTo(b, b); ctx.lineTo(b, ts - b); ctx.lineTo(0, ts); ctx.fill();
-
-                    // Shadow bottom/right
-                    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                    ctx.beginPath();
-                    ctx.moveTo(ts, ts); ctx.lineTo(0, ts); ctx.lineTo(b, ts - b); ctx.lineTo(ts - b, ts - b); ctx.lineTo(ts - b, b); ctx.lineTo(ts, 0); ctx.fill();
-
-                    // Inner highlight
-                    ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                    ctx.fillRect(b, b, ts - b * 2, ts - b * 2);
-
-                    if (tile === 6) {
-                        // Add some cracks for crumbling block
-                        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(b + 5, b + 5); ctx.lineTo(ts / 2, ts / 2); ctx.lineTo(ts - 10, ts / 2 + 5);
-                        ctx.stroke();
-                    }
+                if (tile === 8 || tile === 9) {
+                    // Coins keep their programmatic bob; draw sprite with Y offset
+                    ctx.save();
+                    ctx.translate(Math.floor(px), Math.floor(py + coinBob));
+                    drawSpriteCell(ctx, tile, 0, 0, ts);
+                    ctx.restore();
+                } else {
+                    // All other tiles: single drawImage call
+                    drawSpriteCell(ctx, tile, px, py, ts);
                 }
-
-                if (tile === 4) { // Spike Up
-                    const ts = CONFIG.TILE_SIZE;
-                    ctx.fillStyle = '#ff6666'; // Light side
-                    ctx.beginPath(); ctx.moveTo(ts / 2, 5); ctx.lineTo(5, ts - 5); ctx.lineTo(ts / 2, ts - 5); ctx.fill();
-                    ctx.fillStyle = '#cc0000'; // Dark side
-                    ctx.beginPath(); ctx.moveTo(ts / 2, 5); ctx.lineTo(ts / 2, ts - 5); ctx.lineTo(ts - 5, ts - 5); ctx.fill();
-                }
-                if (tile === 5) { // Spike Down
-                    const ts = CONFIG.TILE_SIZE;
-                    ctx.fillStyle = '#ff6666'; // Light side
-                    ctx.beginPath(); ctx.moveTo(ts / 2, ts - 5); ctx.lineTo(5, 5); ctx.lineTo(ts / 2, 5); ctx.fill();
-                    ctx.fillStyle = '#cc0000'; // Dark side
-                    ctx.beginPath(); ctx.moveTo(ts / 2, ts - 5); ctx.lineTo(ts / 2, 5); ctx.lineTo(ts - 5, 5); ctx.fill();
-                }
-                if (tile === 7) { // Gravity Switcher
-                    const ts = CONFIG.TILE_SIZE;
-                    ctx.fillStyle = '#ff00ff';
-                    ctx.beginPath();
-                    ctx.arc(ts / 2, ts / 2, ts / 3, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                } else if (tile === 8 || tile === 9) { // Coin or Small Coin
-                    const ts = CONFIG.TILE_SIZE;
-                    const bob = Math.sin(Date.now() / 200) * 4;
-                    ctx.translate(0, bob);
-
-                    const scale = (tile === 8 ? 1.0 : 0.6);
-                    const outerRadius = ts / 3.5 * scale;
-                    const innerRadius = ts / 4 * scale;
-                    const highlightOffset = 3 * scale;
-                    const highlightRadius = 2 * scale;
-
-                    // Outer Shaded Edge
-                    ctx.fillStyle = '#cc9900';
-                    ctx.beginPath();
-                    ctx.arc(ts / 2, ts / 2, outerRadius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Main Coin Body
-                    ctx.fillStyle = '#ffdf00';
-                    ctx.beginPath();
-                    ctx.arc(ts / 2, ts / 2 - 1, innerRadius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Highlight
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.arc(ts / 2 - highlightOffset, ts / 2 - highlightOffset - 1, highlightRadius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Edge Details
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
-
-                ctx.restore();
             }
         }
         ctx.restore();
@@ -845,19 +823,15 @@ class Game {
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(0, 60); ctx.lineTo(this.canvas.width, 60); ctx.stroke();
         // Draw floating texts in translated space
-        ctx.save(); // Save for floating texts
-        ctx.translate(-Math.floor(this.scrollX), 0); // Translate floating texts with the game world
+        ctx.save();
+        ctx.translate(-Math.floor(this.scrollX), 0);
         ctx.textAlign = 'center';
         ctx.font = 'bold 24px Outfit';
         for (const ft of this.floatingTexts) {
             ctx.fillStyle = `rgba(255, 223, 0, ${ft.life})`;
             ctx.fillText(ft.text, ft.x, ft.y);
         }
-        ctx.restore(); // Restore for floating texts
-        // End internal translate (this was the ctx.translate(-Math.floor(this.scrollX), 0) for game elements)
-        // The previous ctx.restore() already handled the game area translation.
-        // The instruction snippet had an extra ctx.restore() which seems to be a misunderstanding of the context.
-        // The floating texts should be drawn in the translated game space, so they need their own save/restore.
+        ctx.restore();
 
         // Draw HUD
         if (this.state === 'PLAYING') {

@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Gravity Grid - Editor</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; 
-            padding: 0; 
-            background: #000; 
-            color: #fff; 
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
             font-family: 'Outfit', sans-serif;
             display: flex;
             height: 100vh;
@@ -31,21 +35,53 @@
             flex-shrink: 0;
         }
 
-        h1 { margin-top: 0; font-size: 24px; color: #00f2ff; text-align: center; letter-spacing: 1px; }
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #00f2ff;
+            text-align: center;
+            letter-spacing: 1px;
+        }
 
-        .tools { display: flex; flex-direction: column; gap: 10px; flex-grow: 1; }
-        
+        .tools {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
         .tool-btn {
-            background: #222; border: 2px solid #444; color: #fff;
-            padding: 10px; border-radius: 8px; cursor: pointer;
-            display: flex; align-items: center; gap: 15px;
-            font-size: 16px; font-weight: 700; font-family: 'Outfit';
+            background: #222;
+            border: 2px solid #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Outfit';
             transition: 0.2s;
         }
-        .tool-btn:hover { background: #333; }
-        .tool-btn.active { border-color: #00f2ff; background: #00f2ff33; box-shadow: 0 0 10px rgba(0,242,255,0.2); }
-        
-        .color-box { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #fff; }
+
+        .tool-btn:hover {
+            background: #333;
+        }
+
+        .tool-btn.active {
+            border-color: #00f2ff;
+            background: #00f2ff33;
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+
+        .color-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid #fff;
+        }
 
         .export-section {
             margin-top: 20px;
@@ -56,20 +92,42 @@
             border-top: 2px solid #333;
         }
 
-        input, select {
-            background: #000; border: 2px solid #444; color: #fff;
-            padding: 12px; border-radius: 8px; font-family: 'Outfit'; font-size: 16px; font-weight: bold;
+        input,
+        select {
+            background: #000;
+            border: 2px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Outfit';
+            font-size: 16px;
+            font-weight: bold;
         }
-        select { cursor: pointer; }
+
+        select {
+            cursor: pointer;
+        }
 
         .action-btn {
-            background: #00f2ff; color: #000; border: none;
-            padding: 15px; border-radius: 8px; font-size: 18px; font-weight: 900;
-            cursor: pointer; text-transform: uppercase;
+            background: #00f2ff;
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
         }
-        .action-btn:hover { filter: brightness(1.2); }
-        
-        .clear-btn { background: #ff3333; color: #fff; }
+
+        .action-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        .clear-btn {
+            background: #ff3333;
+            color: #fff;
+        }
 
         /* Canvas Area */
         #canvas-container {
@@ -79,49 +137,99 @@
             cursor: crosshair;
             overflow: hidden;
         }
-        canvas { display: block; }
-        
+
+        canvas {
+            display: block;
+        }
+
         #hud {
-            position: absolute; bottom: 20px; right: 20px;
-            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 8px;
-            font-family: monospace; font-size: 14px; color: #aaa; pointer-events: none;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #aaa;
+            pointer-events: none;
         }
     </style>
 </head>
+
 <body>
 
     <div id="sidebar">
         <h1>LEVEL EDITOR</h1>
-        
+
         <div class="tools" id="tool-container">
-            <button class="tool-btn active" data-id="1"><div class="color-box" style="background:#00f2ff;"></div> Platform A</button>
-            <button class="tool-btn" data-id="2"><div class="color-box" style="background:#ff007a;"></div> Platform B</button>
-            <button class="tool-btn" data-id="3"><div class="color-box" style="background:#ffcc00;"></div> Platform C</button>
-            <button class="tool-btn" data-id="4"><div class="color-box" style="background:#ff3333; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); border:none;"></div> Spike Up</button>
-            <button class="tool-btn" data-id="5"><div class="color-box" style="background:#ff3333; clip-path: polygon(50% 100%, 0% 0%, 100% 0%); border:none;"></div> Spike Down</button>
-            <button class="tool-btn" data-id="6"><div class="color-box" style="background:#666; border: 1px dashed #fff;"></div> Crumbling</button>
-            <button class="tool-btn" data-id="7"><div class="color-box" style="background:#ff00ff; border-radius: 50%; border: 2px solid #fff;"></div> Switcher</button>
-            <button class="tool-btn" data-id="8"><div class="color-box" style="background:#ffcc00; border-radius: 50%; border: 1px solid #fff; transform: scale(0.6);"></div> Coin</button>
-            <button class="tool-btn" data-id="9"><div class="color-box" style="background:#ffcc00; border-radius: 50%; border: 1px solid #fff; transform: scale(0.4);"></div> Small Coin</button>
-            <button class="tool-btn" data-id="0"><div class="color-box" style="background:#000;"></div> Eraser</button>
+            <button class="tool-btn active" data-id="1">
+                <div class="color-box" style="background:#00f2ff;"></div> Platform A
+            </button>
+            <button class="tool-btn" data-id="2">
+                <div class="color-box" style="background:#ff007a;"></div> Platform B
+            </button>
+            <button class="tool-btn" data-id="3">
+                <div class="color-box" style="background:#ffcc00;"></div> Platform C
+            </button>
+            <button class="tool-btn" data-id="4">
+                <div class="color-box"
+                    style="background:#ff3333; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); border:none;"></div>
+                Spike Up
+            </button>
+            <button class="tool-btn" data-id="5">
+                <div class="color-box"
+                    style="background:#ff3333; clip-path: polygon(50% 100%, 0% 0%, 100% 0%); border:none;"></div> Spike
+                Down
+            </button>
+            <button class="tool-btn" data-id="6">
+                <div class="color-box" style="background:#666; border: 1px dashed #fff;"></div> Crumbling
+            </button>
+            <button class="tool-btn" data-id="7">
+                <div class="color-box" style="background:#ff00ff; border-radius: 50%; border: 2px solid #fff;"></div>
+                Switcher
+            </button>
+            <button class="tool-btn" data-id="8">
+                <div class="color-box"
+                    style="background:#ffcc00; border-radius: 50%; border: 1px solid #fff; transform: scale(0.6);">
+                </div> Coin
+            </button>
+            <button class="tool-btn" data-id="9">
+                <div class="color-box"
+                    style="background:#ffcc00; border-radius: 50%; border: 1px solid #fff; transform: scale(0.4);">
+                </div> Small Coin
+            </button>
+            <button class="tool-btn" data-id="0">
+                <div class="color-box" style="background:#000;"></div> Eraser
+            </button>
             <hr style="width: 100%; border-color: #333; margin: 5px 0;">
-            <button class="tool-btn" data-id="clone"><div class="color-box" style="background:transparent; border: 1px dashed #00f2ff;"></div> Clone Area</button>
-            <button class="tool-btn" data-id="stamp" id="stamp-btn" style="opacity: 0.5; pointer-events: none;"><div class="color-box" style="background:rgba(0, 242, 255, 0.5);"></div> Stamp Area</button>
-            <button class="tool-btn" data-id="gen"><div class="color-box" style="background:#00ff66; border: 1px solid #fff;"></div> Gen Area</button>
-            
-            <div id="pcg-settings" style="display:none; background: #222; padding: 10px; border-radius: 8px; border: 1px solid #444; margin-top: 5px;">
+            <button class="tool-btn" data-id="clone">
+                <div class="color-box" style="background:transparent; border: 1px dashed #00f2ff;"></div> Clone Area
+            </button>
+            <button class="tool-btn" data-id="stamp" id="stamp-btn" style="opacity: 0.5; pointer-events: none;">
+                <div class="color-box" style="background:rgba(0, 242, 255, 0.5);"></div> Stamp Area
+            </button>
+            <button class="tool-btn" data-id="gen">
+                <div class="color-box" style="background:#00ff66; border: 1px solid #fff;"></div> Gen Area
+            </button>
+
+            <div id="pcg-settings"
+                style="display:none; background: #222; padding: 10px; border-radius: 8px; border: 1px solid #444; margin-top: 5px;">
                 <label style="font-size: 11px; color: #aaa;">SPAWN DENSITY</label>
-                <input type="range" id="gen-density" min="1" max="10" value="4" style="width: 100%; margin-bottom: 8px;">
-                
+                <input type="range" id="gen-density" min="1" max="10" value="4"
+                    style="width: 100%; margin-bottom: 8px;">
+
                 <label style="font-size: 11px; color: #aaa;">STRUCTURE MIX (Straight vs Elbow)</label>
                 <input type="range" id="gen-mix" min="0" max="100" value="30" style="width: 100%; margin-bottom: 8px;">
 
                 <label style="font-size: 11px; color: #aaa;">HAZARD DENSITY</label>
-                <input type="range" id="gen-hazard-density" min="0" max="100" value="40" style="width: 100%; margin-bottom: 8px;">
+                <input type="range" id="gen-hazard-density" min="0" max="100" value="40"
+                    style="width: 100%; margin-bottom: 8px;">
 
                 <label style="font-size: 11px; color: #aaa;">COIN DENSITY</label>
-                <input type="range" id="gen-coin-density" min="0" max="100" value="10" style="width: 100%; margin-bottom: 8px;">
-                
+                <input type="range" id="gen-coin-density" min="0" max="100" value="10"
+                    style="width: 100%; margin-bottom: 8px;">
+
                 <label style="font-size: 11px; color: #aaa;">STYLE</label>
                 <select id="gen-style" style="width: 100%; padding: 5px; font-size: 14px; margin-bottom: 10px;">
                     <option value="pillars">Pillars</option>
@@ -130,7 +238,8 @@
                 </select>
             </div>
             <hr style="width: 100%; border-color: #333; margin: 10px 0;">
-            <button class="action-btn" id="test-btn" style="background:#00ff66; color:#000;" onclick="toggleTestMode()">Test Level</button>
+            <button class="action-btn" id="test-btn" style="background:#00ff66; color:#000;"
+                onclick="toggleTestMode()">Test Level</button>
         </div>
 
         <div class="export-section">
@@ -139,7 +248,8 @@
             <hr style="width: 100%; border-color: #333; margin: 10px 0;">
             <div style="display: flex; gap: 5px;">
                 <input type="number" id="levelLength" value="100" title="Level Length (Tiles)" style="width: 80px;">
-                <button class="action-btn" style="padding: 12px; font-size: 14px; flex-grow: 1;" onclick="resizeLevel()">Resize</button>
+                <button class="action-btn" style="padding: 12px; font-size: 14px; flex-grow: 1;"
+                    onclick="resizeLevel()">Resize</button>
             </div>
             <hr style="width: 100%; border-color: #333; margin: 10px 0;">
             <input type="text" id="levelName" value="Level 1" placeholder="Level Name">
@@ -161,6 +271,18 @@
         // GRID_H is loaded from levels.js
         const TILE_SIZE = 40;
 
+        // ── Spritesheet (same atlas as the game) ─────────────────────────
+        const EDITOR_SPRITE_CELL = 64;
+        const EDITOR_SPRITE_MAP = {
+            1: { col: 0, row: 0 }, 2: { col: 1, row: 0 }, 3: { col: 2, row: 0 },
+            4: { col: 3, row: 0 }, 5: { col: 4, row: 0 }, 6: { col: 5, row: 0 },
+            7: { col: 6, row: 0 }, 8: { col: 7, row: 0 }, 9: { col: 0, row: 1 },
+        };
+        const editorSheet = new Image();
+        editorSheet.src = 'assets/spritesheet.png';
+        let editorSheetReady = false;
+        editorSheet.onload = () => { editorSheetReady = true; };
+
         let levelData = [];
         let selectedTile = 1;
         let scrollX = 0;
@@ -177,7 +299,7 @@
         let originalScrollX = 0;
         let originalScrollY = 0;
         let originalLevelData = null;
-        
+
         // Dummy game object for particles/compatibility
         window.game = {
             particles: [],
@@ -188,7 +310,7 @@
             highScore: parseInt(localStorage.getItem('gravityGridHighScore_v2')) || 0
         };
 
-        let mouseGridPos = {x: 0, y: 0};
+        let mouseGridPos = { x: 0, y: 0 };
 
         // Area Selection State (Gen/Erase)
         let isAreaSelecting = false;
@@ -245,7 +367,7 @@
             const newW = parseInt(document.getElementById('levelLength').value);
             if (!newW || newW < 20) return;
             const currentW = levelData[0].length;
-            
+
             for (let y = 0; y < GRID_H; y++) {
                 if (newW > currentW) {
                     for (let x = currentW; x < newW; x++) {
@@ -267,6 +389,7 @@
         function resizeCanvas() {
             canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
+            ctx.imageSmoothingEnabled = false; // Global setting for crisp pixel art
             if (isTesting) stopTest(); // Stop testing if window resized to avoid layout issues
         }
         window.addEventListener('resize', resizeCanvas);
@@ -282,10 +405,10 @@
                 btn.classList.add('active');
                 const id = btn.getAttribute('data-id');
                 selectedTile = isNaN(parseInt(id)) ? id : parseInt(id);
-                
+
                 // Show/hide PCG settings
                 document.getElementById('pcg-settings').style.display = (selectedTile === 'gen') ? 'block' : 'none';
-                
+
                 cloneStart = null;
                 cloneEnd = null;
                 isCloning = false;
@@ -298,7 +421,7 @@
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
-            
+
             const gridX = Math.floor((mouseX + scrollX) / TILE_SIZE);
             const gridY = Math.floor((mouseY + scrollY) / TILE_SIZE);
             return { x: gridX, y: gridY };
@@ -336,7 +459,7 @@
                 const endX = Math.max(cloneStart.x, cloneEnd.x);
                 const startY = Math.min(cloneStart.y, cloneEnd.y);
                 const endY = Math.max(cloneStart.y, cloneEnd.y);
-                
+
                 clonedData = [];
                 for (let y = startY; y <= endY; y++) {
                     const row = [];
@@ -349,12 +472,12 @@
                     }
                     clonedData.push(row);
                 }
-                
+
                 // Enable Stamp tool
                 const stampBtn = document.getElementById('stamp-btn');
                 stampBtn.style.opacity = '1';
                 stampBtn.style.pointerEvents = 'auto';
-                
+
                 // Automatically switch to stamp tool
                 stampBtn.click();
             }
@@ -400,7 +523,7 @@
                 const endX = Math.max(areaStart.x, areaEnd.x);
                 const startY = Math.min(areaStart.y, areaEnd.y);
                 const endY = Math.max(areaStart.y, areaEnd.y);
-                
+
                 if (selectedTile === 'gen') {
                     if (areaButton === 0) {
                         generateInArea(startX, endX, startY, endY);
@@ -437,16 +560,16 @@
                 if (x < 0 || x >= levelData[0].length || y < 0 || y >= GRID_H) return;
                 // Don't overwrite existing blocks
                 if (levelData[y][x] >= 1 && levelData[y][x] <= 3) return;
-                
+
                 let supported = false;
                 if (type === 4) { // Upward spike needs block below
                     if (y < GRID_H - 1) {
-                        const below = levelData[y+1][x];
+                        const below = levelData[y + 1][x];
                         if (below >= 1 && below <= 3 || below === 6) supported = true;
                     }
                 } else if (type === 5) { // Downward spike needs block above
                     if (y > 0) {
-                        const above = levelData[y-1][x];
+                        const above = levelData[y - 1][x];
                         if (above >= 1 && above <= 3 || above === 6) supported = true;
                     }
                 }
@@ -488,9 +611,9 @@
                     if (Math.random() < spawnDensity) {
                         const isT = (style === 'hybrid' || style === 'elbows') && Math.random() < 0.25;
                         const len = Math.floor(Math.random() * 8) + 6;
-                        let curY = Math.floor(Math.random() * (areaH - 4)) + startY + 2; 
+                        let curY = Math.floor(Math.random() * (areaH - 4)) + startY + 2;
                         const material = Math.floor(Math.random() * 3) + 1;
-                        
+
                         if (isT) {
                             const isUpright = Math.random() > 0.5;
                             const stemH = Math.floor(Math.random() * 3) + 2;
@@ -518,7 +641,7 @@
                                     const isMid = i > 1 && i < len - 2;
                                     levelData[curY][curX] = (hasCrumble && isMid) ? 6 : material;
                                     if (Math.random() < coinDensity * 0.4) {
-                                        if (curY > 0 && levelData[curY-1][curX] === 0) levelData[curY-1][curX] = 8;
+                                        if (curY > 0 && levelData[curY - 1][curX] === 0) levelData[curY - 1][curX] = 8;
                                     }
                                     if (Math.random() < hazardDensity * 0.3) {
                                         const onTop = Math.random() > 0.5;
@@ -539,7 +662,7 @@
             }
         }
 
-        canvas.addEventListener('mousedown', (e) => { 
+        canvas.addEventListener('mousedown', (e) => {
             if (isPlacingSpawn) {
                 const cord = getCoords(e);
                 startTest(cord.x, cord.y);
@@ -550,7 +673,7 @@
                 if (e.button === 2) testKeys.right = true;
                 return;
             }
-            
+
             // Right mouse button (2) erases by default in editor mode
             if (selectedTile === 'clone') {
                 handleCloneStart(e);
@@ -560,8 +683,8 @@
             } else if (selectedTile === 'stamp') {
                 handleStamp(e);
             } else {
-                isPainting = true; 
-                paint(e, (e.button === 2 ? 0 : null)); 
+                isPainting = true;
+                paint(e, (e.button === 2 ? 0 : null));
             }
         });
         canvas.addEventListener('mousemove', (e) => {
@@ -575,7 +698,7 @@
         });
         // Global prevent default for right-click context menu
         window.addEventListener('contextmenu', (e) => e.preventDefault());
-        window.addEventListener('mouseup', (e) => { 
+        window.addEventListener('mouseup', (e) => {
             if (isTesting) {
                 if (e.button === 0) testKeys.left = false;
                 if (e.button === 2) testKeys.right = false;
@@ -589,7 +712,7 @@
         container.addEventListener('wheel', (e) => {
             if (!levelData[0]) return;
             e.preventDefault();
-            
+
             // Revert to horizontal-first behavior (classic)
             // Shift+Wheel or Alt+Wheel for vertical
             if (e.shiftKey || e.altKey) {
@@ -598,14 +721,14 @@
                 // deltaY moves level sideways as before
                 scrollX += (e.deltaX || e.deltaY);
             }
-            
+
             scrollX = Math.max(0, Math.min(scrollX, Math.max(0, (levelData[0].length * TILE_SIZE) - canvas.width)));
             scrollY = Math.max(0, Math.min(scrollY, Math.max(0, (GRID_H * TILE_SIZE) - canvas.height)));
         }, { passive: false });
 
         window.addEventListener('keydown', (e) => {
             if (document.activeElement === document.getElementById('levelName') || document.activeElement === document.getElementById('levelLength')) return;
-            
+
             if (isTesting) {
                 if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') testKeys.left = true;
                 if (e.key === 'Shift') testKeys.right = true;
@@ -614,12 +737,12 @@
             }
 
             if (!levelData[0]) return;
-            
+
             if (e.key === 'ArrowRight' || e.key === 'd') scrollX += 100;
             if (e.key === 'ArrowLeft' || e.key === 'a') scrollX -= 100;
             if (e.key === 'ArrowDown' || e.key === 's') scrollY += 100;
             if (e.key === 'ArrowUp' || e.key === 'w') scrollY -= 100;
-            
+
             scrollX = Math.max(0, Math.min(scrollX, Math.max(0, (levelData[0].length * TILE_SIZE) - canvas.width)));
             scrollY = Math.max(0, Math.min(scrollY, Math.max(0, (GRID_H * TILE_SIZE) - canvas.height)));
 
@@ -650,19 +773,19 @@
         function startTest(gridX, gridY) {
             isPlacingSpawn = false;
             isTesting = true;
-            
+
             testSpawnGridX = gridX;
             testSpawnGridY = gridY;
             originalScrollX = scrollX;
             originalScrollY = scrollY;
             // Backup level data so we can collect coins safely
             originalLevelData = JSON.parse(JSON.stringify(levelData));
-            
+
             resetTestPlayer();
-            
+
             document.getElementById('test-btn').innerText = 'STOP TEST (ESC)';
             document.getElementById('test-btn').style.background = '#ff3333';
-            
+
             audio.start();
         }
 
@@ -688,11 +811,11 @@
             window.game.levelCoins = 0;
             window.game.score = 0;
             testKeys = { left: false, right: false };
-            
+
             document.getElementById('test-btn').innerText = 'Test Level';
             document.getElementById('test-btn').style.background = '#00ff66';
             btns[0].click(); // Re-select first tool
-            
+
             audio.stop();
         }
 
@@ -702,7 +825,7 @@
             // Minify JSON totally
             const jsonStr = JSON.stringify(levelData);
             const finalStr = `"${name}": ${jsonStr},`;
-            
+
             navigator.clipboard.writeText(finalStr).then(() => {
                 alert(`SUCCESS!\n\nCopied minified data for "${name}" to clipboard.\nPaste directly into js/levels.js.`);
             }).catch(err => alert("Copy failed. Check console."));
@@ -775,7 +898,7 @@
                     }
                 }
                 ctx.globalAlpha = 1.0;
-                
+
                 // Draw cursor outline
                 ctx.strokeStyle = '#00f2ff';
                 ctx.lineWidth = 2;
@@ -788,7 +911,7 @@
                 const sy = Math.min(cloneStart.y, cloneEnd.y) * TILE_SIZE;
                 const sw = (Math.abs(cloneEnd.x - cloneStart.x) + 1) * TILE_SIZE;
                 const sh = (Math.abs(cloneEnd.y - cloneStart.y) + 1) * TILE_SIZE;
-                
+
                 ctx.fillStyle = 'rgba(0, 242, 255, 0.2)';
                 ctx.fillRect(sx, sy, sw, sh);
                 ctx.strokeStyle = '#00f2ff';
@@ -805,7 +928,7 @@
                 const sy = Math.min(areaStart.y, areaEnd.y) * TILE_SIZE;
                 const sw = (Math.abs(areaEnd.x - areaStart.x) + 1) * TILE_SIZE;
                 const sh = (Math.abs(areaEnd.y - areaStart.y) + 1) * TILE_SIZE;
-                
+
                 ctx.fillStyle = isErase ? 'rgba(255, 51, 51, 0.2)' : 'rgba(0, 255, 102, 0.2)';
                 ctx.fillRect(sx, sy, sw, sh);
                 ctx.strokeStyle = isErase ? '#ff3333' : '#00ff66';
@@ -830,46 +953,46 @@
 
                 ctx.textAlign = 'right';
                 ctx.fillText(`BEST: ${Math.floor(window.game.highScore)}`, ctx.canvas.width - 20, 45);
-                
+
                 // Draw particles and floating texts
                 ctx.save();
                 ctx.translate(-Math.floor(scrollX), -Math.floor(scrollY));
-                
+
                 for (const p of window.game.particles) {
                     ctx.fillStyle = p.color;
                     ctx.globalAlpha = p.life;
                     ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
                 }
                 ctx.globalAlpha = 1.0;
-                
+
                 ctx.textAlign = 'center';
                 ctx.font = 'bold 24px Outfit';
                 for (const ft of window.game.floatingTexts) {
                     ctx.fillStyle = `rgba(255, 223, 0, ${ft.life})`;
                     ctx.fillText(ft.text, ft.x, ft.y);
                 }
-                
+
                 ctx.restore();
-            
+
                 // Draw player (screen horizontal, world vertical)
                 ctx.save();
                 ctx.translate(0, -Math.floor(scrollY));
                 testPlayer.draw(ctx);
                 ctx.restore();
-                
+
                 if (testKeys.left) testPlayer.jump();
                 if (testKeys.right) testPlayer.toggleGravity();
 
                 scrollX += CONFIG.SCROLL_SPEED;
                 testPlayer.update(levelData, scrollX);
-                
+
                 // Particle Step
                 for (let i = window.game.particles.length - 1; i >= 0; i--) {
                     const p = window.game.particles[i];
                     p.x += p.vx; p.y += p.vy; p.life -= p.decay;
                     if (p.life <= 0) window.game.particles.splice(i, 1);
                 }
-                
+
                 // Floating Text Step
                 for (let i = window.game.floatingTexts.length - 1; i >= 0; i--) {
                     const ft = window.game.floatingTexts[i];
@@ -877,7 +1000,7 @@
                     ft.life -= 0.02;
                     if (ft.life <= 0) window.game.floatingTexts.splice(i, 1);
                 }
-            
+
                 if (testPlayer.dead && window.game.particles.length === 0) {
                     resetTestPlayer(); // Restart at spawn instead of exiting
                 }
@@ -887,7 +1010,7 @@
                 ctx.fillStyle = '#fff';
                 ctx.textAlign = 'center';
                 ctx.font = 'bold 20px Outfit';
-                ctx.fillText('CLICK TO SPAWN PLAYER', canvas.width/2, canvas.height/2);
+                ctx.fillText('CLICK TO SPAWN PLAYER', canvas.width / 2, canvas.height / 2);
             }
 
             document.getElementById('hud').innerText = `Scroll: ${Math.floor(scrollX)}, ${Math.floor(scrollY)} | Tile: ${startCol}, ${startRow}`;
@@ -897,70 +1020,66 @@
 
         function drawTile(tile, pX, pY) {
             const TS = TILE_SIZE;
+            const cell = EDITOR_SPRITE_MAP[tile];
+            const drawX = Math.floor(pX);
+            const drawY = Math.floor(pY);
+
+            if (editorSheetReady && cell) {
+                // Fast path: single drawImage from atlas
+                if (tile === 8 || tile === 9) {
+                    // Coin bob
+                    const bob = Math.sin(Date.now() / 200) * 4;
+                    ctx.drawImage(
+                        editorSheet,
+                        cell.col * EDITOR_SPRITE_CELL, cell.row * EDITOR_SPRITE_CELL,
+                        EDITOR_SPRITE_CELL, EDITOR_SPRITE_CELL,
+                        drawX, drawY + bob, TS, TS
+                    );
+                } else {
+                    ctx.drawImage(
+                        editorSheet,
+                        cell.col * EDITOR_SPRITE_CELL, cell.row * EDITOR_SPRITE_CELL,
+                        EDITOR_SPRITE_CELL, EDITOR_SPRITE_CELL,
+                        drawX, drawY, TS, TS
+                    );
+                }
+                return;
+            }
+
+            // --- Fallback: procedural draw while sheet loads ---
             ctx.save();
-            ctx.translate(pX, pY);
-
-                    if (tile === 1 || tile === 2 || tile === 3) {
-                        ctx.fillStyle = (tile===1) ? '#00f2ff' : (tile===2) ? '#ff007a' : '#ffcc00';
-                        ctx.fillRect(1, 1, TS-2, TS-2);
-                        ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(4, 4, TS-8, TS-8);
-                    } else if (tile === 4) { // Spike Up
-                        ctx.fillStyle = '#ff3333';
-                        ctx.beginPath();
-                        ctx.moveTo(TS/2, 4); ctx.lineTo(4, TS-4); ctx.lineTo(TS-4, TS-4);
-                        ctx.fill();
-                    } else if (tile === 5) { // Spike Down
-                        ctx.fillStyle = '#ff3333';
-                        ctx.beginPath();
-                        ctx.moveTo(TS/2, TS-4); ctx.lineTo(4, 4); ctx.lineTo(TS-4, 4);
-                        ctx.fill();
-                    } else if (tile === 6) { // Crumble
-                        ctx.fillStyle = '#666';
-                        ctx.fillRect(2, 2, TS-4, TS-4);
-                        ctx.strokeStyle = '#aaa'; 
-                        ctx.lineWidth = 1;
-                        ctx.strokeRect(6, 6, TS-12, TS-12);
-                    } else if (tile === 7) { // Switcher
-                        ctx.fillStyle = '#ff00ff';
-                        ctx.beginPath();
-                        ctx.arc(TS/2, TS/2, TS/3, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.strokeStyle = '#fff';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                    } else if (tile === 8 || tile === 9) { // Coin or Small Coin
-                        const bob = Math.sin(Date.now() / 200) * 4;
-                        ctx.translate(0, bob);
-                        
-                        const scale = (tile === 8 ? 1.0 : 0.6);
-                        
-                        // Outer Shaded Edge
-                        ctx.fillStyle = '#cc9900';
-                        ctx.beginPath();
-                        ctx.arc(TS/2, TS/2, (TS/3.5) * scale, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        // Main Coin Body
-                        ctx.fillStyle = '#ffdf00';
-                        ctx.beginPath();
-                        ctx.arc(TS/2, TS/2 - 1, (TS/4) * scale, 0, Math.PI * 2);
-                        ctx.fill();
-                        
-                        // Highlight
-                        ctx.fillStyle = '#ffffff';
-                        ctx.beginPath();
-                        ctx.arc(TS/2 - 3 * scale, TS/2 - 4 * scale, 2 * scale, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        // Edge Details
-                        ctx.strokeStyle = '#fff';
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
-                    }
-
-                    ctx.restore();
+            ctx.translate(drawX, drawY);
+            if (tile === 1 || tile === 2 || tile === 3) {
+                ctx.fillStyle = (tile === 1) ? '#00f2ff' : (tile === 2) ? '#ff007a' : '#ffcc00';
+                ctx.fillRect(1, 1, TS - 2, TS - 2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(4, 4, TS - 8, TS - 8);
+            } else if (tile === 4) {
+                ctx.fillStyle = '#ff3333';
+                ctx.beginPath();
+                ctx.moveTo(TS / 2, 4); ctx.lineTo(4, TS - 4); ctx.lineTo(TS - 4, TS - 4); ctx.fill();
+            } else if (tile === 5) {
+                ctx.fillStyle = '#ff3333';
+                ctx.beginPath();
+                ctx.moveTo(TS / 2, TS - 4); ctx.lineTo(4, 4); ctx.lineTo(TS - 4, 4); ctx.fill();
+            } else if (tile === 6) {
+                ctx.fillStyle = '#666'; ctx.fillRect(2, 2, TS - 4, TS - 4);
+                ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1; ctx.strokeRect(6, 6, TS - 12, TS - 12);
+            } else if (tile === 7) {
+                ctx.fillStyle = '#ff00ff';
+                ctx.beginPath(); ctx.arc(TS / 2, TS / 2, TS / 3, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+            } else if (tile === 8 || tile === 9) {
+                const bob = Math.sin(Date.now() / 200) * 4;
+                ctx.translate(0, bob);
+                const scale = (tile === 8 ? 1.0 : 0.6);
+                ctx.fillStyle = '#cc9900';
+                ctx.beginPath(); ctx.arc(TS / 2, TS / 2, (TS / 3.5) * scale, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffdf00';
+                ctx.beginPath(); ctx.arc(TS / 2, TS / 2 - 1, (TS / 4) * scale, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
         }
 
         // Start Loop
@@ -968,4 +1087,5 @@
 
     </script>
 </body>
+
 </html>
