@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Orbital Mission Commander</title>
+    <!-- Using Tailwind via CDN for quick utility classes locally -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-layer">
+        <!-- Top HUD -->
+        <div class="top-hud">
+            <!-- MOBILE MENU BUTTON -->
+            <button id="mobile-toggle-btn" class="md:hidden flex items-center justify-center p-2 mx-2 bg-slate-800 hover:bg-slate-700 text-white rounded">
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+
+            <div class="glass-panel p-4 flex flex-1 items-center gap-6 pointer-events-auto flex-wrap hud-stats-row">
+                <div class="flex gap-2">
+                    <button id="play-btn" class="w-10 h-10 flex items-center justify-center btn-primary rounded-lg shadow-lg">
+                        <svg id="play-icon" class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button id="reset-btn" class="w-10 h-10 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded-lg shadow-lg border border-gray-700 transition-colors">
+                        <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </button>
+                </div>
+                
+                <div class="flex flex-wrap gap-6 flex-1">
+                    <div class="metric-box">
+                        <div class="metric-label">Mode</div>
+                        <div id="status-val" class="metric-value" style="color: var(--accent-blue);">PLANNING</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Primary Body</div>
+                        <div id="soi-val" class="metric-value">Earth</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Velocity</div>
+                        <div id="vel-val" class="metric-value">0.0 m/s</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Apoapsis (Ap)</div>
+                        <div id="ap-val" class="metric-value">0.0 km</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Periapsis (Pe)</div>
+                        <div id="pe-val" class="metric-value">0.0 km</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Fuel (Δv)</div>
+                        <div id="fuel-val" class="metric-value">500 / 500</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Mission Time</div>
+                        <div id="time-val" class="metric-value text-white font-bold tracking-wider">T+ 0.0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Warp & Camera Targets -->
+            <div class="glass-panel p-3 flex flex-col gap-3 pointer-events-auto min-w-[200px]">
+                <div>
+                    <div class="metric-label text-center mb-1">Time Warp</div>
+                    <div class="flex gap-1 justify-center" id="warp-buttons">
+                        <button data-warp="1" class="flex-1 py-1 bg-blue-600 rounded text-xs font-bold transition-all">1x</button>
+                        <button data-warp="5" class="flex-1 py-1 bg-slate-800 rounded text-xs font-bold transition-all">5x</button>
+                        <button data-warp="25" class="flex-1 py-1 bg-slate-800 rounded text-xs font-bold transition-all">25x</button>
+                    </div>
+                </div>
+                <div class="h-px w-full bg-white/10"></div>
+                <div>
+                    <div class="metric-label text-center mb-1">Camera Lock</div>
+                    <select id="camera-lock" class="w-full bg-black/50 text-xs p-1 rounded border border-white/20 text-center">
+                        <option value="earth-pos">Earth (Fixed)</option>
+                        <option value="earth-rot">Earth (Rotating)</option>
+                        <option value="moon-pos">Moon (Fixed)</option>
+                        <option value="moon-rot">Moon (Rotating)</option>
+                        <option value="ship-pos">Ship (Fixed)</option>
+                        <option value="ship-rot">Ship (Heading)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR (Flight Plan) -->
+        <div id="right-sidebar" class="w-full md:w-80 bg-[#0b0c10] border-t md:border-t-0 md:border-l border-white/10 flex flex-col pointer-events-auto md:static absolute bottom-0 right-0 transform translate-y-full md:translate-y-0 transition-transform duration-300 z-50 overflow-y-auto max-h-[70vh] md:max-h-full">
+            
+            <div class="p-4 border-b border-white/10 text-xs font-bold text-slate-400 tracking-wider pointer-events-auto flex justify-between items-center">
+                MISSION PLANNING
+                <button id="mobile-close-btn" class="md:hidden text-slate-500 hover:text-white">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="p-4 border-b border-white/10">
+                <div class="space-y-3 pointer-events-auto">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Launch Delay (T+)</div>
+                            <input type="number" id="launch-delay" value="0">
+                        </div>
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Sim Duration (s)</div>
+                            <input type="number" id="sim-duration" value="4000">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Angle (Deg)</div>
+                            <input type="number" id="launch-angle" value="54">
+                        </div>
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Power (m/s)</div>
+                            <input type="number" id="launch-power" value="24.5" step="0.5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between items-center mb-2 mt-2 px-4">
+                <h3 class="metric-label">Maneuver Nodes</h3>
+                <button id="add-node-btn" class="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded">+ ADD</button>
+            </div>
+            
+            <!-- Scrollable Node List -->
+            <div id="burn-list" class="flex-1 overflow-y-auto pr-2 space-y-2 mb-3 min-h-[100px] px-4 pointer-events-auto custom-scrollbar">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Encounters -->
+            <div id="intercept-container" class="mt-4 space-y-1 pointer-events-auto max-h-48 overflow-y-auto pr-1 custom-scrollbar px-4">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts (Order Matters) -->
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+    <script src="js/math.js"></script>
+    <script src="js/graphics.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
