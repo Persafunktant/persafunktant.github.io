@@ -256,8 +256,8 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
             const prevDistE = Math.sqrt(lastState.x * lastState.x + lastState.y * lastState.y);
             let newDirE = distE > prevDistE ? 1 : (distE < prevDistE ? -1 : 0);
             if (newDirE !== 0 && lastState.eDir !== 0 && newDirE !== lastState.eDir) {
-                if (currentDominantSOI === 'Earth' && !isBurning) {
-                    orbitMarkers.push({ type: lastState.eDir === 1 ? 'Ap' : 'Pe', x: px, y: py, body: 'Earth', step: i });
+                if (currentDominantSOI === 'Earth') {
+                    orbitMarkers.push({ type: lastState.eDir === 1 ? 'Ap' : 'Pe', x: lastState.x, y: lastState.y, body: 'Earth', step: i - 1 });
                 }
             }
             var trackDirE = newDirE !== 0 ? newDirE : lastState.eDir;
@@ -266,8 +266,8 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
             const prevDistM = Math.sqrt((lastState.x - lastState.mx) ** 2 + (lastState.y - lastState.my) ** 2);
             let newDirM = distM > prevDistM ? 1 : (distM < prevDistM ? -1 : 0);
             if (newDirM !== 0 && lastState.mDir !== 0 && newDirM !== lastState.mDir) {
-                if (currentDominantSOI === 'Moon' && !isBurning) {
-                    orbitMarkers.push({ type: lastState.mDir === 1 ? 'Ap' : 'Pe', x: px, y: py, relX: px - mPos.x, relY: py - mPos.y, body: 'Moon', step: i });
+                if (currentDominantSOI === 'Moon') {
+                    orbitMarkers.push({ type: lastState.mDir === 1 ? 'Ap' : 'Pe', x: lastState.x, y: lastState.y, relX: lastState.x - lastState.mx, relY: lastState.y - lastState.my, body: 'Moon', step: i - 1 });
                 }
             }
             var trackDirM = newDirM !== 0 ? newDirM : lastState.mDir;
@@ -275,12 +275,6 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
             var trackDirE = 0;
             var trackDirM = 0;
         }
-
-        // Explicit Euler Integration
-        pvx += ax * CONSTANTS.STEP_SIZE;
-        pvy += ay * CONSTANTS.STEP_SIZE;
-        px += pvx * CONSTANTS.STEP_SIZE;
-        py += pvy * CONSTANTS.STEP_SIZE;
 
         pathData.push({
             x: px, y: py,
@@ -295,6 +289,14 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
             eDir: trackDirE,
             mDir: trackDirM
         });
+
+        // Explicit Euler Integration
+        pvx += ax * CONSTANTS.STEP_SIZE;
+        pvy += ay * CONSTANTS.STEP_SIZE;
+        px += pvx * CONSTANTS.STEP_SIZE;
+        py += pvy * CONSTANTS.STEP_SIZE;
+
+
 
         // Break if hit Earth (start check after a few steps to clear launchpad)
         if (px * px + py * py < CONSTANTS.EARTH_RADIUS * CONSTANTS.EARTH_RADIUS && (i * CONSTANTS.STEP_SIZE) > 5) break;

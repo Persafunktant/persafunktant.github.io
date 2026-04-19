@@ -111,10 +111,25 @@ function drawScene() {
     // =============================
     // DRAW PREDICTED FLIGHT PATH
     // =============================
+    
+    // Check toggles
+    const autoHide = document.getElementById('toggle-autohide')?.checked;
+    const focusPath = document.getElementById('toggle-local-path')?.checked;
+    const shouldHidePaths = autoHide && !isPaused;
+
+    if (!shouldHidePaths) {
+        
+    let startIdx = 0;
+    let endIdx = pathData.length - 1;
+    if (focusPath) {
+        startIdx = Math.max(0, currentSimStep - 2000);
+        endIdx = Math.min(pathData.length - 1, currentSimStep + 2000);
+    }
+    
     ctx.lineWidth = 2 / camera.zoom;
     
-    let lineSOI = pathData[0].soi;
-    let lineBurning = pathData[0].burning;
+    let lineSOI = pathData[startIdx].soi;
+    let lineBurning = pathData[startIdx].burning;
     
     const getPathStyle = (soi, burning) => {
         if (burning) return { color: '#f97316', dash: [] }; // Orange solid for burns
@@ -127,8 +142,9 @@ function drawScene() {
     ctx.strokeStyle = currentStyle.color;
     ctx.setLineDash(currentStyle.dash);
     
-    pathData.forEach((p, i) => {
-        if (i === 0) {
+    for (let i = startIdx; i <= endIdx; i++) {
+        const p = pathData[i];
+        if (i === startIdx) {
             ctx.moveTo(p.x, p.y);
         } else {
             const nextStyle = getPathStyle(p.soi, p.burning);
@@ -147,24 +163,26 @@ function drawScene() {
             }
 
             const res = p.burning ? 1 : 3;
-            if (i % res === 0 || i === pathData.length - 1) {
+            if (i % res === 0 || i === endIdx) {
                 ctx.lineTo(p.x, p.y);
             }
         }
-    });
+    }
     ctx.stroke();
     ctx.setLineDash([]);
 
     // =============================
     // DRAW MOON-RELATIVE "GHOST" ORBIT (BROWN)
     // =============================
-    ctx.lineWidth = 1.5 / camera.zoom;
-    ctx.strokeStyle = '#a0522d'; 
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    let firstMoonPoint = true;
-    pathData.forEach(p => {
-        if (p.soi === 'Moon') {
+    const showMoonPath = document.getElementById('toggle-moon-path')?.checked !== false;
+    if (showMoonPath) {
+        ctx.lineWidth = 1.5 / camera.zoom;
+        ctx.strokeStyle = '#a0522d'; 
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        let firstMoonPoint = true;
+        for (let i = startIdx; i <= endIdx; i++) {
+            const p = pathData[i];
             const rx = p.x - p.mx;
             const ry = p.y - p.my;
             const drawX = state.mx + rx;
@@ -173,12 +191,15 @@ function drawScene() {
                 ctx.moveTo(drawX, drawY);
                 firstMoonPoint = false;
             } else {
-                ctx.lineTo(drawX, drawY);
+                const res = 3;
+                if (i % res === 0 || i === endIdx) {
+                    ctx.lineTo(drawX, drawY);
+                }
             }
         }
-    });
-    ctx.stroke();
-    ctx.setLineDash([]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
 
     // =============================
     // DRAW MULTIPLE GHOST INTERCEPTS
@@ -261,6 +282,8 @@ function drawScene() {
             drawMarker(m.x, m.y, m.type);
         }
     });
+    
+    } // End if (!shouldHidePaths)
 
     // =============================
     // DRAW SHIP

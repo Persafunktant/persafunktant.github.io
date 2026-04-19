@@ -119,6 +119,21 @@
                 </div>
                 <div class="h-px w-full bg-white/10"></div>
                 <div>
+                    <label class="flex items-center gap-2 text-[10px] text-white cursor-pointer hover:text-blue-400">
+                        <input type="checkbox" id="toggle-autohide" class="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500">
+                        Auto-hide Paths In Flight
+                    </label>
+                    <label class="flex items-center gap-2 text-[10px] text-white mt-1 cursor-pointer hover:text-blue-400">
+                        <input type="checkbox" id="toggle-local-path" class="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500">
+                        Focus Path
+                    </label>
+                    <label class="flex items-center gap-2 text-[10px] text-white mt-1 cursor-pointer hover:text-blue-400">
+                        <input type="checkbox" id="toggle-moon-path" checked class="rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500">
+                        Moon Relative Path
+                    </label>
+                </div>
+                <div class="h-px w-full bg-white/10"></div>
+                <div>
                     <div class="metric-label text-center mb-1">Camera Lock</div>
                     <select id="camera-lock" class="w-full bg-black/50 text-xs p-1 rounded border border-white/20 text-center">
                         <option value="earth-pos">Earth (Fixed)</option>
