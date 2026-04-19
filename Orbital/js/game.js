@@ -9,7 +9,7 @@ let burnNodes = [
 let launchAngle = 54;
 let launchPower = 24.5;
 let launchDelay = 0;
-let simDuration = 4000;
+let simDuration = 2000;
 
 let isDragging = false;
 let lastMouse = { x: 0, y: 0 };
