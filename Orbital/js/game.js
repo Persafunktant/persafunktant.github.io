@@ -1,13 +1,16 @@
 // game.js - Main Game Loop and State Management
 
 let burnNodes = [
-    { id: 1, time: 8, dvPrograde: 13, dvRadial: 0, label: 'CIRCULARIZE' },
-    { id: 2, time: 88, dvPrograde: 10.5, dvRadial: 0, label: 'LUNAR TRANSFER' },
-    { id: 3, time: 175, dvPrograde: -14.5, dvRadial: 0, label: 'LUNAR CAPTURE' }
+    { id: 1, time: 6.587, dvPrograde: 11.399, dvRadial: 0, label: 'CIRCULARIZE' },
+    { id: 2, time: 52.692, dvPrograde: 7.855, dvRadial: 0, label: 'LUNAR TRANSFER' },
+    { id: 3, time: 224.075, dvPrograde: -5.62, dvRadial: 0, label: 'ENTER LUNARORBIT' },
+    { id: 4, time: 309.527, dvPrograde: 2.685, dvRadial: 0, label: 'RAISE ORBIT' },
+    { id: 5, time: 404.09, dvPrograde: 1.756, dvRadial: 0, label: 'CIRCULARIZE' },
+    { id: 6, time: 1662.924, dvPrograde: 3.848, dvRadial: 0, label: 'RETURN TO EARTH' }
 ];
 
 let launchAngle = 54;
-let launchPower = 24.5;
+let launchPower = 20.4;
 let launchDelay = 0;
 let simDuration = 2000;
 
@@ -16,13 +19,13 @@ let lastMouse = { x: 0, y: 0 };
 
 function init() {
     // Canvas interaction events
-    canvas.addEventListener('mousedown', e => { 
-        isDragging = true; 
-        lastMouse = { x: e.clientX, y: e.clientY }; 
+    canvas.addEventListener('mousedown', e => {
+        isDragging = true;
+        lastMouse = { x: e.clientX, y: e.clientY };
     });
-    
+
     window.addEventListener('mouseup', () => { isDragging = false; });
-    
+
     window.addEventListener('mousemove', e => {
         if (isDragging) {
             // Adjust for rotation and zoom in camera padding logic
@@ -36,18 +39,18 @@ function init() {
         const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
         camera.zoom *= zoomDelta;
         camera.zoom = Math.max(0.005, Math.min(camera.zoom, 10));
-    }, {passive:true});
+    }, { passive: true });
 
     const inputAngle = document.getElementById('launch-angle');
     const inputPower = document.getElementById('launch-power');
     const inputDelay = document.getElementById('launch-delay');
     const inputDuration = document.getElementById('sim-duration');
-    
+
     if (inputAngle) inputAngle.addEventListener('input', (e) => {
         launchAngle = parseFloat(e.target.value) || 0;
         triggerRecalculate();
     });
-    
+
     if (inputPower) inputPower.addEventListener('input', (e) => {
         launchPower = parseFloat(e.target.value) || 0;
         triggerRecalculate();
@@ -65,7 +68,7 @@ function init() {
 
     // Run first simulation compute
     triggerRecalculate();
-    
+
     // Start render loop
     requestAnimationFrame(mainLoop);
 }
@@ -82,7 +85,7 @@ function togglePause() {
     isPaused = !isPaused;
     const icon = document.getElementById('play-icon');
     const statusVal = document.getElementById('status-val');
-    
+
     if (isPaused) {
         icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
         statusVal.innerText = "PLANNING";
