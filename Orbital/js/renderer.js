@@ -156,6 +156,31 @@ function drawScene() {
     ctx.setLineDash([]);
 
     // =============================
+    // DRAW MOON-RELATIVE "GHOST" ORBIT (BROWN)
+    // =============================
+    ctx.lineWidth = 1.5 / camera.zoom;
+    ctx.strokeStyle = '#a0522d'; 
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    let firstMoonPoint = true;
+    pathData.forEach(p => {
+        if (p.soi === 'Moon') {
+            const rx = p.x - p.mx;
+            const ry = p.y - p.my;
+            const drawX = state.mx + rx;
+            const drawY = state.my + ry;
+            if (firstMoonPoint) {
+                ctx.moveTo(drawX, drawY);
+                firstMoonPoint = false;
+            } else {
+                ctx.lineTo(drawX, drawY);
+            }
+        }
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // =============================
     // DRAW MULTIPLE GHOST INTERCEPTS
     // =============================
     interceptEvents.forEach(ev => {
@@ -195,19 +220,46 @@ function drawScene() {
     // =============================
     // DRAW AP / PE PERIAPSIS MARKERS
     // =============================
-    orbitMarkers.forEach(m => {
-        ctx.fillStyle = m.type === 'Ap' ? '#ef4444' : '#10b981'; 
-        ctx.beginPath();
-        const s = 4/camera.zoom;
-        ctx.moveTo(m.x, m.y - s);
-        ctx.lineTo(m.x + s, m.y);
-        ctx.lineTo(m.x, m.y + s);
-        ctx.lineTo(m.x - s, m.y);
-        ctx.fill();
-        
-        ctx.fillStyle = '#e2e8f0';
-        ctx.font = `bold ${10/camera.zoom}px JetBrains Mono`;
-        ctx.fillText(m.type, m.x + 6/camera.zoom, m.y + 4/camera.zoom);
+    const futureMarkers = orbitMarkers.filter(m => m.step > currentSimStep);
+    const nextMarkers = [];
+    
+    const findNext = (body, type) => {
+        const matches = futureMarkers.filter(m => m.body === body && m.type === type);
+        if (matches.length === 0) return null;
+        return matches.reduce((prev, curr) => (curr.step < prev.step ? curr : prev));
+    };
+
+    const upcoming = [
+        findNext('Moon', 'Pe'), findNext('Moon', 'Ap'),
+        findNext('Earth', 'Pe'), findNext('Earth', 'Ap')
+    ].filter(m => m !== null);
+
+    upcoming.forEach(m => {
+        // We draw the marker at its logical "pinned" location
+        const drawMarker = (dx, dy, label) => {
+            ctx.fillStyle = m.type === 'Ap' ? '#ef4444' : '#10b981'; 
+            ctx.beginPath();
+            const s = 4/camera.zoom;
+            ctx.moveTo(dx, dy - s);
+            ctx.lineTo(dx + s, dy);
+            ctx.lineTo(dx, dy + s);
+            ctx.lineTo(dx - s, dy);
+            ctx.fill();
+            
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = `bold ${10/camera.zoom}px JetBrains Mono`;
+            ctx.fillText(label, dx + 6/camera.zoom, dy + 4/camera.zoom);
+        };
+
+        if (m.body === 'Moon') {
+            // 1. Draw on Brown Relative Orbit (Pinned to current moon)
+            drawMarker(state.mx + m.relX, state.my + m.relY, m.type);
+            // 2. Draw on Yellow Absolute Path (Fixed in stars at future moon position)
+            drawMarker(m.x, m.y, m.type + "*"); // Use asterisk for the absolute one
+        } else {
+            // Earth markers just go on the absolute path
+            drawMarker(m.x, m.y, m.type);
+        }
     });
 
     // =============================

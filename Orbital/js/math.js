@@ -8,7 +8,7 @@ const CONSTANTS = {
     MOON_RADIUS: 30,
     MOON_ORBIT_DIST: 1800,
     SOI_RADIUS: 300,
-    STEP_SIZE: 0.5
+    STEP_SIZE: 0.05
 };
 
 CONSTANTS.MOON_ORBIT_SPEED = Math.sqrt(CONSTANTS.G * CONSTANTS.EARTH_MASS / CONSTANTS.MOON_ORBIT_DIST);
@@ -257,7 +257,7 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
             let newDirE = distE > prevDistE ? 1 : (distE < prevDistE ? -1 : 0);
             if (newDirE !== 0 && lastState.eDir !== 0 && newDirE !== lastState.eDir) {
                 if (currentDominantSOI === 'Earth' && !isBurning) {
-                    orbitMarkers.push({ type: lastState.eDir === 1 ? 'Ap' : 'Pe', x: px, y: py });
+                    orbitMarkers.push({ type: lastState.eDir === 1 ? 'Ap' : 'Pe', x: px, y: py, body: 'Earth', step: i });
                 }
             }
             var trackDirE = newDirE !== 0 ? newDirE : lastState.eDir;
@@ -267,7 +267,7 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
             let newDirM = distM > prevDistM ? 1 : (distM < prevDistM ? -1 : 0);
             if (newDirM !== 0 && lastState.mDir !== 0 && newDirM !== lastState.mDir) {
                 if (currentDominantSOI === 'Moon' && !isBurning) {
-                    orbitMarkers.push({ type: lastState.mDir === 1 ? 'Ap' : 'Pe', x: px, y: py });
+                    orbitMarkers.push({ type: lastState.mDir === 1 ? 'Ap' : 'Pe', x: px, y: py, relX: px - mPos.x, relY: py - mPos.y, body: 'Moon', step: i });
                 }
             }
             var trackDirM = newDirM !== 0 ? newDirM : lastState.mDir;
