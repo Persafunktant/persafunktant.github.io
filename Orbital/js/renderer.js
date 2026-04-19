@@ -32,8 +32,8 @@ function drawScene() {
     const simTime = state.t;
     
     // Link planet spins deterministicly to mission time
-    const earthRotAngle = -simTime * CONSTANTS.EARTH_ROT_SPEED;
-    const moonRotAngle = -simTime * CONSTANTS.MOON_ROT_SPEED;
+    const earthRotAngle = simTime * CONSTANTS.EARTH_ROT_SPEED;
+    const moonRotAngle = simTime * CONSTANTS.MOON_ROT_SPEED;
 
     // Check if we are in a burn window right now (for visual exhaust)
     let isBurning = false;
@@ -59,19 +59,17 @@ function drawScene() {
     if (cameraTargetMode === 'earth-pos') {
         tx = 0; ty = 0; rotAngle = 0;
     } else if (cameraTargetMode === 'earth-rot') {
-        tx = 0; ty = 0; rotAngle = earthRotAngle;
+        tx = 0; ty = 0; rotAngle = -earthRotAngle;
     } else if (cameraTargetMode === 'moon-pos') {
         tx = state.mx; ty = state.my; rotAngle = 0;
     } else if (cameraTargetMode === 'moon-rot') {
-        tx = state.mx; ty = state.my; rotAngle = moonRotAngle;
+        tx = state.mx; ty = state.my; rotAngle = -moonRotAngle;
     } else if (cameraTargetMode === 'ship-pos') {
         tx = state.x; ty = state.y; rotAngle = 0;
     } else if (cameraTargetMode === 'ship-rot') {
         tx = state.x; ty = state.y; 
-        const next = pathData[Math.min(currentSimStep + 1, pathData.length - 1)];
-        // Rotate so ship points "up" (-90 deg from standard cartesian)
-        const heading = Math.atan2(next.y - state.y, next.x - state.x);
-        rotAngle = -(heading + Math.PI/2); 
+        // Rotate so ship sprite forward (Right) points "up" (subtract 90 deg)
+        rotAngle = -(state.angle + Math.PI/2); 
     }
 
     // Apply the transforms (negative tx, ty because we move the universe, not the camera)
@@ -92,14 +90,14 @@ function drawScene() {
     // Earth
     ctx.save();
     ctx.translate(0, 0);
-    ctx.rotate(-earthRotAngle); // Rotate earth mesh itself
+    ctx.rotate(earthRotAngle); // Rotate earth mesh itself
     drawProceduralEarth(ctx, CONSTANTS.EARTH_RADIUS);
     ctx.restore();
 
     // Moon
     ctx.save();
     ctx.translate(state.mx, state.my);
-    ctx.rotate(-moonRotAngle);
+    ctx.rotate(moonRotAngle);
     drawProceduralMoon(ctx, CONSTANTS.MOON_RADIUS);
     ctx.restore();
     
@@ -114,25 +112,44 @@ function drawScene() {
     // DRAW PREDICTED FLIGHT PATH
     // =============================
     ctx.lineWidth = 2 / camera.zoom;
-    ctx.setLineDash([6, 6]);
     
-    let lineSOI = 'Earth';
+    let lineSOI = pathData[0].soi;
+    let lineBurning = pathData[0].burning;
+    
+    const getPathStyle = (soi, burning) => {
+        if (burning) return { color: '#f97316', dash: [] }; // Orange solid for burns
+        if (soi === 'Moon') return { color: '#facc15', dash: [6, 6] }; // Yellow dashed for Moon
+        return { color: '#3b82f6', dash: [6, 6] }; // Blue dashed for Earth
+    };
+
+    let currentStyle = getPathStyle(lineSOI, lineBurning);
     ctx.beginPath();
-    ctx.strokeStyle = '#3b82f6'; // Default blue for Earth SOI
+    ctx.strokeStyle = currentStyle.color;
+    ctx.setLineDash(currentStyle.dash);
     
     pathData.forEach((p, i) => {
         if (i === 0) {
             ctx.moveTo(p.x, p.y);
         } else {
-            // Color switch on SOI boundary
-            if (p.soi !== lineSOI) {
+            const nextStyle = getPathStyle(p.soi, p.burning);
+            
+            // Switch style if SOI or Burning state changes
+            if (nextStyle.color !== currentStyle.color || nextStyle.dash.length !== currentStyle.dash.length) {
+                // Finish previous segment
                 ctx.stroke();
+                
+                // Start next segment from the SAME point to avoid gaps
                 ctx.beginPath();
-                ctx.strokeStyle = p.soi === 'Moon' ? '#facc15' : '#3b82f6';
-                ctx.moveTo(p.x, p.y);
-                lineSOI = p.soi;
+                ctx.strokeStyle = nextStyle.color;
+                ctx.setLineDash(nextStyle.dash);
+                ctx.moveTo(pathData[i-1].x, pathData[i-1].y);
+                currentStyle = nextStyle;
             }
-            if (i % 3 === 0) ctx.lineTo(p.x, p.y); // Optimize rendering
+
+            const res = p.burning ? 1 : 3;
+            if (i % res === 0 || i === pathData.length - 1) {
+                ctx.lineTo(p.x, p.y);
+            }
         }
     });
     ctx.stroke();
@@ -198,9 +215,7 @@ function drawScene() {
     // =============================
     ctx.save();
     ctx.translate(state.x, state.y);
-    const nextNode = pathData[Math.min(currentSimStep + 1, pathData.length - 1)];
-    const shipHeading = Math.atan2(nextNode.y - state.y, nextNode.x - state.x);
-    ctx.rotate(shipHeading);
+    ctx.rotate(state.angle);
     drawProceduralShip(ctx, camera.zoom, state.soi === 'Moon', isBurning);
     ctx.restore();
 

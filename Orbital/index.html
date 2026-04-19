@@ -13,6 +13,42 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer">
+        
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex-col items-center justify-center p-4 pointer-events-auto">
+            <div class="glass-panel p-6 w-full max-w-sm rounded-xl overflow-hidden relative border border-slate-700 pointer-events-auto">
+                <button id="close-modal-btn" class="absolute top-4 right-4 text-slate-500 hover:text-white pb-1 pt-1 pl-1 pr-1 bg-transparent border-0 rounded-full cursor-pointer z-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                
+                <h2 class="text-white font-bold text-lg mb-6 border-b border-white/10 pb-2">Ramp Settings</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-400">Delay (ms)</label>
+                            <span id="ramp-delay-val" class="font-mono text-xs text-blue-400">250</span>
+                        </div>
+                        <input type="range" id="ramp-delay" min="0" max="1000" step="10" value="250">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-400">Base Acceleration</label>
+                            <span id="ramp-base-val" class="font-mono text-xs text-blue-400">10</span>
+                        </div>
+                        <input type="range" id="ramp-base" min="1" max="100" step="1" value="10">
+                    </div>
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label class="text-xs font-bold text-slate-400">Max Acceleration</label>
+                            <span id="ramp-max-val" class="font-mono text-xs text-blue-400">20000</span>
+                        </div>
+                        <input type="range" id="ramp-max" min="1000" max="50000" step="1000" value="20000">
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Top HUD -->
         <div class="top-hud">
             <!-- MOBILE MENU BUTTON -->
@@ -30,7 +66,7 @@
                     </button>
                 </div>
                 
-                <div class="flex flex-wrap gap-6 flex-1">
+                <div class="flex flex-wrap gap-4 flex-1">
                     <div class="metric-box">
                         <div class="metric-label">Mode</div>
                         <div id="status-val" class="metric-value" style="color: var(--accent-blue);">PLANNING</div>
@@ -52,6 +88,10 @@
                         <div id="pe-val" class="metric-value">0.0 km</div>
                     </div>
                     <div class="metric-box">
+                        <div class="metric-label">Period (T)</div>
+                        <div id="period-val" class="metric-value">0.0 s</div>
+                    </div>
+                    <div class="metric-box">
                         <div class="metric-label">Fuel (Δv)</div>
                         <div id="fuel-val" class="metric-value">500 / 500</div>
                     </div>
@@ -59,6 +99,11 @@
                         <div class="metric-label">Mission Time</div>
                         <div id="time-val" class="metric-value text-white font-bold tracking-wider">T+ 0.0</div>
                     </div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="settings-btn" class="w-10 h-10 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded-lg shadow-lg border border-gray-700 transition-colors">
+                        <svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
                 </div>
             </div>
 
@@ -97,43 +142,74 @@
                 </button>
             </div>
 
-            <div class="p-4 border-b border-white/10">
+            <!-- Parameters Section -->
+            <div class="collapse-header p-3 px-4 border-b border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto" onclick="document.getElementById('params-content').classList.toggle('hidden')">
+                <span>PARAMETERS</span>
+                <span class="text-slate-400">▼</span>
+            </div>
+            <div id="params-content" class="p-4 border-b border-white/10 bg-[#0b0c10]">
                 <div class="space-y-3 pointer-events-auto">
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Launch Delay (T+)</div>
-                            <input type="number" id="launch-delay" value="0">
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('launchDelay', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="launch-delay" value="0" step="0.001" class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('launchDelay', 1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
                         </div>
                         <div>
                             <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Sim Duration (s)</div>
-                            <input type="number" id="sim-duration" value="4000">
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('simDuration', -1, 0.1)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="sim-duration" value="4000" step="0.1" class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('simDuration', 1, 0.1)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Angle (Deg)</div>
-                            <input type="number" id="launch-angle" value="54">
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('launchAngle', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="launch-angle" value="54" step="0.001" class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('launchAngle', 1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
                         </div>
                         <div>
                             <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Power (m/s)</div>
-                            <input type="number" id="launch-power" value="24.5" step="0.5">
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('launchPower', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="launch-power" value="24.5" step="0.001" class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('launchPower', 1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="flex justify-between items-center mb-2 mt-2 px-4">
-                <h3 class="metric-label">Maneuver Nodes</h3>
-                <button id="add-node-btn" class="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded">+ ADD</button>
+            <!-- Maneuvers Section -->
+            <div class="collapse-header p-3 px-4 border-b border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto" onclick="document.getElementById('nodes-content').classList.toggle('hidden')">
+                <span>MANEUVERS</span>
+                <span class="text-slate-400">▼</span>
             </div>
-            
-            <!-- Scrollable Node List -->
-            <div id="burn-list" class="flex-1 overflow-y-auto pr-2 space-y-2 mb-3 min-h-[100px] px-4 pointer-events-auto custom-scrollbar">
-                <!-- Populated by JS -->
+            <div id="nodes-content" class="flex-1 flex flex-col min-h-0 bg-[#0b0c10]">
+                <div class="flex justify-between items-center p-2 px-4 shadow-[0_4px_10px_rgba(0,0,0,0.3)] z-10 pointer-events-auto">
+                    <button id="add-node-btn" class="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded w-full border border-blue-500/20 active:bg-blue-500/30">+ ADD MANEUVER NODE</button>
+                </div>
+                <!-- Scrollable Node List -->
+                <div id="burn-list" class="flex-1 overflow-y-auto pr-2 space-y-2 min-h-[100px] p-4 pointer-events-auto custom-scrollbar">
+                    <!-- Populated by JS -->
+                </div>
             </div>
 
+            <!-- Intercepts Section -->
+            <div class="collapse-header p-3 px-4 border-y border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto" onclick="document.getElementById('intercept-container').classList.toggle('hidden')">
+                <span>INTERCEPTS</span>
+                <span class="text-slate-400">▼</span>
+            </div>
             <!-- Encounters -->
-            <div id="intercept-container" class="mt-4 space-y-1 pointer-events-auto max-h-48 overflow-y-auto pr-1 custom-scrollbar px-4">
+            <div id="intercept-container" class="space-y-1 pointer-events-auto max-h-48 overflow-y-auto custom-scrollbar p-2 bg-[#0b0c10]">
                 <!-- Populated via JS -->
             </div>
         </div>

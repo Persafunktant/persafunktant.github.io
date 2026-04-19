@@ -70,44 +70,123 @@ function stepNodeParam(id, field, amount) {
     }
 }
 
-function removeNode(id) {
-    burnNodes = burnNodes.filter(n => n.id !== id);
-    triggerRecalculate();
+// --- UI State & Modals ---
+const settingsModal = document.getElementById('settings-modal');
+if (document.getElementById('settings-btn')) {
+    document.getElementById('settings-btn').addEventListener('click', () => {
+        settingsModal.classList.remove('hidden');
+        settingsModal.classList.add('flex');
+    });
+}
+if (document.getElementById('close-modal-btn')) {
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
+        settingsModal.classList.remove('flex');
+    });
 }
 
-let draggedNodeId = null;
+// --- Ramping Configuration ---
+const RAMP_CONFIG = {
+    delay: 250,
+    baseAccel: 10,
+    maxAccel: 20000
+};
 
-function handleDragStart(e, id) {
-    draggedNodeId = id;
-    e.target.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', id);
-}
+['ramp-delay', 'ramp-base', 'ramp-max'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        document.getElementById(id + '-val').innerText = val;
+        
+        if (id === 'ramp-delay') RAMP_CONFIG.delay = val;
+        if (id === 'ramp-base') RAMP_CONFIG.baseAccel = val;
+        if (id === 'ramp-max') RAMP_CONFIG.maxAccel = val;
+    });
+});
 
-function handleDragOver(e) {
-    e.preventDefault(); // Necessary to allow dropping
-    e.dataTransfer.dropEffect = 'move';
-}
+// --- Hold-to-Ramp Logic ---
+let activeRampInterval = null;
+let lastRampTime = 0;
 
-function handleDrop(e, targetId) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (draggedNodeId !== targetId) {
-        // Swap times to swap order
-        const draggedNode = burnNodes.find(n => n.id === draggedNodeId);
-        const targetNode = burnNodes.find(n => n.id === targetId);
-        if (draggedNode && targetNode) {
-            const tempTime = draggedNode.time;
-            draggedNode.time = targetNode.time;
-            targetNode.time = tempTime;
-            triggerRecalculate();
+function startRamping(id, field, direction, baseStep) {
+    stopRamping();
+    const startTime = Date.now();
+    let lastTick = startTime;
+    
+    // Initial single step
+    stepNodeParam(id, field, direction * baseStep);
+    
+    const rampLoop = () => {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const tickDelta = now - lastTick;
+        
+        if (elapsed > RAMP_CONFIG.delay) {
+            const s = (now - (startTime + RAMP_CONFIG.delay)) / 1000;
+            const accel = Math.min(1 + Math.pow(s, 3) * RAMP_CONFIG.baseAccel, RAMP_CONFIG.maxAccel);
+            const step = direction * baseStep * accel * (tickDelta / 100); 
+            
+            stepNodeParam(id, field, step);
         }
+        
+        lastTick = now;
+        activeRampInterval = requestAnimationFrame(rampLoop);
+    };
+    
+    activeRampInterval = requestAnimationFrame(rampLoop);
+}
+
+function stopRamping() {
+    if (activeRampInterval) {
+        cancelAnimationFrame(activeRampInterval);
+        activeRampInterval = null;
     }
 }
 
-function handleDragEnd(e) {
-    e.target.classList.remove('dragging');
-    draggedNodeId = null;
+function startGlobalRamping(paramName, direction, baseStep) {
+    stopRamping();
+    const startTime = Date.now();
+    let lastTick = startTime;
+    
+    const update = (val) => {
+        if (paramName === 'launchAngle') { launchAngle += val; document.getElementById('launch-angle').value = launchAngle.toFixed(1); }
+        if (paramName === 'launchPower') { launchPower += val; document.getElementById('launch-power').value = launchPower.toFixed(1); }
+        if (paramName === 'launchDelay') { launchDelay += val; document.getElementById('launch-delay').value = launchDelay.toFixed(0); }
+        if (paramName === 'simDuration') { simDuration += val; document.getElementById('sim-duration').value = simDuration.toFixed(0); }
+        triggerRecalculate();
+    };
+
+    update(direction * baseStep);
+    
+    const rampLoop = () => {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const tickDelta = now - lastTick;
+        
+        if (elapsed > RAMP_CONFIG.delay) {
+            const s = (now - (startTime + RAMP_CONFIG.delay)) / 1000;
+            const accel = Math.min(1 + Math.pow(s, 3) * RAMP_CONFIG.baseAccel, RAMP_CONFIG.maxAccel);
+            update(direction * baseStep * accel * (tickDelta / 100));
+        }
+        
+        lastTick = now;
+        activeRampInterval = requestAnimationFrame(rampLoop);
+    };
+    activeRampInterval = requestAnimationFrame(rampLoop);
+}
+
+function toggleNode(id) {
+    const node = burnNodes.find(n => n.id === id);
+    if (node) {
+        node.enabled = node.enabled === false ? true : false;
+        triggerRecalculate();
+    }
+}
+
+function removeNode(id) {
+    burnNodes = burnNodes.filter(n => n.id !== id);
+    triggerRecalculate();
 }
 
 function refreshUI() {
@@ -119,25 +198,25 @@ function refreshUI() {
     burnNodes.sort((a, b) => a.time - b.time);
 
     burnNodes.forEach(n => {
+        const isEnabled = n.enabled !== false;
         const div = document.createElement('div');
-        div.className = "node-item p-3 relative bg-black/40 border border-white/5 rounded-lg";
-        div.draggable = true;
+        div.className = `node-item p-3 relative bg-black/40 border border-white/5 rounded-lg ${!isEnabled ? 'opacity-50 grayscale-[0.5]' : ''}`;
         
-        div.addEventListener('dragstart', (e) => handleDragStart(e, n.id));
-        div.addEventListener('dragover', handleDragOver);
-        div.addEventListener('drop', (e) => handleDrop(e, n.id));
-        div.addEventListener('dragend', handleDragEnd);
-
         div.innerHTML = `
             <div class="flex justify-between items-center mb-2">
-                <div class="flex items-center gap-2 cursor-grab text-slate-500">
-                    <svg class="w-3 h-3 pointer-events-none" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.5 3a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5z"/></svg>
+                <div class="flex items-center gap-2 text-slate-500">
+                    <input type="checkbox" ${isEnabled ? 'checked' : ''} 
+                           onchange="toggleNode(${n.id})"
+                           class="w-3 h-3 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500">
                     <input type="text" value="${n.label}" 
                            onchange="updateNodeParam(${n.id}, 'label', this.value)"
-                           class="bg-transparent border-none p-0 m-0 font-bold text-blue-400 text-xs w-28 uppercase tracking-tighter outline-none focus:text-blue-300 pointer-events-auto">
+                           class="bg-transparent border-none p-0 m-0 font-bold ${isEnabled ? 'text-blue-400' : 'text-slate-500'} text-xs w-28 uppercase tracking-tighter outline-none focus:text-blue-300 pointer-events-auto">
                 </div>
-                <div class="flex items-center gap-3">
-                    <span class="text-[9px] font-bold text-slate-400 font-mono" title="Estimated Fuel Cost">COST: ${(n.totalDV || 0).toFixed(1)}</span>
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] font-bold text-slate-400 font-mono" title="Estimated Fuel Cost">DV: ${(n.totalDV || 0).toFixed(2)} m/s</span>
+                    <span class="text-[8px] font-bold text-orange-400/70 font-mono" title="Execution Time">BURN: ${(n.burnDuration || 0).toFixed(1)}s</span>
+                </div>
+                <div class="flex items-center gap-2">
                     <button onclick="removeNode(${n.id})" class="text-slate-600 hover:text-red-400 pointer-events-auto transition-colors">
                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg>
                     </button>
@@ -147,31 +226,25 @@ function refreshUI() {
                 <div class="flex items-center justify-between">
                     <span class="text-[9px] text-slate-500 uppercase font-black w-14">Time</span>
                     <div class="flex gap-1 items-center">
-                        <button onclick="stepNodeParam(${n.id}, 'time', -1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">-1</button>
-                        <button onclick="stepNodeParam(${n.id}, 'time', -0.1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">-.1</button>
-                        <input type="number" step="0.1" class="!w-12 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.time.toFixed(1))}" onchange="updateNodeParam(${n.id}, 'time', this.value)">
-                        <button onclick="stepNodeParam(${n.id}, 'time', 0.1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">+.1</button>
-                        <button onclick="stepNodeParam(${n.id}, 'time', 1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">+1</button>
+                        <button onmousedown="startRamping(${n.id}, 'time', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">-</button>
+                        <input type="number" step="0.001" class="!w-20 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.time.toFixed(3))}" onchange="updateNodeParam(${n.id}, 'time', this.value)">
+                        <button onmousedown="startRamping(${n.id}, 'time', 1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">+</button>
                     </div>
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-[9px] text-slate-500 uppercase font-black w-14">Prograde</span>
                     <div class="flex gap-1 items-center">
-                        <button onclick="stepNodeParam(${n.id}, 'dvPrograde', -0.1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">-.1</button>
-                        <button onclick="stepNodeParam(${n.id}, 'dvPrograde', -0.01)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">-.01</button>
-                        <input type="number" step="0.01" class="!w-16 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.dvPrograde.toFixed(2))}" onchange="updateNodeParam(${n.id}, 'dvPrograde', this.value)">
-                        <button onclick="stepNodeParam(${n.id}, 'dvPrograde', 0.01)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">+.01</button>
-                        <button onclick="stepNodeParam(${n.id}, 'dvPrograde', 0.1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">+.1</button>
+                        <button onmousedown="startRamping(${n.id}, 'dvPrograde', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">-</button>
+                        <input type="number" step="0.001" class="!w-20 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.dvPrograde.toFixed(3))}" onchange="updateNodeParam(${n.id}, 'dvPrograde', this.value)">
+                        <button onmousedown="startRamping(${n.id}, 'dvPrograde', 1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">+</button>
                     </div>
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-[9px] text-slate-500 uppercase font-black w-14">Radial In</span>
                     <div class="flex gap-1 items-center">
-                        <button onclick="stepNodeParam(${n.id}, 'dvRadial', -0.1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">-.1</button>
-                        <button onclick="stepNodeParam(${n.id}, 'dvRadial', -0.01)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">-.01</button>
-                        <input type="number" step="0.01" class="!w-16 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.dvRadial.toFixed(2))}" onchange="updateNodeParam(${n.id}, 'dvRadial', this.value)">
-                        <button onclick="stepNodeParam(${n.id}, 'dvRadial', 0.01)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">+.01</button>
-                        <button onclick="stepNodeParam(${n.id}, 'dvRadial', 0.1)" class="px-1.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-[10px] text-white rounded">+.1</button>
+                        <button onmousedown="startRamping(${n.id}, 'dvRadial', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">-</button>
+                        <input type="number" step="0.001" class="!w-20 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.dvRadial.toFixed(3))}" onchange="updateNodeParam(${n.id}, 'dvRadial', this.value)">
+                        <button onmousedown="startRamping(${n.id}, 'dvRadial', 1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">+</button>
                     </div>
                 </div>
             </div>
@@ -225,6 +298,9 @@ function updateHUDStats(state, simTime) {
     document.getElementById('ap-val').innerText = (state.ap === Infinity ? 'Escape' : (state.ap * 10).toFixed(0) + " km");
     // Only show Pe if we're not inside the planet realistically, but math handles it
     document.getElementById('pe-val').innerText = (state.pe * 10).toFixed(0) + " km";
+    if (document.getElementById('period-val')) {
+        document.getElementById('period-val').innerText = state.period === Infinity ? 'N/A' : (state.period).toFixed(1) + " s";
+    }
     if (document.getElementById('fuel-val')) {
         document.getElementById('fuel-val').innerText = `${state.fuel.toFixed(0)} / ${CONSTANTS.MAX_FUEL_DV}`;
     }
