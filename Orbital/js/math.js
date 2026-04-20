@@ -206,6 +206,11 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
     let landedRotationOffset = 0;
     let lastLandingSpeed = 0;
 
+    let encounterActive = false;
+    let encounterBody = null;
+    let encounterMinDist = Infinity;
+    let encounterStartTime = 0;
+
     while (simTime < launchDelay + simDuration && pathData.length < maxPathLimit) {
         let stepSize = CONSTANTS.BASE_STEP_SIZE;
         const bodies = getBodyPositions(simTime);
@@ -240,6 +245,27 @@ function solvePath(launchAngleDeg, launchPower, burnNodes, launchDelay = 0, simD
         const isCurrentlyInMoonSOI = currentSOI !== 'Earth';
         const currentRefBodyName = isCurrentlyInMoonSOI ? currentSOI : 'Earth';
         const cbPos = bodies[currentRefBodyName];
+
+        // --- Encounter Logic ---
+        if (!encounterActive && isCurrentlyInMoonSOI) {
+            encounterActive = true;
+            encounterBody = currentSOI;
+            encounterMinDist = Infinity;
+            encounterStartTime = simTime;
+            // We don't push ENTER immediately because we want to find minDist first? 
+            // Actually usually we push ENTER at the start.
+            interceptEvents.push({ type: 'ENTER', body: currentSOI, time: simTime });
+        } else if (encounterActive && !isCurrentlyInMoonSOI) {
+            interceptEvents.push({ type: 'EXIT', body: encounterBody, time: simTime, minDist: encounterMinDist });
+            encounterActive = false;
+            encounterBody = null;
+        }
+
+        if (encounterActive) {
+            const bp = bodies[encounterBody];
+            const dist = Math.sqrt((px - bp.x)**2 + (py - bp.y)**2);
+            if (dist < encounterMinDist) encounterMinDist = dist;
+        }
 
         // --- Handle Landed State Logic ---
         if (isLanded) {

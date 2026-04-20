@@ -34,13 +34,26 @@ canvas {
 
 /* UI Overlays */
 #ui-layer {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   z-index: 10;
   pointer-events: none; /* Let clicks pass through empty space to canvas */
   width: 100vw;
   height: 100vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  padding: 1rem;
+  gap: 1rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  #ui-layer {
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+  }
 }
 
 .pointer-events-auto {
@@ -61,8 +74,8 @@ canvas {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1rem;
   gap: 1rem;
+  flex: 1;
 }
 
 /* Layout Adaptation */

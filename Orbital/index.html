@@ -67,7 +67,118 @@
             </div>
         </div>
 
-        <!-- Top HUD -->
+        <!-- Main UI Column: Sidebar + HUD -->
+        <div id="right-sidebar"
+            class="hidden md:flex w-80 bg-[#0b0c10]/95 border border-white/10 flex-col pointer-events-auto rounded-xl shadow-2xl overflow-hidden z-50 h-full">
+
+            <div class="p-4 border-b border-white/10 text-xs font-bold text-slate-400 tracking-wider pointer-events-auto flex justify-between items-center">
+                MISSION PLANNING
+                <button id="mobile-close-btn" class="md:hidden text-slate-500 hover:text-white">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Parameters Section -->
+            <div class="collapse-header p-3 px-4 border-b border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto"
+                onclick="toggleCollapse('params-content', this)">
+                <span>PARAMETERS</span>
+                <span class="text-slate-400 transition-transform">▶</span>
+            </div>
+            <div id="params-content" class="p-4 border-b border-white/10 bg-[#0b0c10] hidden">
+                <div class="space-y-3 pointer-events-auto">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Launch Delay (T+)</div>
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('launchDelay', -1, 0.001)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="launch-delay" value="0" step="0.001"
+                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('launchDelay', 1, 0.001)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Sim Duration (s)</div>
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('simDuration', -1, 0.1)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="sim-duration" value="2000" step="0.1"
+                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('simDuration', 1, 0.1)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Angle (Deg)</div>
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('launchAngle', -1, 0.001)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="launch-angle" value="54" step="0.001"
+                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('launchAngle', 1, 0.001)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Power (m/s)</div>
+                            <div class="flex items-center gap-1">
+                                <button onmousedown="startGlobalRamping('launchPower', -1, 0.001)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
+                                <input type="number" id="launch-power" value="20.4" step="0.001"
+                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
+                                <button onmousedown="startGlobalRamping('launchPower', 1, 0.001)"
+                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
+                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maneuvers Section -->
+            <div class="collapse-header p-3 px-4 border-b border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto"
+                onclick="toggleCollapse('nodes-content', this)">
+                <span>MANEUVERS</span>
+                <span class="text-slate-400 transition-transform">▼</span>
+            </div>
+            <div id="nodes-content" class="flex-1 flex flex-col min-h-0 bg-[#0b0c10]">
+                <div class="flex justify-between items-center p-2 px-4 shadow-[0_4px_10px_rgba(0,0,0,0.3)] z-10 pointer-events-auto">
+                    <button id="add-node-btn"
+                        class="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded w-full border border-blue-500/20 active:bg-blue-500/30">+
+                        ADD MANEUVER NODE</button>
+                </div>
+                <!-- Scrollable Node List -->
+                <div id="burn-list" class="flex-1 overflow-y-auto pr-2 space-y-2 min-h-[100px] p-4 pointer-events-auto custom-scrollbar">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Intercepts Section -->
+            <div class="collapse-header p-3 px-4 border-y border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto"
+                onclick="toggleCollapse('intercept-container', this)">
+                <span>INTERCEPTS</span>
+                <span class="text-slate-400 transition-transform">▼</span>
+            </div>
+            <!-- Encounters -->
+            <div id="intercept-container" class="space-y-1 pointer-events-auto max-h-48 overflow-y-auto custom-scrollbar p-2 bg-[#0b0c10]">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+
+        <!-- Right Side: Top HUD only -->
         <div class="top-hud">
             <!-- MOBILE MENU BUTTON -->
             <button id="mobile-toggle-btn"
@@ -199,121 +310,6 @@
                         <option value="ship-rot">Ship (Heading)</option>
                     </select>
                 </div>
-            </div>
-        </div>
-
-        <!-- RIGHT SIDEBAR (Flight Plan) -->
-        <div id="right-sidebar"
-            class="w-full md:w-80 bg-[#0b0c10] border-t md:border-t-0 md:border-l border-white/10 flex flex-col pointer-events-auto md:static absolute bottom-0 right-0 transform translate-y-full md:translate-y-0 transition-transform duration-300 z-50 overflow-y-auto max-h-[70vh] md:max-h-full">
-
-            <div
-                class="p-4 border-b border-white/10 text-xs font-bold text-slate-400 tracking-wider pointer-events-auto flex justify-between items-center">
-                MISSION PLANNING
-                <button id="mobile-close-btn" class="md:hidden text-slate-500 hover:text-white">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Parameters Section -->
-            <div class="collapse-header p-3 px-4 border-b border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto"
-                onclick="document.getElementById('params-content').classList.toggle('hidden')">
-                <span>PARAMETERS</span>
-                <span class="text-slate-400">▼</span>
-            </div>
-            <div id="params-content" class="p-4 border-b border-white/10 bg-[#0b0c10]">
-                <div class="space-y-3 pointer-events-auto">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Launch Delay (T+)</div>
-                            <div class="flex items-center gap-1">
-                                <button onmousedown="startGlobalRamping('launchDelay', -1, 0.001)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
-                                <input type="number" id="launch-delay" value="0" step="0.001"
-                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
-                                <button onmousedown="startGlobalRamping('launchDelay', 1, 0.001)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Sim Duration (s)</div>
-                            <div class="flex items-center gap-1">
-                                <button onmousedown="startGlobalRamping('simDuration', -1, 0.1)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
-                                <input type="number" id="sim-duration" value="2000" step="0.1"
-                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
-                                <button onmousedown="startGlobalRamping('simDuration', 1, 0.1)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Angle (Deg)</div>
-                            <div class="flex items-center gap-1">
-                                <button onmousedown="startGlobalRamping('launchAngle', -1, 0.001)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
-                                <input type="number" id="launch-angle" value="54" step="0.001"
-                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
-                                <button onmousedown="startGlobalRamping('launchAngle', 1, 0.001)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-[9px] text-slate-500 uppercase font-bold mb-1">Power (m/s)</div>
-                            <div class="flex items-center gap-1">
-                                <button onmousedown="startGlobalRamping('launchPower', -1, 0.001)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">-</button>
-                                <input type="number" id="launch-power" value="20.4" step="0.001"
-                                    class="!w-full !px-1 !py-0 !text-center !text-xs">
-                                <button onmousedown="startGlobalRamping('launchPower', 1, 0.001)"
-                                    onmouseup="stopRamping()" onmouseleave="stopRamping()"
-                                    class="w-6 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded select-none">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Maneuvers Section -->
-            <div class="collapse-header p-3 px-4 border-b border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto"
-                onclick="document.getElementById('nodes-content').classList.toggle('hidden')">
-                <span>MANEUVERS</span>
-                <span class="text-slate-400">▼</span>
-            </div>
-            <div id="nodes-content" class="flex-1 flex flex-col min-h-0 bg-[#0b0c10]">
-                <div
-                    class="flex justify-between items-center p-2 px-4 shadow-[0_4px_10px_rgba(0,0,0,0.3)] z-10 pointer-events-auto">
-                    <button id="add-node-btn"
-                        class="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors bg-blue-500/10 px-2 py-1 rounded w-full border border-blue-500/20 active:bg-blue-500/30">+
-                        ADD MANEUVER NODE</button>
-                </div>
-                <!-- Scrollable Node List -->
-                <div id="burn-list"
-                    class="flex-1 overflow-y-auto pr-2 space-y-2 min-h-[100px] p-4 pointer-events-auto custom-scrollbar">
-                    <!-- Populated by JS -->
-                </div>
-            </div>
-
-            <!-- Intercepts Section -->
-            <div class="collapse-header p-3 px-4 border-y border-white/10 text-xs font-bold text-white flex justify-between items-center cursor-pointer bg-slate-800/50 hover:bg-slate-700/50 pointer-events-auto"
-                onclick="document.getElementById('intercept-container').classList.toggle('hidden')">
-                <span>INTERCEPTS</span>
-                <span class="text-slate-400">▼</span>
-            </div>
-            <!-- Encounters -->
-            <div id="intercept-container"
-                class="space-y-1 pointer-events-auto max-h-48 overflow-y-auto custom-scrollbar p-2 bg-[#0b0c10]">
-                <!-- Populated via JS -->
             </div>
         </div>
     </div>

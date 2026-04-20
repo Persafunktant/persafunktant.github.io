@@ -26,6 +26,16 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
+function toggleCollapse(id, headerEl) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('hidden');
+    const arrow = headerEl.querySelector('span:last-child');
+    if (arrow) {
+        arrow.innerText = el.classList.contains('hidden') ? '▶' : '▼';
+    }
+}
+
 // Click to target bodies
 canvas.addEventListener('mousedown', (e) => {
     if (typeof window.getWorldPos === 'function') {
@@ -350,38 +360,62 @@ function refreshUI() {
         list.appendChild(div);
     });
 
-    // 2. Rebuild Intercepts
+    // Rebuild Intercepts - Show next unique body encounter
     const intBox = document.getElementById('intercept-container');
     intBox.innerHTML = '';
     
-    // Group intercepts by enter/exit pairs for cleaner display
-    let activeEncounter = null;
-    let encounters = [];
+    // 1. Group events into full encounters
+    let allEncounters = [];
+    let currentEncounter = null;
     
     interceptEvents.forEach(ev => {
-        if (ev.type === 'ENTER') activeEncounter = ev;
-        if (ev.type === 'EXIT' && activeEncounter) {
-            encounters.push({ start: activeEncounter.time, end: ev.time, minDist: activeEncounter.minDist });
-            activeEncounter = null;
+        if (ev.type === 'ENTER') {
+            currentEncounter = { body: ev.body, start: ev.time, minDist: Infinity };
+        }
+        if (ev.type === 'EXIT' && currentEncounter && ev.body === currentEncounter.body) {
+            currentEncounter.end = ev.time;
+            currentEncounter.minDist = ev.minDist;
+            allEncounters.push(currentEncounter);
+            currentEncounter = null;
         }
     });
-    // Catch-all if simulation ends while inside SOI
-    if (activeEncounter) encounters.push({ start: activeEncounter.time, end: '???', minDist: activeEncounter.minDist });
+    // Partial encounter if sim ends inside SOI
+    if (currentEncounter) {
+        currentEncounter.end = '???';
+        allEncounters.push(currentEncounter);
+    }
 
-    encounters.forEach((en, i) => {
-        const distStr = en.minDist !== undefined ? (en.minDist * 10).toFixed(0) + " km" : "---";
+    // 2. Filter for unique bodies (first encounter only)
+    const seenBodies = new Set();
+    const uniqueEncounters = [];
+    
+    allEncounters.forEach(en => {
+        if (!seenBodies.has(en.body)) {
+            seenBodies.add(en.body);
+            uniqueEncounters.push(en);
+        }
+    });
+
+    if (uniqueEncounters.length === 0) {
+        intBox.innerHTML = '<div class="text-[10px] text-slate-500 italic p-2">No intercepts detected</div>';
+    }
+
+    uniqueEncounters.forEach((en, i) => {
+        const bodyObj = CONSTANTS.BODIES.find(b => b.name === en.body) || { color: '#fbbf24' };
+        const distStr = (en.minDist !== Infinity && en.minDist !== undefined) ? (en.minDist * 10).toFixed(0) + " km" : "---";
         const html = `
-            <div class="flex items-center justify-between p-2 bg-yellow-500/10 rounded border border-yellow-500/20 mb-1">
+            <div class="flex items-center justify-between p-2 rounded border mb-1" style="background: ${bodyObj.color}15; border-color: ${bodyObj.color}30;">
                 <div class="flex items-center gap-2">
-                    <span class="encounter-badge">T+ ${Math.round(en.start)}</span>
-                    <span class="text-[10px] font-bold text-yellow-200">INTERCEPT #${i+1}</span>
+                    <span class="encounter-badge" style="background: ${bodyObj.color}; color: #000;">T+ ${Math.round(en.start)}</span>
+                    <span class="text-[10px] font-bold" style="color: ${bodyObj.color}ee;">${en.body.toUpperCase()}</span>
                 </div>
-                <div class="text-[10px] text-yellow-100/70 font-mono font-bold">MIN: ${distStr}</div>
+                <div class="text-[10px] font-mono font-bold" style="color: ${bodyObj.color}aa;">PE: ${distStr}</div>
             </div>
         `;
         intBox.insertAdjacentHTML('beforeend', html);
     });
 }
+
 
 let lastSeenSOI = 'Earth';
 
