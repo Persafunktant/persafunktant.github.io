@@ -2,6 +2,9 @@
 
 // PASTE THESE INTO game.js
 
+// PASTE THESE INTO game.js
+
+
 let burnNodes = [
     {
         "id": 1,
@@ -82,8 +85,19 @@ let burnNodes = [
         "label": "Tranfer",
         "isLaunch": false,
         "enabled": true
+    },
+    {
+        "id": 1776648254285,
+        "time": 1105.156,
+        "dvPrograde": -2.206,
+        "dvRadial": 0,
+        "throttle": 1,
+        "label": "Capture",
+        "isLaunch": false,
+        "enabled": true
     }
 ];
+
 let launchAngle = 54;
 let launchPower = 20.4;
 let launchDelay = 0;
