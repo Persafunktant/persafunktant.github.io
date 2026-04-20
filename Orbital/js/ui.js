@@ -1,6 +1,9 @@
 // ui.js - User Interface and DOM State 
 
 document.getElementById('play-btn').addEventListener('click', () => togglePause());
+document.getElementById('reverse-btn').addEventListener('click', () => {
+    if (typeof togglePlaybackDirection === 'function') togglePlaybackDirection();
+});
 document.getElementById('reset-btn').addEventListener('click', () => resetSimulation());
 
 const sidebar = document.getElementById('right-sidebar');
@@ -13,6 +16,38 @@ if (mobileClose) mobileClose.addEventListener('click', () => sidebar.classList.a
 // Camera Lock Selector
 document.getElementById('camera-lock').addEventListener('change', (e) => {
     cameraTargetMode = e.target.value;
+});
+
+// View Toggle Hotkey (M)
+window.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key.toLowerCase() === 'm') {
+        if (typeof toggleViewMode === 'function') toggleViewMode();
+    }
+});
+
+// Click to target bodies
+canvas.addEventListener('mousedown', (e) => {
+    if (typeof window.getWorldPos === 'function') {
+        const wp = window.getWorldPos(e.clientX, e.clientY);
+        
+        let clicked = null;
+        if (pathData.length > 0 && pathData[currentSimStep].bodiesSnapshot) {
+            const snap = pathData[currentSimStep].bodiesSnapshot;
+            // Need to check zoom level - if zoomed out, clicks need some margin
+            let margin = camera.zoom < 1 ? 50 / camera.zoom : 0; 
+            
+            CONSTANTS.BODIES.forEach(b => {
+                const bp = snap[b.name];
+                const dist = Math.sqrt((wp.x - bp.x)**2 + (wp.y - bp.y)**2);
+                if (dist < b.radius + margin) clicked = b.name;
+            });
+        }
+        
+        if (clicked) {
+            window.targetedBodyName = clicked;
+        }
+    }
 });
 
 // Time Warp Buttons
@@ -47,6 +82,7 @@ document.getElementById('add-node-btn').addEventListener('click', () => {
         time: newTime,
         dvPrograde: 0,
         dvRadial: 0,
+        throttle: 1.0,
         label: 'NEW MANEUVER'
     });
     // Force sort and UI rebuild
@@ -104,6 +140,48 @@ const RAMP_CONFIG = {
         if (id === 'ramp-max') RAMP_CONFIG.maxAccel = val;
     });
 });
+
+document.getElementById('export-btn').addEventListener('click', () => exportMissionData());
+
+function exportMissionData() {
+    const data = {
+        launchAngle,
+        launchPower,
+        launchDelay,
+        simDuration,
+        burnNodes: burnNodes.map(n => ({
+            id: n.id,
+            time: parseFloat(n.time.toFixed(3)),
+            dvPrograde: parseFloat(n.dvPrograde.toFixed(3)),
+            dvRadial: parseFloat(n.dvRadial.toFixed(3)),
+            throttle: n.throttle,
+            label: n.label,
+            isLaunch: !!n.isLaunch,
+            enabled: n.enabled !== false
+        }))
+    };
+
+    const output = `// PASTE THESE INTO game.js\n\n` +
+                 `let launchAngle = ${data.launchAngle};\n` +
+                 `let launchPower = ${data.launchPower};\n` +
+                 `let launchDelay = ${data.launchDelay};\n` +
+                 `let simDuration = ${data.simDuration};\n\n` +
+                 `let burnNodes = ${JSON.stringify(data.burnNodes, null, 4)};`;
+
+    navigator.clipboard.writeText(output).then(() => {
+        const btn = document.getElementById('export-btn');
+        const original = btn.innerHTML;
+        btn.innerHTML = 'COPIED TO CLIPBOARD!';
+        btn.classList.add('bg-green-600');
+        btn.classList.remove('bg-blue-600');
+        
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.remove('bg-green-600');
+            btn.classList.add('bg-blue-600');
+        }, 2000);
+    });
+}
 
 // --- Hold-to-Ramp Logic ---
 let activeRampInterval = null;
@@ -179,7 +257,15 @@ function startGlobalRamping(paramName, direction, baseStep) {
 function toggleNode(id) {
     const node = burnNodes.find(n => n.id === id);
     if (node) {
-        node.enabled = node.enabled === false ? true : false;
+        node.enabled = node.enabled !== false ? false : true;
+        triggerRecalculate();
+    }
+}
+
+function toggleLaunchMode(id) {
+    const node = burnNodes.find(n => n.id === id);
+    if (node) {
+        node.isLaunch = !node.isLaunch;
         triggerRecalculate();
     }
 }
@@ -211,6 +297,10 @@ function refreshUI() {
                     <input type="text" value="${n.label}" 
                            onchange="updateNodeParam(${n.id}, 'label', this.value)"
                            class="bg-transparent border-none p-0 m-0 font-bold ${isEnabled ? 'text-blue-400' : 'text-slate-500'} text-xs w-28 uppercase tracking-tighter outline-none focus:text-blue-300 pointer-events-auto">
+                    <button onclick="toggleLaunchMode(${n.id})" 
+                            class="text-[9px] px-1.5 py-0.5 rounded ${n.isLaunch ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-slate-700/30 text-slate-500 border border-white/5'} hover:scale-105 transition-all font-black">
+                        ${n.isLaunch ? 'LAUNCH' : 'ORBITAL'}
+                    </button>
                 </div>
                 <div class="flex flex-col items-end">
                     <span class="text-[9px] font-bold text-slate-400 font-mono" title="Estimated Fuel Cost">DV: ${(n.totalDV || 0).toFixed(2)} m/s</span>
@@ -232,7 +322,7 @@ function refreshUI() {
                     </div>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500 uppercase font-black w-14">Prograde</span>
+                    <span class="text-[8px] text-slate-500 uppercase font-black w-14 leading-tight">${n.isLaunch ? 'Launch Power' : 'Prograde'}</span>
                     <div class="flex gap-1 items-center">
                         <button onmousedown="startRamping(${n.id}, 'dvPrograde', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">-</button>
                         <input type="number" step="0.001" class="!w-20 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.dvPrograde.toFixed(3))}" onchange="updateNodeParam(${n.id}, 'dvPrograde', this.value)">
@@ -240,11 +330,19 @@ function refreshUI() {
                     </div>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-[9px] text-slate-500 uppercase font-black w-14">Radial In</span>
+                    <span class="text-[8px] text-slate-500 uppercase font-black w-14 leading-tight">${n.isLaunch ? 'Launch Angle' : 'Radial In'}</span>
                     <div class="flex gap-1 items-center">
-                        <button onmousedown="startRamping(${n.id}, 'dvRadial', -1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">-</button>
-                        <input type="number" step="0.001" class="!w-20 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.dvRadial.toFixed(3))}" onchange="updateNodeParam(${n.id}, 'dvRadial', this.value)">
-                        <button onmousedown="startRamping(${n.id}, 'dvRadial', 1, 0.001)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">+</button>
+                        <button onmousedown="startRamping(${n.id}, 'dvRadial', -1, 0.1)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">-</button>
+                        <input type="number" step="0.1" class="!w-20 !px-1 !py-0 !text-center !text-xs" value="${parseFloat(n.dvRadial.toFixed(3))}" onchange="updateNodeParam(${n.id}, 'dvRadial', this.value)">
+                        <button onmousedown="startRamping(${n.id}, 'dvRadial', 1, 0.1)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">+</button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] text-slate-500 uppercase font-black w-14">Throttle</span>
+                    <div class="flex gap-1 items-center">
+                        <button onmousedown="startRamping(${n.id}, 'throttle', -1, 0.05)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">-</button>
+                        <input type="number" step="0.05" min="0.01" max="1.0" class="!w-20 !px-1 !py-0 !text-center !text-xs" value="${parseFloat((n.throttle || 1.0).toFixed(2))}" onchange="updateNodeParam(${n.id}, 'throttle', this.value)">
+                        <button onmousedown="startRamping(${n.id}, 'throttle', 1, 0.05)" onmouseup="stopRamping()" onmouseleave="stopRamping()" class="w-8 h-6 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-xs text-white rounded transition-colors select-none">+</button>
                     </div>
                 </div>
             </div>
@@ -285,12 +383,46 @@ function refreshUI() {
     });
 }
 
+let lastSeenSOI = 'Earth';
+
 function updateHUDStats(state, simTime) {
     const vel = Math.sqrt(state.vx*state.vx + state.vy*state.vy);
     
+    // Check Auto-Target
+    if (state.soi !== lastSeenSOI) {
+        lastSeenSOI = state.soi;
+        if (document.getElementById('toggle-autotarget')?.checked) {
+            window.targetedBodyName = state.soi;
+        }
+    }
+
+    // Status
+    const statusVal = document.getElementById('status-val');
+    if (state.status === 'LANDED') {
+        const speed = state.landingSpeed !== undefined ? state.landingSpeed.toFixed(1) : "---";
+        statusVal.innerText = "LANDED M:" + speed;
+        statusVal.style.color = "var(--accent-green)";
+    } else if (state.status === 'CRASHED') {
+        const speed = state.landingSpeed !== undefined ? state.landingSpeed.toFixed(1) : "---";
+        statusVal.innerText = "CRASHED M:" + speed;
+        statusVal.style.color = "#ef4444";
+    } else {
+        if (isPaused) {
+            statusVal.innerText = "PLANNING";
+            statusVal.style.color = "var(--accent-blue)";
+        } else {
+            statusVal.innerText = "IN FLIGHT";
+            statusVal.style.color = "var(--accent-green)";
+        }
+    }
+
     const soiEl = document.getElementById('soi-val');
     soiEl.innerText = state.soi.toUpperCase();
-    soiEl.style.color = state.soi === 'Moon' ? 'var(--accent-yellow)' : '#c9d1d9';
+    
+    let colorHex = '#c9d1d9';
+    const bodyObj = CONSTANTS.BODIES.find(b => b.name === state.soi);
+    if (bodyObj) colorHex = bodyObj.color;
+    soiEl.style.color = colorHex;
     
     document.getElementById('time-val').innerText = "T+ " + simTime.toFixed(1);
     document.getElementById('vel-val').innerText = (vel * 10).toFixed(1) + " m/s";

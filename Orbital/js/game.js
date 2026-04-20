@@ -1,14 +1,89 @@
 // game.js - Main Game Loop and State Management
 
-let burnNodes = [
-    { id: 1, time: 6.587, dvPrograde: 11.399, dvRadial: 0, label: 'CIRCULARIZE' },
-    { id: 2, time: 52.692, dvPrograde: 7.855, dvRadial: 0, label: 'LUNAR TRANSFER' },
-    { id: 3, time: 224.075, dvPrograde: -5.62, dvRadial: 0, label: 'ENTER LUNARORBIT' },
-    { id: 4, time: 309.527, dvPrograde: 2.685, dvRadial: 0, label: 'RAISE ORBIT' },
-    { id: 5, time: 404.09, dvPrograde: 1.756, dvRadial: 0, label: 'CIRCULARIZE' },
-    { id: 6, time: 1662.924, dvPrograde: 3.848, dvRadial: 0, label: 'RETURN TO EARTH' }
-];
+// PASTE THESE INTO game.js
 
+let burnNodes = [
+    {
+        "id": 1,
+        "time": 6.587,
+        "dvPrograde": 11.399,
+        "dvRadial": 0,
+        "throttle": 1,
+        "label": "CIRCULARIZE",
+        "isLaunch": false,
+        "enabled": true
+    },
+    {
+        "id": 2,
+        "time": 56.56,
+        "dvPrograde": 7.855,
+        "dvRadial": 0,
+        "throttle": 1,
+        "label": "LUNAR TRANSFER",
+        "isLaunch": false,
+        "enabled": true
+    },
+    {
+        "id": 3,
+        "time": 200.089,
+        "dvPrograde": -6.802,
+        "dvRadial": 0,
+        "throttle": 1,
+        "label": "ENTER LUNARORBIT",
+        "isLaunch": false,
+        "enabled": true
+    },
+    {
+        "id": 4,
+        "time": 343.25,
+        "dvPrograde": -2.152,
+        "dvRadial": -0.429,
+        "throttle": 1,
+        "label": "DeOrbit",
+        "isLaunch": false,
+        "enabled": true
+    },
+    {
+        "id": 5,
+        "time": 383.66,
+        "dvPrograde": -5.448,
+        "dvRadial": 5.229,
+        "throttle": 1,
+        "label": "DECEL",
+        "isLaunch": false,
+        "enabled": true
+    },
+    {
+        "id": 1776647731269,
+        "time": 387.269,
+        "dvPrograde": -21.371,
+        "dvRadial": 0,
+        "throttle": 1,
+        "label": "CATCH",
+        "isLaunch": false,
+        "enabled": true
+    },
+    {
+        "id": 1776641143309,
+        "time": 471.677,
+        "dvPrograde": 12.245,
+        "dvRadial": 64.455,
+        "throttle": 1,
+        "label": "Lunar Launch",
+        "isLaunch": true,
+        "enabled": true
+    },
+    {
+        "id": 1776642808467,
+        "time": 510.041,
+        "dvPrograde": 4.462,
+        "dvRadial": 0,
+        "throttle": 1,
+        "label": "Tranfer",
+        "isLaunch": false,
+        "enabled": true
+    }
+];
 let launchAngle = 54;
 let launchPower = 20.4;
 let launchDelay = 0;
@@ -16,6 +91,8 @@ let simDuration = 2000;
 
 let isDragging = false;
 let lastMouse = { x: 0, y: 0 };
+let currentSimTime = 0;
+let playbackDirection = 1; // 1 for forward, -1 for backward
 
 function init() {
     // Canvas interaction events
@@ -68,6 +145,7 @@ function init() {
 
     // Run first simulation compute
     triggerRecalculate();
+    currentSimTime = launchDelay;
 
     // Start render loop
     requestAnimationFrame(mainLoop);
@@ -75,6 +153,12 @@ function init() {
 
 function triggerRecalculate() {
     solvePath(launchAngle, launchPower, burnNodes, launchDelay, simDuration);
+    // Ensure currentSimStep remains valid for the new path data
+    if (pathData.length === 0) {
+        currentSimStep = 0;
+    } else if (currentSimStep >= pathData.length) {
+        currentSimStep = pathData.length - 1;
+    }
     // Push ref to renderer
     burnNodesRef = burnNodes;
     // Notify UI
@@ -99,24 +183,101 @@ function togglePause() {
 
 function resetSimulation() {
     currentSimStep = 0;
-    absoluteWallTime = 0;
+    currentSimTime = launchDelay;
+    playbackDirection = 1;
+    updatePlaybackUI();
     if (!isPaused) togglePause();
     else triggerRecalculate(); // Make sure to force an update if already paused
 }
 
+function togglePlaybackDirection() {
+    playbackDirection = playbackDirection === 1 ? -1 : 1;
+    updatePlaybackUI();
+}
+
+function updatePlaybackUI() {
+    const revIcon = document.getElementById('reverse-icon');
+    const playIcon = document.getElementById('play-icon');
+
+    if (playbackDirection === -1) {
+        revIcon.classList.add('text-blue-400');
+        revIcon.classList.remove('text-slate-400');
+        if (!isPaused) {
+            playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        }
+    } else {
+        revIcon.classList.add('text-slate-400');
+        revIcon.classList.remove('text-blue-400');
+    }
+}
+
 function mainLoop() {
-    // Advance simulation
-    if (!isPaused && pathData.length > 0 && currentSimStep < pathData.length - 1) {
-        currentSimStep += renderTimeWarp;
-        if (currentSimStep >= pathData.length) currentSimStep = pathData.length - 1;
+    // If no path data exists, just skip this frame's logic
+    if (!pathData || pathData.length === 0) {
+        requestAnimationFrame(mainLoop);
+        return;
+    }
+
+    // Advance simulation by physical time domain
+    if (!isPaused) {
+        if (playbackDirection === 1 && currentSimStep < pathData.length - 1) {
+            currentSimTime += 0.05 * renderTimeWarp;
+        } else if (playbackDirection === -1 && currentSimTime > launchDelay) {
+            currentSimTime -= 0.05 * renderTimeWarp;
+        }
+
+        // Clamp time
+        if (currentSimTime < launchDelay) currentSimTime = launchDelay;
+
+        // Synchronize currentSimStep
+        if (playbackDirection === 1) {
+            while (currentSimStep < pathData.length - 1 && pathData[currentSimStep].t < currentSimTime) {
+                currentSimStep++;
+            }
+        } else {
+            while (currentSimStep > 0 && pathData[currentSimStep].t > currentSimTime) {
+                currentSimStep--;
+            }
+        }
     }
 
     // Draw frame
-    drawScene();
+    let renderState = pathData[currentSimStep];
+
+    // Smooth Interpolation
+    if (!isPaused && currentSimStep > 0 && renderState && pathData[currentSimStep].t > currentSimTime) {
+        const prev = pathData[currentSimStep - 1];
+        const next = pathData[currentSimStep];
+        const dt = next.t - prev.t;
+        if (dt > 0) {
+            const ratio = (currentSimTime - prev.t) / dt;
+            renderState = { ...prev };
+            // Interpolate Ship
+            renderState.x = prev.x + (next.x - prev.x) * ratio;
+            renderState.y = prev.y + (next.y - prev.y) * ratio;
+            renderState.angle = prev.angle + (next.angle - prev.angle) * ratio;
+
+            // Interpolate Bodies
+            if (prev.bodiesSnapshot && next.bodiesSnapshot) {
+                renderState.bodiesSnapshot = {};
+                Object.keys(prev.bodiesSnapshot).forEach(b => {
+                    const bp_prev = prev.bodiesSnapshot[b];
+                    const bp_next = next.bodiesSnapshot[b];
+                    renderState.bodiesSnapshot[b] = {
+                        x: bp_prev.x + (bp_next.x - bp_prev.x) * ratio,
+                        y: bp_prev.y + (bp_next.y - bp_prev.y) * ratio,
+                        ang: bp_prev.ang + (bp_next.ang - bp_prev.ang) * ratio
+                    };
+                });
+            }
+        }
+    }
+
+    drawScene(renderState);
 
     // Update HUD continuously based on currentSimStep state
-    if (pathData[currentSimStep] && typeof updateHUDStats === 'function') {
-        updateHUDStats(pathData[currentSimStep], currentSimStep * CONSTANTS.STEP_SIZE);
+    if (renderState && typeof updateHUDStats === 'function') {
+        updateHUDStats(renderState, currentSimTime);
     }
 
     requestAnimationFrame(mainLoop);
