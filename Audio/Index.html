@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binaural Synapse - Advanced Brainwave Exploration Package</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+        }
+        
+        .orbitron-title {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Neon Glows */
+        .neon-glow-cyan {
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+
+        .neon-glow-magenta {
+            box-shadow: 0 0 15px rgba(217, 70, 239, 0.25);
+            border-color: rgba(217, 70, 239, 0.4);
+        }
+
+        .neon-glow-emerald {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-cyan-500 selection:text-slate-900 overflow-x-hidden">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-lg bg-gradient-to-tr from-cyan-500 to-magenta-500 flex items-center justify-center p-[2px]">
+                    <div class="h-full w-full bg-slate-950 rounded-[6px] flex items-center justify-center">
+                        <svg class="h-6 w-6 text-cyan-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold orbitron-title tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-200 to-magenta-400">
+                        BINAURAL SYNAPSE
+                    </h1>
+                    <p class="text-xs text-slate-400 tracking-widest uppercase">Advanced Brainwave & Phase Exploration Lab</p>
+                </div>
+            </div>
+
+            <!-- Master Controls -->
+            <div class="flex items-center gap-6 w-full md:w-auto justify-end">
+                <div class="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800/80">
+                    <span class="text-xs text-slate-400 uppercase tracking-wider">Master Vol</span>
+                    <input id="master-vol" type="range" min="0" max="1" step="0.01" value="0.5" class="w-24 accent-cyan-400 cursor-pointer">
+                    <span id="master-vol-val" class="text-xs font-mono text-cyan-400 w-8 text-right">50%</span>
+                </div>
+
+                <button id="audio-toggle" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold tracking-wider transition-all duration-300 transform active:scale-95 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-400 hover:to-rose-500 text-white shadow-lg shadow-rose-950/40">
+                    <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span id="toggle-text">START ENGINE</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Controls (lg:col-span-7) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Dual-Oscillator Control Panel -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/50 via-slate-800 to-magenta-500/50"></div>
+                
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800/50 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 rounded-md bg-cyan-950/50 border border-cyan-800/30 text-cyan-400">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                            </svg>
+                        </span>
+                        <h2 class="text-lg font-bold tracking-wider uppercase text-slate-100">Binaural Engine</h2>
+                    </div>
+                    
+                    <!-- Link Mode Switch -->
+                    <div class="flex items-center gap-2.5 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <span class="text-xs text-slate-400 uppercase tracking-widest">Link (Sync) Mode</span>
+                        <button id="sync-mode-toggle" class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-cyan-600">
+                            <span id="sync-mode-dot" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Left Ear Oscillator (Base Carrier) -->
+                    <div id="left-ear-panel" class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 neon-glow-cyan transition-all duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                <span class="text-sm font-semibold text-cyan-400 tracking-wider uppercase">LEFT CHANNEL (Carrier)</span>
+                            </div>
+                            <button id="left-mute" class="text-xs text-slate-400 hover:text-cyan-400 transition bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">MUTE</button>
+                        </div>
+
+                        <!-- Waveform Picker -->
+                        <div class="mb-4">
+                            <label class="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Waveform Profile</label>
+                            <div class="grid grid-cols-4 gap-1">
+                                <button data-chan="left" data-wave="sine" class="wave-opt-left active bg-cyan-950/60 border border-cyan-500/50 text-cyan-400 text-xs py-1.5 rounded-md font-medium transition">Sine</button>
+                                <button data-chan="left" data-wave="triangle" class="wave-opt-left bg-slate-900 border border-slate-800 text-slate-400 text-xs py-1.5 rounded-md font-medium transition">Tri</button>
+                                <button data-chan="left" data-wave="sawtooth" class="wave-opt-left bg-slate-900 border border-slate-800 text-slate-400 text-xs py-1.5 rounded-md font-medium transition">Saw</button>
+                                <button data-chan="left" data-wave="square" class="wave-opt-left bg-slate-900 border border-slate-800 text-slate-400 text-xs py-1.5 rounded-md font-medium transition">Sq</button>
+                            </div>
+                        </div>
+
+                        <!-- Frequency Input / Slider -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs text-slate-400 uppercase tracking-wider">Carrier Frequency</label>
+                                <div class="flex items-center gap-1">
+                                    <input id="left-freq-num" type="number" step="0.1" value="200.0" class="w-16 bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-right text-cyan-400 font-mono focus:outline-none focus:border-cyan-500">
+                                    <span class="text-xs text-slate-500">Hz</span>
+                                </div>
+                            </div>
+                            <input id="left-freq-slider" type="range" min="40" max="800" step="0.5" value="200" class="w-full accent-cyan-400 cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                                <span>40 Hz</span>
+                                <span>420 Hz</span>
+                                <span>800 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Ear Oscillator (Target / Offset) -->
+                    <div id="right-ear-panel" class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 neon-glow-magenta transition-all duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="h-2.5 w-2.5 rounded-full bg-magenta-400 animate-ping"></span>
+                                <span class="text-sm font-semibold text-magenta-400 tracking-wider uppercase">RIGHT CHANNEL</span>
+                            </div>
+                            <button id="right-mute" class="text-xs text-slate-400 hover:text-magenta-400 transition bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">MUTE</button>
+                        </div>
+
+                        <!-- Waveform Picker -->
+                        <div class="mb-4">
+                            <label class="text-xs text-slate-400 uppercase tracking-wider block mb-1.5">Waveform Profile</label>
+                            <div class="grid grid-cols-4 gap-1">
+                                <button data-chan="right" data-wave="sine" class="wave-opt-right active bg-magenta-950/60 border border-magenta-500/50 text-magenta-400 text-xs py-1.5 rounded-md font-medium transition">Sine</button>
+                                <button data-chan="right" data-wave="triangle" class="wave-opt-right bg-slate-900 border border-slate-800 text-slate-400 text-xs py-1.5 rounded-md font-medium transition">Tri</button>
+                                <button data-chan="right" data-wave="sawtooth" class="wave-opt-right bg-slate-900 border border-slate-800 text-slate-400 text-xs py-1.5 rounded-md font-medium transition">Saw</button>
+                                <button data-chan="right" data-wave="square" class="wave-opt-right bg-slate-900 border border-slate-800 text-slate-400 text-xs py-1.5 rounded-md font-medium transition">Sq</button>
+                            </div>
+                        </div>
+
+                        <!-- Frequency Input / Slider (Synced Mode switches behavior here) -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label id="right-freq-label" class="text-xs text-slate-400 uppercase tracking-wider">Beat Offset Frequency</label>
+                                <div class="flex items-center gap-1">
+                                    <input id="right-freq-num" type="number" step="0.1" value="10.0" class="w-16 bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-xs text-right text-magenta-400 font-mono focus:outline-none focus:border-magenta-500">
+                                    <span id="right-freq-unit" class="text-xs text-slate-500">Hz</span>
+                                </div>
+                            </div>
+                            <input id="right-freq-slider" type="range" min="-50" max="50" step="0.1" value="10" class="w-full accent-magenta-400 cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                                <span id="right-slider-min">-50 Hz</span>
+                                <span id="right-slider-mid">0 Hz</span>
+                                <span id="right-slider-max">50 Hz</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Noise Generator & Environment Ambient Masking -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20">
+                <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-emerald-500/50 via-slate-800 to-teal-500/50"></div>
+                
+                <div class="flex items-center justify-between mb-4 border-b border-slate-800/50 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 rounded-md bg-emerald-950/50 border border-emerald-800/30 text-emerald-400">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </span>
+                        <h2 class="text-lg font-bold tracking-wider uppercase text-slate-100">Ambient Color Noise Engine</h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Noise Color Selector -->
+                    <div>
+                        <label class="text-xs text-slate-400 uppercase tracking-wider block mb-2">Noise Profile</label>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button id="noise-white" class="noise-type bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 text-xs py-2 rounded-lg font-semibold transition">WHITE</button>
+                            <button id="noise-pink" class="noise-type active bg-emerald-950/60 border border-emerald-500/50 text-emerald-400 text-xs py-2 rounded-lg font-semibold transition">PINK</button>
+                            <button id="noise-brown" class="noise-type bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 text-xs py-2 rounded-lg font-semibold transition">BROWN</button>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+                            Masking tones block auditory distractions and mimic natural environmental frequency dampening.
+                        </p>
+                    </div>
+
+                    <!-- Noise Volume & Ocean Wave Surge Slider -->
+                    <div class="space-y-3">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs text-slate-400 uppercase tracking-wider">Noise Master Gain</label>
+                                <span id="noise-vol-val" class="text-xs text-emerald-400 font-mono">15%</span>
+                            </div>
+                            <input id="noise-vol" type="range" min="0" max="0.5" step="0.01" value="0.15" class="w-full accent-emerald-400 cursor-pointer">
+                        </div>
+
+                        <!-- Ocean surge toggle option -->
+                        <div class="pt-2 border-t border-slate-800/60">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <span class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Enable Ocean Wave Surge</span>
+                                <input type="checkbox" id="ocean-surge-toggle" class="sr-only peer" checked>
+                                <div class="relative w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Low Pass Filtration Slider & Ocean surge period -->
+                    <div class="space-y-3">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs text-slate-400 uppercase tracking-wider">Filter Cutoff</label>
+                                <span id="noise-cutoff-val" class="text-xs text-emerald-400 font-mono">450 Hz</span>
+                            </div>
+                            <input id="noise-cutoff" type="range" min="100" max="5000" step="50" value="450" class="w-full accent-emerald-400 cursor-pointer">
+                        </div>
+
+                        <!-- Surge cycle period -->
+                        <div id="surge-period-panel" class="pt-1.5">
+                            <div class="flex justify-between items-center">
+                                <label class="text-xs text-slate-400 uppercase tracking-wider">Surge Period (Tide)</label>
+                                <span id="surge-period-val" class="text-xs text-emerald-400 font-mono">8.0s</span>
+                            </div>
+                            <input id="surge-period" type="range" min="4" max="25" step="0.5" value="8" class="w-full accent-emerald-400 cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Visualizer & Info (lg:col-span-5) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Beautiful Real-time Visualizer Panel -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 flex flex-col h-full min-h-[500px] lg:min-h-[580px] relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-purple-500/50 via-slate-800 to-indigo-500/50"></div>
+                
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 border-b border-slate-800/50 pb-3">
+                    <h2 class="text-md font-bold tracking-wider uppercase text-slate-100">Immersive Wave Analyzer</h2>
+                    
+                    <div class="flex flex-wrap gap-1 bg-slate-950 p-1 rounded-lg border border-slate-850">
+                        <button id="vis-wave" class="active px-2.5 py-1 text-xs font-semibold rounded-md transition text-cyan-400 bg-cyan-950/40 border border-cyan-800/30">Wave</button>
+                        <button id="vis-lissajous" class="px-2.5 py-1 text-xs font-semibold rounded-md transition text-slate-400">Vector</button>
+                        <button id="vis-mandala" class="px-2.5 py-1 text-xs font-semibold rounded-md transition text-slate-400">Mandala</button>
+                        <button id="vis-tunnel" class="px-2.5 py-1 text-xs font-semibold rounded-md transition text-slate-400">Tunnel</button>
+                    </div>
+                </div>
+
+                <!-- Canvas Visualizer Container -->
+                <div class="flex-grow relative bg-slate-950 rounded-xl border border-slate-850 overflow-hidden flex items-center justify-center min-h-[300px] lg:h-[420px]">
+                    <canvas id="osc-canvas" class="w-full h-full block absolute inset-0"></canvas>
+                    
+                    <!-- Live overlay metrics -->
+                    <div class="absolute bottom-3 left-3 right-3 bg-slate-900/80 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-800/60 flex items-center justify-between text-[11px] font-mono select-none">
+                        <div class="text-cyan-400">
+                            L: <span id="overlay-left-freq">200.0</span>Hz
+                        </div>
+                        <div class="text-amber-400 bg-amber-950/30 px-2 py-0.5 rounded border border-amber-900/40">
+                            Diff: <span id="overlay-diff">10.0</span>Hz
+                        </div>
+                        <div class="text-magenta-400">
+                            R: <span id="overlay-right-freq">210.0</span>Hz
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-xs text-slate-400 leading-relaxed bg-slate-950/30 p-3 rounded-lg border border-slate-800">
+                    <p id="vis-explanation">
+                        <strong>Waveform View:</strong> Visualizes the raw waveforms overlapping. See the interference pulses mimicking the perceived frequency beating of your brainwaves.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Brainwave State Presets and Transition (Bottom Deck) -->
+    <section class="max-w-7xl w-full mx-auto p-4 mb-8">
+        <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-blue-500/50 via-slate-800 to-indigo-500/50"></div>
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-slate-800/50 pb-4">
+                <div>
+                    <h2 class="text-lg font-bold tracking-wider uppercase text-slate-100">Curated Presets & Neural Transition Engine</h2>
+                    <p class="text-xs text-slate-400">Automate transition glides between core frequency targets smoothly over custom time bounds.</p>
+                </div>
+
+                <!-- Transitions Settings -->
+                <div class="flex flex-wrap items-center gap-4 bg-slate-950 p-3 rounded-xl border border-slate-850">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider">Glide Speed:</span>
+                        <select id="glide-duration" class="bg-slate-900 border border-slate-800 text-cyan-400 text-xs px-2.5 py-1 rounded font-mono focus:outline-none">
+                            <option value="1">Instant</option>
+                            <option value="5" selected>5 Seconds</option>
+                            <option value="15">15 Seconds</option>
+                            <option value="30">30 Seconds</option>
+                            <option value="60">60 Seconds</option>
+                        </select>
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="w-24 md:w-40 h-1.5 bg-slate-900 rounded-full overflow-hidden relative">
+                        <div id="glide-progress-bar" class="h-full bg-gradient-to-r from-cyan-400 to-magenta-500 w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preset Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                
+                <!-- Preset Card: Deep Delta -->
+                <button data-preset="delta" class="preset-card group text-left p-4 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-900 hover:border-cyan-500/50 transition-all duration-300 transform hover:-translate-y-1 relative">
+                    <div class="absolute top-0 right-0 p-2 text-[10px] font-mono text-cyan-400/60">0.5-4 Hz</div>
+                    <h3 class="font-bold text-sm tracking-wide text-cyan-400 group-hover:text-cyan-300">Delta Session</h3>
+                    <p class="text-xs text-slate-300 mt-1">Deep Restorative Sleep</p>
+                    <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">Encourages deep, dreamless restorative physical sleep states.</p>
+                    <div class="mt-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>Carrier: 120Hz</span>
+                        <span>Diff: 2Hz</span>
+                    </div>
+                </button>
+
+                <!-- Preset Card: Theta Meditation -->
+                <button data-preset="theta" class="preset-card group text-left p-4 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-900 hover:border-magenta-500/50 transition-all duration-300 transform hover:-translate-y-1 relative">
+                    <div class="absolute top-0 right-0 p-2 text-[10px] font-mono text-magenta-400/60">4-8 Hz</div>
+                    <h3 class="font-bold text-sm tracking-wide text-magenta-400 group-hover:text-magenta-300">Theta Deep Meditation</h3>
+                    <p class="text-xs text-slate-300 mt-1">Dream States & Astral</p>
+                    <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">Associated with REM sleep, subconscious access, and deep meditation.</p>
+                    <div class="mt-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>Carrier: 160Hz</span>
+                        <span>Diff: 6Hz</span>
+                    </div>
+                </button>
+
+                <!-- Preset Card: Alpha Relaxation -->
+                <button data-preset="alpha" class="preset-card group text-left p-4 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-900 hover:border-indigo-500/50 transition-all duration-300 transform hover:-translate-y-1 relative">
+                    <div class="absolute top-0 right-0 p-2 text-[10px] font-mono text-indigo-400/60">8-12 Hz</div>
+                    <h3 class="font-bold text-sm tracking-wide text-indigo-400 group-hover:text-indigo-300">Alpha Reflection</h3>
+                    <p class="text-xs text-slate-300 mt-1">Super Learning & Peace</p>
+                    <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">Relaxed yet focused brainstates ideal for learning and high stress relief.</p>
+                    <div class="mt-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>Carrier: 220Hz</span>
+                        <span>Diff: 10Hz</span>
+                    </div>
+                </button>
+
+                <!-- Preset Card: Beta Focus -->
+                <button data-preset="beta" class="preset-card group text-left p-4 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-900 hover:border-purple-500/50 transition-all duration-300 transform hover:-translate-y-1 relative">
+                    <div class="absolute top-0 right-0 p-2 text-[10px] font-mono text-purple-400/60">12-30 Hz</div>
+                    <h3 class="font-bold text-sm tracking-wide text-purple-400 group-hover:text-purple-300">Beta High Focus</h3>
+                    <p class="text-xs text-slate-300 mt-1">Laser Concentration</p>
+                    <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">Promotes heightened wakefulness, high-octane focus, and analytical thinking.</p>
+                    <div class="mt-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>Carrier: 240Hz</span>
+                        <span>Diff: 18Hz</span>
+                    </div>
+                </button>
+
+                <!-- Preset Card: Gamma High Processing -->
+                <button data-preset="gamma" class="preset-card group text-left p-4 rounded-xl border border-slate-800 bg-slate-950/40 hover:bg-slate-900 hover:border-emerald-500/50 transition-all duration-300 transform hover:-translate-y-1 relative">
+                    <div class="absolute top-0 right-0 p-2 text-[10px] font-mono text-emerald-400/60">30-50 Hz</div>
+                    <h3 class="font-bold text-sm tracking-wide text-emerald-400 group-hover:text-emerald-300">Gamma Peak Insight</h3>
+                    <p class="text-xs text-slate-300 mt-1">Cognitive Synthesis</p>
+                    <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">High-level informational binding, extreme processing, and flashes of insight.</p>
+                    <div class="mt-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>Carrier: 350Hz</span>
+                        <span>Diff: 40Hz</span>
+                    </div>
+                </button>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 py-4 px-4 mt-auto text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+            <p>Binaural Synapse • Designed for immersive brainwave research.</p>
+            <p>Requires high-fidelity stereo headphones for spatial binaural processing.</p>
+        </div>
+    </footer>
+
+    <!-- Web Audio & Animation Logic -->
+    <script>
+        // --- Web Audio State Variables ---
+        let audioCtx = null;
+        let leftOsc = null;
+        let rightOsc = null;
+        let leftGain = null;
+        let rightGain = null;
+        
+        let noiseSource = null;
+        let noiseGainNode = null;
+        let noiseFilterNode = null;
+        let masterGain = null;
+        let powerGain = null; // Smooth power toggle fade-in/fade-out
+
+        // Visualizer Nodes
+        let leftAnalyser = null;
+        let rightAnalyser = null;
+
+        // App States
+        let isPlaying = false;
+        let syncMode = true; // Synced Mode: Carrier + Offset logic
+        let visualizerMode = 'wave'; // 'wave', 'lissajous', 'mandala', 'tunnel'
+        let currentLeftMute = false;
+        let currentRightMute = false;
+
+        let leftWaveType = 'sine';
+        let rightWaveType = 'sine';
+        
+        // Ocean surge config
+        let enableOceanSurge = true;
+        let surgePeriod = 8.0; // Seconds for one wave surge cycle
+
+        // Target settings for glide transition engine
+        let currentCarrierFreq = 200.0;
+        let currentBeatFreq = 10.0;
+        let targetCarrierFreq = 200.0;
+        let targetBeatFreq = 10.0;
+        let glideStartTime = 0;
+        let glideDurationSec = 5;
+        let isGliding = false;
+
+        // Visual animation progress variables
+        let lastTime = 0;
+        let visualBeatPhase = 0;
+        let spiralRotation = 0;
+
+        // Noise buffer builders (White, Pink, Brown)
+        function generateWhiteNoiseBuffer(ctx) {
+            const bufferSize = 2 * ctx.sampleRate;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            return buffer;
+        }
+
+        function generatePinkNoiseBuffer(ctx) {
+            const bufferSize = 2 * ctx.sampleRate;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                data[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                data[i] *= 0.11; // normalise volume range
+                b6 = white * 0.115926;
+            }
+            return buffer;
+        }
+
+        function generateBrownNoiseBuffer(ctx) {
+            const bufferSize = 2 * ctx.sampleRate;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let lastOut = 0.0;
+            for (let i = 0; i < bufferSize; i++) {
+                let white = Math.random() * 2 - 1;
+                data[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = data[i];
+                data[i] *= 3.5; // normalise range boost
+            }
+            return buffer;
+        }
+
+        // Initialize Web Audio graph
+        function initAudio() {
+            if (audioCtx) return;
+
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Global Power Toggle Gain node for Smooth Fading
+            powerGain = audioCtx.createGain();
+            powerGain.gain.setValueAtTime(0.0, audioCtx.currentTime); // start silent
+            powerGain.connect(audioCtx.destination);
+
+            // Master Gain Node (User volume adjustments)
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(document.getElementById('master-vol').value, audioCtx.currentTime);
+            masterGain.connect(powerGain);
+
+            // Channel Merger (Left and Right)
+            const merger = audioCtx.createChannelMerger(2);
+            merger.connect(masterGain);
+
+            // Left Channel setup
+            leftOsc = audioCtx.createOscillator();
+            leftGain = audioCtx.createGain();
+            leftGain.gain.setValueAtTime(currentLeftMute ? 0 : 0.5, audioCtx.currentTime);
+            
+            leftAnalyser = audioCtx.createAnalyser();
+            leftAnalyser.fftSize = 1024;
+
+            leftOsc.connect(leftGain);
+            leftGain.connect(leftAnalyser);
+            leftAnalyser.connect(merger, 0, 0); // Out to left input of merger
+
+            // Right Channel setup
+            rightOsc = audioCtx.createOscillator();
+            rightGain = audioCtx.createGain();
+            rightGain.gain.setValueAtTime(currentRightMute ? 0 : 0.5, audioCtx.currentTime);
+            
+            rightAnalyser = audioCtx.createAnalyser();
+            rightAnalyser.fftSize = 1024;
+
+            rightOsc.connect(rightGain);
+            rightGain.connect(rightAnalyser);
+            rightAnalyser.connect(merger, 0, 1); // Out to right input of merger
+
+            // Set standard wave profiles (Sine default)
+            leftOsc.type = leftWaveType;
+            rightOsc.type = rightWaveType;
+
+            // Base carrier frequency initializations
+            leftOsc.frequency.setValueAtTime(currentCarrierFreq, audioCtx.currentTime);
+            const rightFreq = syncMode ? (currentCarrierFreq + currentBeatFreq) : parseFloat(document.getElementById('right-freq-num').value);
+            rightOsc.frequency.setValueAtTime(rightFreq, audioCtx.currentTime);
+
+            // Ambient Noise Setup
+            noiseGainNode = audioCtx.createGain();
+            noiseGainNode.gain.setValueAtTime(parseFloat(document.getElementById('noise-vol').value), audioCtx.currentTime);
+            
+            noiseFilterNode = audioCtx.createBiquadFilter();
+            noiseFilterNode.type = 'lowpass';
+            noiseFilterNode.frequency.setValueAtTime(parseFloat(document.getElementById('noise-cutoff').value), audioCtx.currentTime);
+
+            noiseFilterNode.connect(noiseGainNode);
+            noiseGainNode.connect(masterGain);
+
+            startNoiseLoop('pink'); // Default to pink noise masking
+
+            // Start base oscillators
+            leftOsc.start(0);
+            rightOsc.start(0);
+        }
+
+        // Apply Waveform modifications
+        function setOscillatorWaveform(channel, type) {
+            if (!audioCtx) return;
+            const osc = (channel === 'left') ? leftOsc : rightOsc;
+            if (osc) osc.type = type;
+        }
+
+        // Control Noise buffer generation and streaming
+        let precalculatedNoiseBuffers = {};
+        function startNoiseLoop(color) {
+            if (!audioCtx) return;
+
+            if (noiseSource) {
+                try { noiseSource.stop(); } catch(e) {}
+                noiseSource.disconnect();
+            }
+
+            if (!precalculatedNoiseBuffers[color]) {
+                if (color === 'white') precalculatedNoiseBuffers[color] = generateWhiteNoiseBuffer(audioCtx);
+                if (color === 'pink') precalculatedNoiseBuffers[color] = generatePinkNoiseBuffer(audioCtx);
+                if (color === 'brown') precalculatedNoiseBuffers[color] = generateBrownNoiseBuffer(audioCtx);
+            }
+
+            noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = precalculatedNoiseBuffers[color];
+            noiseSource.loop = true;
+            noiseSource.connect(noiseFilterNode);
+            noiseSource.start(0);
+        }
+
+        // Start/Stop Engine toggle with clean 1.5s fades
+        let fadeTimer = null;
+        document.getElementById('audio-toggle').addEventListener('click', () => {
+            if (!audioCtx) {
+                initAudio();
+            }
+
+            clearTimeout(fadeTimer);
+
+            if (!isPlaying) {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                isPlaying = true;
+                
+                // Ramp Up
+                powerGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                powerGain.gain.setValueAtTime(powerGain.gain.value, audioCtx.currentTime);
+                powerGain.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 1.5);
+
+                document.getElementById('toggle-text').innerText = 'STOP ENGINE';
+                document.getElementById('toggle-icon').innerHTML = `
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H10a1 1 0 01-1-1v-4z" />
+                    </svg>
+                `;
+                document.getElementById('audio-toggle').classList.replace('from-red-500', 'from-cyan-500');
+                document.getElementById('audio-toggle').classList.replace('to-rose-600', 'to-teal-600');
+                document.getElementById('audio-toggle').classList.replace('hover:from-red-400', 'hover:from-cyan-400');
+                document.getElementById('audio-toggle').classList.replace('hover:to-rose-500', 'hover:to-teal-500');
+            } else {
+                isPlaying = false;
+                
+                // Ramp Down
+                powerGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                powerGain.gain.setValueAtTime(powerGain.gain.value, audioCtx.currentTime);
+                powerGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 1.5);
+
+                // Suspend the audio context after the fade is complete
+                fadeTimer = setTimeout(() => {
+                    if (!isPlaying && audioCtx) {
+                        audioCtx.suspend();
+                    }
+                }, 1500);
+
+                document.getElementById('toggle-text').innerText = 'START ENGINE';
+                document.getElementById('toggle-icon').innerHTML = `
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                `;
+                document.getElementById('audio-toggle').classList.replace('from-cyan-500', 'from-red-500');
+                document.getElementById('audio-toggle').classList.replace('to-teal-600', 'to-rose-600');
+                document.getElementById('audio-toggle').classList.replace('hover:from-cyan-400', 'hover:from-red-400');
+                document.getElementById('audio-toggle').classList.replace('hover:to-teal-500', 'hover:to-rose-500');
+            }
+        });
+
+        // --- Core UI & Live Adjustment Event Handlers ---
+
+        // Sync Mode switcher
+        const syncBtn = document.getElementById('sync-mode-toggle');
+        const syncDot = document.getElementById('sync-mode-dot');
+        const rightLabel = document.getElementById('right-freq-label');
+        const rightUnit = document.getElementById('right-freq-unit');
+        const rightSlider = document.getElementById('right-freq-slider');
+        const rightNum = document.getElementById('right-freq-num');
+
+        function updateSyncUI() {
+            if (syncMode) {
+                syncDot.classList.add('translate-x-5');
+                syncDot.classList.remove('translate-x-0');
+                syncBtn.classList.replace('bg-slate-700', 'bg-cyan-600');
+                
+                rightLabel.innerText = "Beat Offset Frequency";
+                rightUnit.innerText = "Hz";
+                rightSlider.min = "-50";
+                rightSlider.max = "50";
+                rightSlider.step = "0.1";
+                document.getElementById('right-slider-min').innerText = "-50 Hz";
+                document.getElementById('right-slider-mid').innerText = "0 Hz";
+                document.getElementById('right-slider-max').innerText = "50 Hz";
+
+                rightSlider.value = currentBeatFreq;
+                rightNum.value = currentBeatFreq.toFixed(1);
+            } else {
+                syncDot.classList.remove('translate-x-5');
+                syncDot.classList.add('translate-x-0');
+                syncBtn.classList.replace('bg-cyan-600', 'bg-slate-700');
+                
+                rightLabel.innerText = "Right Carrier Frequency";
+                rightUnit.innerText = "Hz";
+                rightSlider.min = "40";
+                rightSlider.max = "800";
+                rightSlider.step = "0.5";
+                document.getElementById('right-slider-min').innerText = "40 Hz";
+                document.getElementById('right-slider-mid').innerText = "420 Hz";
+                document.getElementById('right-slider-max').innerText = "800 Hz";
+
+                // Ensure right channel loads direct frequency
+                const rFreqValue = currentCarrierFreq + currentBeatFreq;
+                rightSlider.value = rFreqValue;
+                rightNum.value = rFreqValue.toFixed(1);
+            }
+            updateAudioEngineValues();
+        }
+
+        syncBtn.addEventListener('click', () => {
+            syncMode = !syncMode;
+            updateSyncUI();
+        });
+
+        // Master Volume Change
+        document.getElementById('master-vol').addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            document.getElementById('master-vol-val').innerText = Math.round(v * 100) + "%";
+            if (masterGain && audioCtx) {
+                masterGain.gain.setValueAtTime(v, audioCtx.currentTime);
+            }
+        });
+
+        // Left Channel UI sync & Audio set
+        const leftFreqSlider = document.getElementById('left-freq-slider');
+        const leftFreqNum = document.getElementById('left-freq-num');
+
+        function updateLeftFrequency(hz) {
+            currentCarrierFreq = parseFloat(hz);
+            leftFreqSlider.value = currentCarrierFreq;
+            leftFreqNum.value = currentCarrierFreq.toFixed(1);
+            updateAudioEngineValues();
+        }
+
+        leftFreqSlider.addEventListener('input', (e) => updateLeftFrequency(e.target.value));
+        leftFreqNum.addEventListener('change', (e) => updateLeftFrequency(e.target.value));
+
+        // Right Channel (Beat/Freq) UI sync & Audio set
+        function updateRightFrequency(val) {
+            if (syncMode) {
+                currentBeatFreq = parseFloat(val);
+                rightSlider.value = currentBeatFreq;
+                rightNum.value = currentBeatFreq.toFixed(1);
+            } else {
+                const rightAbsolute = parseFloat(val);
+                rightSlider.value = rightAbsolute;
+                rightNum.value = rightAbsolute.toFixed(1);
+                currentBeatFreq = rightAbsolute - currentCarrierFreq;
+            }
+            updateAudioEngineValues();
+        }
+
+        rightSlider.addEventListener('input', (e) => updateRightFrequency(e.target.value));
+        rightNum.addEventListener('change', (e) => updateRightFrequency(e.target.value));
+
+        // Update real frequency nodes on audio graph
+        function updateAudioEngineValues() {
+            if (audioCtx) {
+                leftOsc.frequency.setValueAtTime(currentCarrierFreq, audioCtx.currentTime);
+                
+                const rightFreq = syncMode ? (currentCarrierFreq + currentBeatFreq) : parseFloat(rightNum.value);
+                rightOsc.frequency.setValueAtTime(rightFreq, audioCtx.currentTime);
+            }
+
+            // Update numerical text displays
+            document.getElementById('overlay-left-freq').innerText = currentCarrierFreq.toFixed(1);
+            document.getElementById('overlay-right-freq').innerText = (syncMode ? (currentCarrierFreq + currentBeatFreq) : parseFloat(rightNum.value)).toFixed(1);
+            document.getElementById('overlay-diff').innerText = Math.abs(currentBeatFreq).toFixed(1);
+        }
+
+        // Waveform selection button maps
+        function setupWaveSelectorListeners(chan, queryClass) {
+            document.querySelectorAll(queryClass).forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll(queryClass).forEach(b => {
+                        b.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-400', 'bg-magenta-950/60', 'border-magenta-500/50', 'text-magenta-400');
+                        b.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+                    });
+
+                    const type = e.target.getAttribute('data-wave');
+                    const activeColorClass = (chan === 'left') ? 'bg-cyan-950/60' : 'bg-magenta-950/60';
+                    const activeBorderClass = (chan === 'left') ? 'border-cyan-500/50' : 'border-magenta-500/50';
+                    const activeTextClass = (chan === 'left') ? 'text-cyan-400' : 'text-magenta-400';
+
+                    e.target.classList.replace('bg-slate-900', activeColorClass);
+                    e.target.classList.replace('border-slate-800', activeBorderClass);
+                    e.target.classList.replace('text-slate-400', activeTextClass);
+                    e.target.classList.add('active');
+
+                    if (chan === 'left') {
+                        leftWaveType = type;
+                        setOscillatorWaveform('left', leftWaveType);
+                    } else {
+                        rightWaveType = type;
+                        setOscillatorWaveform('right', rightWaveType);
+                    }
+                });
+            });
+        }
+        setupWaveSelectorListeners('left', '.wave-opt-left');
+        setupWaveSelectorListeners('right', '.wave-opt-right');
+
+        // Mute buttons toggling
+        document.getElementById('left-mute').addEventListener('click', (e) => {
+            currentLeftMute = !currentLeftMute;
+            if (currentLeftMute) {
+                e.target.innerText = "UNMUTE";
+                e.target.classList.replace('text-slate-400', 'text-red-400');
+                if (leftGain && audioCtx) leftGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            } else {
+                e.target.innerText = "MUTE";
+                e.target.classList.replace('text-red-400', 'text-slate-400');
+                if (leftGain && audioCtx) leftGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            }
+        });
+
+        document.getElementById('right-mute').addEventListener('click', (e) => {
+            currentRightMute = !currentRightMute;
+            if (currentRightMute) {
+                e.target.innerText = "UNMUTE";
+                e.target.classList.replace('text-slate-400', 'text-red-400');
+                if (rightGain && audioCtx) rightGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            } else {
+                e.target.innerText = "MUTE";
+                e.target.classList.replace('text-red-400', 'text-slate-400');
+                if (rightGain && audioCtx) rightGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            }
+        });
+
+        // Ambient noise adjustments
+        document.getElementById('noise-vol').addEventListener('input', (e) => {
+            const v = parseFloat(e.target.value);
+            document.getElementById('noise-vol-val').innerText = Math.round((v / 0.5) * 100) + "%";
+            // Set base target gain node directly if ocean surge is disabled
+            if (!enableOceanSurge && noiseGainNode && audioCtx) {
+                noiseGainNode.gain.setValueAtTime(v, audioCtx.currentTime);
+            }
+        });
+
+        document.getElementById('noise-cutoff').addEventListener('input', (e) => {
+            const f = parseFloat(e.target.value);
+            document.getElementById('noise-cutoff-val').innerText = f + " Hz";
+            if (noiseFilterNode && audioCtx) {
+                noiseFilterNode.frequency.setValueAtTime(f, audioCtx.currentTime);
+            }
+        });
+
+        // Ambient noise color switches
+        document.querySelectorAll('.noise-type').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.noise-type').forEach(b => {
+                    b.classList.remove('active', 'bg-emerald-950/60', 'border-emerald-500/50', 'text-emerald-400');
+                    b.classList.add('bg-slate-950', 'border-slate-800', 'text-slate-400');
+                });
+                e.target.classList.remove('bg-slate-950', 'border-slate-800', 'text-slate-400');
+                e.target.classList.add('active', 'bg-emerald-950/60', 'border-emerald-500/50', 'text-emerald-400');
+                
+                const type = e.target.id.replace('noise-', '');
+                startNoiseLoop(type);
+            });
+        });
+
+        // Ocean wave surge events
+        document.getElementById('ocean-surge-toggle').addEventListener('change', (e) => {
+            enableOceanSurge = e.target.checked;
+            const periodPanel = document.getElementById('surge-period-panel');
+            if (enableOceanSurge) {
+                periodPanel.style.opacity = '1';
+                periodPanel.style.pointerEvents = 'auto';
+            } else {
+                periodPanel.style.opacity = '0.4';
+                periodPanel.style.pointerEvents = 'none';
+                // Reset noise volume instantly back to pure manual slider value
+                if (noiseGainNode && audioCtx) {
+                    const manualVol = parseFloat(document.getElementById('noise-vol').value);
+                    noiseGainNode.gain.setValueAtTime(manualVol, audioCtx.currentTime);
+                }
+            }
+        });
+
+        document.getElementById('surge-period').addEventListener('input', (e) => {
+            surgePeriod = parseFloat(e.target.value);
+            document.getElementById('surge-period-val').innerText = surgePeriod.toFixed(1) + "s";
+        });
+
+        // --- Transition / Preset Interpolation Logic ---
+
+        // State Targets Object mapping presets
+        const presets = {
+            delta: { carrier: 120, beat: 2 },
+            theta: { carrier: 160, beat: 6 },
+            alpha: { carrier: 220, beat: 10 },
+            beta: { carrier: 240, beat: 18 },
+            gamma: { carrier: 350, beat: 40 }
+        };
+
+        document.querySelectorAll('.preset-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const targetKey = card.getAttribute('data-preset');
+                const setup = presets[targetKey];
+                
+                if (setup) {
+                    // Activate Transition Engine
+                    targetCarrierFreq = setup.carrier;
+                    targetBeatFreq = setup.beat;
+                    
+                    const dropdownSec = parseInt(document.getElementById('glide-duration').value);
+                    if (dropdownSec <= 1) {
+                        // Instant jump
+                        currentCarrierFreq = targetCarrierFreq;
+                        currentBeatFreq = targetBeatFreq;
+                        
+                        updateLeftFrequency(currentCarrierFreq);
+                        updateRightFrequency(currentBeatFreq);
+                        document.getElementById('glide-progress-bar').style.width = '0%';
+                        isGliding = false;
+                    } else {
+                        // Activate smooth glide path interpolation
+                        glideDurationSec = dropdownSec;
+                        glideStartTime = performance.now();
+                        isGliding = true;
+                    }
+                }
+            });
+        });
+
+        // Glide transition tick loop
+        function processGlideTick(timestamp) {
+            if (!isGliding) return;
+
+            const elapsedSec = (timestamp - glideStartTime) / 1000;
+            const progress = Math.min(elapsedSec / glideDurationSec, 1.0);
+
+            // Calculate current linear interpolation steps
+            currentCarrierFreq = currentCarrierFreq + (targetCarrierFreq - currentCarrierFreq) * progress;
+            currentBeatFreq = currentBeatFreq + (targetBeatFreq - currentBeatFreq) * progress;
+
+            // Update UI elements silently
+            leftFreqSlider.value = currentCarrierFreq;
+            leftFreqNum.value = currentCarrierFreq.toFixed(1);
+            rightSlider.value = currentBeatFreq;
+            rightNum.value = currentBeatFreq.toFixed(1);
+
+            updateAudioEngineValues();
+
+            // Progress bar
+            document.getElementById('glide-progress-bar').style.width = (progress * 100) + '%';
+
+            if (progress >= 1.0) {
+                isGliding = false;
+                setTimeout(() => {
+                    document.getElementById('glide-progress-bar').style.width = '0%';
+                }, 800); // Clean fade-out look of progress bar
+            }
+        }
+
+        // --- Visualizer & Canvas Render Operations ---
+        const canvas = document.getElementById('osc-canvas');
+        const canvasCtx = canvas.getContext('2d');
+
+        // Resize handler
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Visualizer Tab Switches
+        function selectVisualizerMode(modeName) {
+            visualizerMode = modeName;
+            
+            // Clear all button stylings
+            const btns = ['vis-wave', 'vis-lissajous', 'vis-mandala', 'vis-tunnel'];
+            btns.forEach(id => {
+                const b = document.getElementById(id);
+                b.className = "px-2.5 py-1 text-xs font-semibold rounded-md transition text-slate-400";
+            });
+
+            // Set specific styling based on mode selection
+            const activeBtn = document.getElementById('vis-' + modeName);
+            let explanation = '';
+
+            switch (modeName) {
+                case 'wave':
+                    activeBtn.className = "active px-2.5 py-1 text-xs font-semibold rounded-md transition text-cyan-400 bg-cyan-950/40 border border-cyan-800/30";
+                    explanation = `<strong>Waveform View:</strong> Visualizes the raw waveforms overlapping. See the interference pulses mimicking the perceived frequency beating of your brainwaves.`;
+                    break;
+                case 'lissajous':
+                    activeBtn.className = "active px-2.5 py-1 text-xs font-semibold rounded-md transition text-magenta-400 bg-magenta-950/40 border border-magenta-800/30";
+                    explanation = `<strong>Vector Orbit (Lissajous):</strong> Plots Left audio on the X-axis against Right audio on the Y-axis. Rotating alignments represent physical phase shifting in perfect real-time symmetry.`;
+                    break;
+                case 'mandala':
+                    activeBtn.className = "active px-2.5 py-1 text-xs font-semibold rounded-md transition text-amber-400 bg-amber-950/40 border border-amber-800/30";
+                    explanation = `<strong>Sacred Mandala:</strong> A geometric visualization metronome. Ring sizes, glow scales, and expansion fields expand and breathe perfectly in sync with the current beat offset frequency.`;
+                    break;
+                case 'tunnel':
+                    activeBtn.className = "active px-2.5 py-1 text-xs font-semibold rounded-md transition text-emerald-400 bg-emerald-950/40 border border-emerald-800/30";
+                    explanation = `<strong>Hypnotic Tunnel:</strong> Optical illusion spiral. Its expansion cycles and spin speed lock directly to the direction and magnitude of the difference frequency.`;
+                    break;
+            }
+
+            document.getElementById('vis-explanation').innerHTML = explanation;
+        }
+
+        document.getElementById('vis-wave').addEventListener('click', () => selectVisualizerMode('wave'));
+        document.getElementById('vis-lissajous').addEventListener('click', () => selectVisualizerMode('lissajous'));
+        document.getElementById('vis-mandala').addEventListener('click', () => selectVisualizerMode('mandala'));
+        document.getElementById('vis-tunnel').addEventListener('click', () => selectVisualizerMode('tunnel'));
+
+        // Animation Loop
+        function animate(timestamp) {
+            requestAnimationFrame(animate);
+
+            // Compute delta time
+            if (!lastTime) lastTime = timestamp;
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            // Handle transition interpolations
+            processGlideTick(timestamp);
+
+            // Calculate current ocean surge (modulating noise programmatically on top of slider value)
+            if (audioCtx && isPlaying && enableOceanSurge && noiseGainNode) {
+                const userNoiseGain = parseFloat(document.getElementById('noise-vol').value);
+                const surgeCycle = (timestamp / 1000) * (2 * Math.PI / surgePeriod);
+                
+                // Sinusoidal surging scaling LFO between 0.15 (trough) and 1.0 (peak)
+                const surgeFactor = 0.2 + 0.8 * (Math.sin(surgeCycle - Math.PI / 2) + 1.0) / 2;
+                const dynamicGain = userNoiseGain * surgeFactor;
+                
+                // Smoothly transition gain values to avoid pops
+                noiseGainNode.gain.setTargetAtTime(dynamicGain, audioCtx.currentTime, 0.15);
+            }
+
+            // Draw Background Canvas
+            canvasCtx.fillStyle = '#020617';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid lines overlay
+            canvasCtx.strokeStyle = '#0f172a';
+            canvasCtx.lineWidth = 1;
+            const step = 25;
+            for (let x = 0; x < canvas.width; x += step) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(x, 0);
+                canvasCtx.lineTo(x, canvas.height);
+                canvasCtx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += step) {
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(0, y);
+                canvasCtx.lineTo(canvas.width, y);
+                canvasCtx.stroke();
+            }
+
+            if (!audioCtx) {
+                // Standby animation when audio is offline
+                canvasCtx.fillStyle = '#475569';
+                canvasCtx.font = "14px 'Orbitron', sans-serif";
+                canvasCtx.textAlign = 'center';
+                canvasCtx.fillText("ENGINE STANDBY - CLICK START ENGINE", canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
+            // Capture domain arrays
+            const leftData = new Uint8Array(leftAnalyser.frequencyBinCount);
+            const rightData = new Uint8Array(rightAnalyser.frequencyBinCount);
+            leftAnalyser.getByteTimeDomainData(leftData);
+            rightAnalyser.getByteTimeDomainData(rightData);
+
+            // Compute visual speed modifiers synced with difference frequencies
+            const absBeat = Math.abs(currentBeatFreq);
+            // Lock visual cycles with frequency difference
+            visualBeatPhase = (visualBeatPhase + dt * absBeat * 2 * Math.PI) % (2 * Math.PI);
+            // Spin direction matches positive/negative beat differences
+            spiralRotation = (spiralRotation + dt * currentBeatFreq * 0.3) % (2 * Math.PI);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            if (visualizerMode === 'wave') {
+                // Wave Overlapped Drawing with additive blend modes
+                canvasCtx.globalCompositeOperation = 'screen';
+
+                // 1. Render Left Waveform (Cyan)
+                canvasCtx.strokeStyle = 'rgba(6, 182, 212, 0.85)';
+                canvasCtx.lineWidth = 2.5;
+                canvasCtx.beginPath();
+                let sliceWidth = canvas.width / leftData.length;
+                let x = 0;
+                for (let i = 0; i < leftData.length; i++) {
+                    const v = leftData[i] / 128.0;
+                    const y = v * (canvas.height / 2);
+                    if (i === 0) {
+                        canvasCtx.moveTo(x, y);
+                    } else {
+                        canvasCtx.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+                canvasCtx.stroke();
+
+                // 2. Render Right Waveform (Magenta)
+                canvasCtx.strokeStyle = 'rgba(217, 70, 239, 0.85)';
+                canvasCtx.lineWidth = 2.5;
+                canvasCtx.beginPath();
+                x = 0;
+                sliceWidth = canvas.width / rightData.length;
+                for (let i = 0; i < rightData.length; i++) {
+                    const v = rightData[i] / 128.0;
+                    const y = v * (canvas.height / 2);
+                    if (i === 0) {
+                        canvasCtx.moveTo(x, y);
+                    } else {
+                        canvasCtx.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+                canvasCtx.stroke();
+
+                // Restore default blend mode
+                canvasCtx.globalCompositeOperation = 'source-over';
+
+            } else if (visualizerMode === 'lissajous') {
+                // Vector / Lissajous Drawing Mode (Plotting X:Left, Y:Right)
+                canvasCtx.strokeStyle = 'rgba(129, 140, 248, 0.7)';
+                canvasCtx.lineWidth = 2;
+                canvasCtx.beginPath();
+
+                const limit = Math.min(leftData.length, rightData.length);
+                const padding = 40;
+                const renderWidth = canvas.width - (padding * 2);
+                const renderHeight = canvas.height - (padding * 2);
+
+                for (let i = 0; i < limit; i++) {
+                    // Convert byte value to centered coordinate float (-1 to 1)
+                    const valL = (leftData[i] - 128) / 128;
+                    const valR = (rightData[i] - 128) / 128;
+
+                    const plotX = padding + (valL + 1) * (renderWidth / 2);
+                    const plotY = padding + (valR + 1) * (renderHeight / 2);
+
+                    if (i === 0) {
+                        canvasCtx.moveTo(plotX, plotY);
+                    } else {
+                        canvasCtx.lineTo(plotX, plotY);
+                    }
+                }
+                canvasCtx.stroke();
+
+            } else if (visualizerMode === 'mandala') {
+                // Sacred Mandala Visual Metronome Mode
+                const baseRadius = Math.min(canvas.width, canvas.height) * 0.28;
+                // Scale breathes exactly in cycle with the difference frequency
+                const pulse = 1.0 + 0.12 * Math.sin(visualBeatPhase);
+
+                canvasCtx.save();
+                canvasCtx.translate(centerX, centerY);
+                canvasCtx.scale(pulse, pulse);
+
+                // Setup glowing vector properties
+                canvasCtx.shadowBlur = 12;
+                canvasCtx.shadowColor = 'rgba(245, 158, 11, 0.5)'; // Amber gold
+
+                // Ring layers
+                for (let r = 1; r <= 4; r++) {
+                    canvasCtx.strokeStyle = `rgba(245, 158, 11, ${0.9 - r * 0.18})`;
+                    canvasCtx.lineWidth = 1.5;
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(0, 0, baseRadius * (r / 4), 0, Math.PI * 2);
+                    canvasCtx.stroke();
+
+                    // Inner orbiting ring vectors
+                    canvasCtx.strokeStyle = `rgba(217, 70, 239, ${0.45 - r * 0.08})`;
+                    canvasCtx.beginPath();
+                    for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                        const orbitX = Math.cos(a + spiralRotation) * (baseRadius * 0.5 * r / 4);
+                        const orbitY = Math.sin(a + spiralRotation) * (baseRadius * 0.5 * r / 4);
+                        canvasCtx.arc(orbitX, orbitY, baseRadius * 0.25 * r / 4, 0, Math.PI * 2);
+                    }
+                    canvasCtx.stroke();
+                }
+
+                // Center laser/star node
+                canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                canvasCtx.lineWidth = 1;
+                canvasCtx.beginPath();
+                for (let i = 0; i < 16; i++) {
+                    const angle = (i * Math.PI / 8) + (spiralRotation * 0.2);
+                    canvasCtx.moveTo(0, 0);
+                    canvasCtx.lineTo(Math.cos(angle) * baseRadius, Math.sin(angle) * baseRadius);
+                }
+                canvasCtx.stroke();
+
+                canvasCtx.restore();
+
+            } else if (visualizerMode === 'tunnel') {
+                // Hypnotic Spiral Tunnel Mode
+                canvasCtx.save();
+                canvasCtx.translate(centerX, centerY);
+                canvasCtx.rotate(spiralRotation);
+
+                const maxDist = Math.max(canvas.width, canvas.height);
+                canvasCtx.lineWidth = 2.5;
+                canvasCtx.shadowBlur = 10;
+                canvasCtx.shadowColor = 'rgba(16, 185, 129, 0.4)'; // Emerald
+
+                canvasCtx.beginPath();
+                const numTurns = 12;
+                const maxR = maxDist * 0.75;
+                let first = true;
+
+                for (let theta = 0; theta < Math.PI * 2 * numTurns; theta += 0.08) {
+                    const r = (theta / (Math.PI * 2 * numTurns)) * maxR;
+                    
+                    // Modulate concentric rings outward as wavy ripple locked to beat phase
+                    const waveMod = 1.0 + 0.04 * Math.sin(theta * 2.5 - visualBeatPhase * 3.0);
+                    const finalR = r * waveMod;
+
+                    const x = Math.cos(theta) * finalR;
+                    const y = Math.sin(theta) * finalR;
+
+                    if (first) {
+                        canvasCtx.moveTo(x, y);
+                        first = false;
+                    } else {
+                        canvasCtx.lineTo(x, y);
+                    }
+                }
+
+                // Cycles continuous hues
+                const hue = (timestamp / 45) % 360;
+                canvasCtx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.85)`;
+                canvasCtx.stroke();
+
+                canvasCtx.restore();
+            }
+        }
+
+        // Initialize animation cycle
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
