@@ -35,6 +35,11 @@
             border-color: rgba(16, 185, 129, 0.4);
         }
 
+        .neon-glow-amber {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -152,10 +157,11 @@
                                     <span class="text-xs text-slate-500">Hz</span>
                                 </div>
                             </div>
-                            <input id="left-freq-slider" type="range" min="40" max="800" step="0.5" value="200" class="w-full accent-cyan-400 cursor-pointer">
+                            <!-- Lower range extended to 10Hz -->
+                            <input id="left-freq-slider" type="range" min="10" max="800" step="0.5" value="200" class="w-full accent-cyan-400 cursor-pointer">
                             <div class="flex justify-between text-[10px] text-slate-500 font-mono">
-                                <span>40 Hz</span>
-                                <span>420 Hz</span>
+                                <span>10 Hz</span>
+                                <span>405 Hz</span>
                                 <span>800 Hz</span>
                             </div>
                         </div>
@@ -191,6 +197,7 @@
                                     <span id="right-freq-unit" class="text-xs text-slate-500">Hz</span>
                                 </div>
                             </div>
+                            <!-- Extended slider representing positive and negative offsets -->
                             <input id="right-freq-slider" type="range" min="-50" max="50" step="0.1" value="10" class="w-full accent-magenta-400 cursor-pointer">
                             <div class="flex justify-between text-[10px] text-slate-500 font-mono">
                                 <span id="right-slider-min">-50 Hz</span>
@@ -200,6 +207,64 @@
                         </div>
                     </div>
 
+                </div>
+
+                <!-- ADVANCED: Carrier Harmonics Matrix Controls -->
+                <div class="mt-5 pt-4 border-t border-slate-800/60 flex flex-col gap-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                        <div>
+                            <label class="text-xs text-slate-300 font-bold uppercase tracking-wider block">Carrier Harmonics Matrix</label>
+                            <span class="text-[11px] text-slate-500 leading-tight">Overlay a parallel, mathematically-locked layer of frequencies.</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1 w-full md:w-auto">
+                            <button id="harm-none" class="harm-opt active bg-cyan-950/60 border border-cyan-500/50 text-cyan-400 text-xs py-1.5 px-3 rounded-lg font-semibold transition">NONE</button>
+                            <button id="harm-sub" class="harm-opt bg-slate-950 border border-slate-800 text-slate-400 text-xs py-1.5 px-3 rounded-lg font-semibold transition">SUB (0.5x)</button>
+                            <button id="harm-fifth" class="harm-opt bg-slate-950 border border-slate-800 text-slate-400 text-xs py-1.5 px-3 rounded-lg font-semibold transition">5th (1.5x)</button>
+                            <button id="harm-octave" class="harm-opt bg-slate-950 border border-slate-800 text-slate-400 text-xs py-1.5 px-3 rounded-lg font-semibold transition">OCT (2.0x)</button>
+                        </div>
+                    </div>
+
+                    <!-- Granular Harmonics Customizations -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950/45 p-3 rounded-xl border border-slate-850">
+                        <!-- Custom Multiplier Slider -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-slate-400 uppercase tracking-wider">Custom Ratio</span>
+                                <span id="harm-ratio-val" class="text-cyan-400 font-mono">1.50x</span>
+                            </div>
+                            <input id="harm-ratio-slider" type="range" min="0.25" max="8.0" step="0.05" value="1.50" class="w-full accent-cyan-400 cursor-pointer">
+                            <div class="flex justify-between text-[9px] text-slate-600 font-mono">
+                                <span>0.25x</span>
+                                <span>Custom Multiplier</span>
+                                <span>8.00x</span>
+                            </div>
+                        </div>
+
+                        <!-- Harmonics Volume Slider -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px]">
+                                <span class="text-slate-400 uppercase tracking-wider">Harmonics Mix</span>
+                                <span id="harm-vol-val" class="text-cyan-400 font-mono">35%</span>
+                            </div>
+                            <input id="harm-vol-slider" type="range" min="0" max="1" step="0.01" value="0.35" class="w-full accent-cyan-400 cursor-pointer">
+                            <div class="flex justify-between text-[9px] text-slate-600 font-mono">
+                                <span>Silent</span>
+                                <span>Blend Level</span>
+                                <span>Max</span>
+                            </div>
+                        </div>
+
+                        <!-- Harmonics Waveform Selector -->
+                        <div class="space-y-1">
+                            <label class="text-[11px] text-slate-400 uppercase tracking-wider block">Harmonics Waveform</label>
+                            <div class="grid grid-cols-4 gap-1">
+                                <button data-harm-wave="sine" class="harm-wave-opt active bg-cyan-950/50 border border-cyan-800/40 text-cyan-400 text-[11px] py-1 rounded font-medium transition">Sine</button>
+                                <button data-harm-wave="triangle" class="harm-wave-opt bg-slate-900 border border-slate-800 text-slate-400 text-[11px] py-1 rounded font-medium transition">Tri</button>
+                                <button data-harm-wave="sawtooth" class="harm-wave-opt bg-slate-900 border border-slate-800 text-slate-400 text-[11px] py-1 rounded font-medium transition">Saw</button>
+                                <button data-harm-wave="square" class="harm-wave-opt bg-slate-900 border border-slate-800 text-slate-400 text-[11px] py-1 rounded font-medium transition">Sq</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -323,7 +388,172 @@
 
     </main>
 
-    <!-- Brainwave State Presets and Transition (Bottom Deck) -->
+    <!-- Custom State Snapshot, Workspace Porter, and Sequencer Deck -->
+    <section class="max-w-7xl w-full mx-auto p-4 mb-6 grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
+        
+        <!-- Snapshots and Porter Block (col-span-7) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            <!-- Custom Snapshots Panel -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-amber-500/50 via-slate-800 to-yellow-500/50"></div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-800/50 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-md bg-amber-950/50 border border-amber-800/30 text-amber-400">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                                </svg>
+                            </span>
+                            <h2 class="text-md font-bold tracking-wider uppercase text-slate-100">Saved Snapshots & Presets</h2>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Capture your exact parameters (frequency, noise settings, primary waveforms, harmonics, and multiplier profile) as a custom snapshot.</p>
+
+                    <!-- Save Trigger Interface -->
+                    <div class="flex gap-2 mb-4">
+                        <input id="snapshot-name" type="text" placeholder="Snapshot Name (e.g., Focus Prime)" class="flex-grow bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-semibold tracking-wide">
+                        <button id="save-snapshot-btn" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-4 py-1.5 rounded-lg transition active:scale-95 whitespace-nowrap">
+                            SAVE SNAPSHOT
+                        </button>
+                    </div>
+
+                    <!-- Snapshot list scroll container -->
+                    <div class="max-h-48 overflow-y-auto space-y-1.5 bg-slate-950/30 p-2.5 rounded-lg border border-slate-850" id="snapshot-list">
+                        <p class="text-[11px] text-slate-500 italic text-center py-4">No custom snapshots saved yet. Design a state and capture it above!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workspace Porter (JSON Export & Import) -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-blue-500/50 via-slate-800 to-indigo-500/50"></div>
+                
+                <div class="flex items-center justify-between mb-3 border-b border-slate-800/50 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="p-1.5 rounded-md bg-blue-950/50 border border-blue-800/30 text-blue-400">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8" />
+                            </svg>
+                        </span>
+                        <h2 class="text-md font-bold tracking-wider uppercase text-slate-100">Workspace Porter</h2>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">Export all active configurations, custom state snapshots, and sequencer steps to a workspace file on your computer, or import a saved file.</p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button id="export-workspace-btn" class="flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-900 border border-blue-900/40 hover:border-blue-500/40 text-blue-400 hover:text-blue-300 text-xs font-bold py-2 px-4 rounded-xl transition active:scale-95">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        EXPORT WORKSPACE (.JSON)
+                    </button>
+                    
+                    <button id="trigger-import-btn" class="flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-900 border border-indigo-900/40 hover:border-indigo-500/40 text-indigo-400 hover:text-indigo-300 text-xs font-bold py-2 px-4 rounded-xl transition active:scale-95">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        IMPORT WORKSPACE (.JSON)
+                    </button>
+                    <input type="file" id="import-file-input" class="hidden" accept=".json">
+                </div>
+
+                <!-- Custom inline workspace status message block -->
+                <div id="porter-status-banner" class="hidden mt-3 p-2 text-center text-[11px] font-semibold tracking-wider rounded-lg border border-transparent transition-all"></div>
+            </div>
+        </div>
+
+        <!-- Session Sequencer Block (col-span-5) -->
+        <div class="lg:col-span-5">
+            <!-- Session Sequencer Panel -->
+            <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 relative overflow-hidden flex flex-col justify-between h-full">
+                <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-emerald-500/50 via-slate-800 to-teal-500/50"></div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-3 border-b border-slate-800/50 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-md bg-emerald-950/50 border border-emerald-800/30 text-emerald-400">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                            <h2 class="text-md font-bold tracking-wider uppercase text-slate-100">Neural Session Sequencer</h2>
+                        </div>
+                        
+                        <!-- Play/Stop Sequence Trigger -->
+                        <button id="toggle-sequence-btn" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-[11px] font-bold rounded-md transition active:scale-95 flex items-center gap-1.5">
+                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg>
+                            <span>RUN SEQUENCE</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Chain presets or snapshots into an automated progressive session. The system glides frequencies smoothly between steps.</p>
+
+                    <!-- Add Step Form -->
+                    <div class="grid grid-cols-1 gap-2.5 mb-4 bg-slate-950/40 p-2.5 rounded-lg border border-slate-850">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase tracking-widest block mb-0.5">Select State</label>
+                                <select id="seq-state-select" class="w-full bg-slate-900 border border-slate-800 text-slate-300 text-xs px-2 py-1 rounded focus:outline-none">
+                                    <option value="delta">Delta Session</option>
+                                    <option value="theta">Theta Meditation</option>
+                                    <option value="alpha">Alpha Reflection</option>
+                                    <option value="beta">Beta Focus</option>
+                                    <option value="gamma">Gamma Peak Insight</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-400 uppercase tracking-widest block mb-0.5">Glide Duration</label>
+                                <select id="seq-transition-select" class="w-full bg-slate-900 border border-slate-800 text-slate-300 text-xs px-2 py-1 rounded focus:outline-none">
+                                    <option value="5">5 Seconds</option>
+                                    <option value="15">15 Seconds</option>
+                                    <option value="30">30 Seconds</option>
+                                    <option value="60">60 Seconds</option>
+                                    <option value="180">3 Minutes</option>
+                                    <option value="300">5 Minutes</option>
+                                    <option value="600">10 Minutes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex items-end gap-1.5">
+                            <div class="flex-grow">
+                                <label class="text-[10px] text-slate-400 uppercase tracking-widest block mb-0.5">Hold Duration</label>
+                                <select id="seq-hold-select" class="w-full bg-slate-900 border border-slate-800 text-slate-300 text-xs px-2 py-1 rounded focus:outline-none">
+                                    <option value="10">10 Seconds (Test)</option>
+                                    <option value="60">1 Minute</option>
+                                    <option value="180">3 Minutes</option>
+                                    <option value="300">5 Minutes</option>
+                                    <option value="600">10 Minutes</option>
+                                    <option value="1200">20 Minutes</option>
+                                    <option value="1800">30 Minutes</option>
+                                </select>
+                            </div>
+                            <button id="add-seq-step-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-1.5 px-3 rounded transition active:scale-95 h-[26px]">
+                                ADD STEP
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sequence List -->
+                    <div class="max-h-[150px] overflow-y-auto space-y-1 bg-slate-950/30 p-2.5 rounded-lg border border-slate-850" id="sequence-steps-list">
+                        <p class="text-[11px] text-slate-500 italic text-center py-3">Sequence empty. Append target states above!</p>
+                    </div>
+                </div>
+
+                <!-- Live sequence feedback container -->
+                <div id="seq-status-panel" class="hidden mt-3 bg-emerald-950/20 border border-emerald-900/40 rounded-lg p-3 flex flex-col gap-1 text-xs">
+                    <div class="flex justify-between items-center text-[10px] font-mono tracking-wider">
+                        <span class="text-emerald-400 uppercase font-bold" id="seq-status-text">GLIDING TO TARGET...</span>
+                        <span class="text-slate-400" id="seq-step-counter">STEP 1 OF 3</span>
+                    </div>
+                    <div class="flex justify-between font-semibold">
+                        <span class="text-slate-200" id="seq-active-step-name">Theta State</span>
+                        <span class="text-emerald-400 font-mono" id="seq-countdown">Time remaining: 15s</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-900 rounded-full overflow-hidden mt-1">
+                        <div id="seq-step-progress" class="h-full bg-emerald-500 w-0 transition-all duration-100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Brainwave State Presets (Bottom Deck) -->
     <section class="max-w-7xl w-full mx-auto p-4 mb-8">
         <div class="bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl p-5 relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-blue-500/50 via-slate-800 to-indigo-500/50"></div>
@@ -437,6 +667,13 @@
         let rightOsc = null;
         let leftGain = null;
         let rightGain = null;
+
+        // Sub-harmonic Layer Oscillators
+        let leftOsc2 = null;
+        let rightOsc2 = null;
+        let harmonicsGain = null;
+        let harmonicFactor = 0.0; // 0 (None), 0.5 (Sub), 1.5 (Fifth), 2.0 (Octave), or customized ratio
+        let harmonicWaveType = 'sine';
         
         let noiseSource = null;
         let noiseGainNode = null;
@@ -471,10 +708,24 @@
         let glideDurationSec = 5;
         let isGliding = false;
 
+        // FIXED: Transition baseline references to avoid math collapse (Zeno's paradox fix)
+        let glideStartCarrierFreq = 200.0;
+        let glideStartBeatFreq = 10.0;
+
         // Visual animation progress variables
         let lastTime = 0;
         let visualBeatPhase = 0;
         let spiralRotation = 0;
+
+        // Custom Snapshots Array
+        let customSnapshots = [];
+
+        // Sequencer States
+        let sequencerSteps = [];
+        let isSequencerActive = false;
+        let activeSeqStepIndex = -1;
+        let seqStepStartTime = 0;
+        let seqTimeoutId = null;
 
         // Noise buffer builders (White, Pink, Brown)
         function generateWhiteNoiseBuffer(ctx) {
@@ -527,9 +778,9 @@
 
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Global Power Toggle Gain node for Smooth Fading
+            // Global Power Toggle Gain node for Smooth Fading (Starts at exactly 0.0)
             powerGain = audioCtx.createGain();
-            powerGain.gain.setValueAtTime(0.0, audioCtx.currentTime); // start silent
+            powerGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
             powerGain.connect(audioCtx.destination);
 
             // Master Gain Node (User volume adjustments)
@@ -541,38 +792,56 @@
             const merger = audioCtx.createChannelMerger(2);
             merger.connect(masterGain);
 
-            // Left Channel setup
-            leftOsc = audioCtx.createOscillator();
-            leftGain = audioCtx.createGain();
-            leftGain.gain.setValueAtTime(currentLeftMute ? 0 : 0.5, audioCtx.currentTime);
-            
+            // Left Analyser & Gain Setup
             leftAnalyser = audioCtx.createAnalyser();
             leftAnalyser.fftSize = 1024;
+            leftGain = audioCtx.createGain();
+            leftGain.gain.setValueAtTime(currentLeftMute ? 0 : 0.5, audioCtx.currentTime);
 
+            // Route Left fundamental
+            leftOsc = audioCtx.createOscillator();
             leftOsc.connect(leftGain);
             leftGain.connect(leftAnalyser);
-            leftAnalyser.connect(merger, 0, 0); // Out to left input of merger
 
-            // Right Channel setup
-            rightOsc = audioCtx.createOscillator();
-            rightGain = audioCtx.createGain();
-            rightGain.gain.setValueAtTime(currentRightMute ? 0 : 0.5, audioCtx.currentTime);
-            
+            // Right Analyser & Gain Setup
             rightAnalyser = audioCtx.createAnalyser();
             rightAnalyser.fftSize = 1024;
+            rightGain = audioCtx.createGain();
+            rightGain.gain.setValueAtTime(currentRightMute ? 0 : 0.5, audioCtx.currentTime);
 
+            // Route Right fundamental
+            rightOsc = audioCtx.createOscillator();
             rightOsc.connect(rightGain);
             rightGain.connect(rightAnalyser);
-            rightAnalyser.connect(merger, 0, 1); // Out to right input of merger
 
-            // Set standard wave profiles (Sine default)
+            // --- Secondary Parallel Harmonics Engine Setup ---
+            harmonicsGain = audioCtx.createGain();
+            const hVolVal = parseFloat(document.getElementById('harm-vol-slider').value);
+            harmonicsGain.gain.setValueAtTime(harmonicFactor > 0 ? hVolVal : 0.0, audioCtx.currentTime);
+
+            leftOsc2 = audioCtx.createOscillator();
+            rightOsc2 = audioCtx.createOscillator();
+
+            // Connect sub-oscillators to secondary volume layer, routing to left and right channels
+            leftOsc2.connect(harmonicsGain);
+            rightOsc2.connect(harmonicsGain);
+
+            // Intertwine secondary voices directly with original analysers
+            harmonicsGain.connect(leftAnalyser);
+            harmonicsGain.connect(rightAnalyser);
+
+            // Final output of Left/Right streams merged to the speaker array
+            leftAnalyser.connect(merger, 0, 0);
+            rightAnalyser.connect(merger, 0, 1);
+
+            // Standard Wave Profiles
             leftOsc.type = leftWaveType;
+            leftOsc2.type = harmonicWaveType;
             rightOsc.type = rightWaveType;
+            rightOsc2.type = harmonicWaveType;
 
-            // Base carrier frequency initializations
-            leftOsc.frequency.setValueAtTime(currentCarrierFreq, audioCtx.currentTime);
-            const rightFreq = syncMode ? (currentCarrierFreq + currentBeatFreq) : parseFloat(document.getElementById('right-freq-num').value);
-            rightOsc.frequency.setValueAtTime(rightFreq, audioCtx.currentTime);
+            // Trigger base frequencies
+            updateAudioEngineValues();
 
             // Ambient Noise Setup
             noiseGainNode = audioCtx.createGain();
@@ -587,16 +856,22 @@
 
             startNoiseLoop('pink'); // Default to pink noise masking
 
-            // Start base oscillators
+            // Start base + harmonic oscillators simultaneously
             leftOsc.start(0);
             rightOsc.start(0);
+            leftOsc2.start(0);
+            rightOsc2.start(0);
         }
 
         // Apply Waveform modifications
         function setOscillatorWaveform(channel, type) {
-            if (!audioCtx) return;
-            const osc = (channel === 'left') ? leftOsc : rightOsc;
-            if (osc) osc.type = type;
+            if (channel === 'left') {
+                leftWaveType = type;
+                if (leftOsc) leftOsc.type = type;
+            } else {
+                rightWaveType = type;
+                if (rightOsc) rightOsc.type = type;
+            }
         }
 
         // Control Noise buffer generation and streaming
@@ -622,9 +897,9 @@
             noiseSource.start(0);
         }
 
-        // Start/Stop Engine toggle with clean 1.5s fades
+        // Start/Stop Engine toggle with robust fade guarantee
         let fadeTimer = null;
-        document.getElementById('audio-toggle').addEventListener('click', () => {
+        document.getElementById('audio-toggle').addEventListener('click', async () => {
             if (!audioCtx) {
                 initAudio();
             }
@@ -632,19 +907,20 @@
             clearTimeout(fadeTimer);
 
             if (!isPlaying) {
+                // FIXED: Wait strictly for context resume completion before setting start times
                 if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
+                    await audioCtx.resume();
                 }
                 isPlaying = true;
                 
-                // Ramp Up
+                // FIXED: Reset value exactly at resumed audioCtx.currentTime to guarantee fade starts at 0.0
                 powerGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                powerGain.gain.setValueAtTime(powerGain.gain.value, audioCtx.currentTime);
+                powerGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
                 powerGain.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 1.5);
 
                 document.getElementById('toggle-text').innerText = 'STOP ENGINE';
                 document.getElementById('toggle-icon').innerHTML = `
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H10a1 1 0 01-1-1v-4z" />
                     </svg>
@@ -656,12 +932,12 @@
             } else {
                 isPlaying = false;
                 
-                // Ramp Down
+                // Ramp Down smoothly
                 powerGain.gain.cancelScheduledValues(audioCtx.currentTime);
                 powerGain.gain.setValueAtTime(powerGain.gain.value, audioCtx.currentTime);
                 powerGain.gain.linearRampToValueAtTime(0.0, audioCtx.currentTime + 1.5);
 
-                // Suspend the audio context after the fade is complete
+                // Suspend the audio context AFTER the fade-out completes
                 fadeTimer = setTimeout(() => {
                     if (!isPlaying && audioCtx) {
                         audioCtx.suspend();
@@ -670,7 +946,7 @@
 
                 document.getElementById('toggle-text').innerText = 'START ENGINE';
                 document.getElementById('toggle-icon').innerHTML = `
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg id="toggle-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -716,14 +992,13 @@
                 
                 rightLabel.innerText = "Right Carrier Frequency";
                 rightUnit.innerText = "Hz";
-                rightSlider.min = "40";
+                rightSlider.min = "10"; // Lower bound aligned to 10Hz
                 rightSlider.max = "800";
                 rightSlider.step = "0.5";
-                document.getElementById('right-slider-min').innerText = "40 Hz";
-                document.getElementById('right-slider-mid').innerText = "420 Hz";
+                document.getElementById('right-slider-min').innerText = "10 Hz";
+                document.getElementById('right-slider-mid').innerText = "405 Hz";
                 document.getElementById('right-slider-max').innerText = "800 Hz";
 
-                // Ensure right channel loads direct frequency
                 const rFreqValue = currentCarrierFreq + currentBeatFreq;
                 rightSlider.value = rFreqValue;
                 rightNum.value = rFreqValue.toFixed(1);
@@ -777,18 +1052,29 @@
         rightSlider.addEventListener('input', (e) => updateRightFrequency(e.target.value));
         rightNum.addEventListener('change', (e) => updateRightFrequency(e.target.value));
 
-        // Update real frequency nodes on audio graph
+        // Update real frequency nodes on audio graph including secondary harmonics
         function updateAudioEngineValues() {
+            const rightFreq = syncMode ? (currentCarrierFreq + currentBeatFreq) : parseFloat(rightNum.value);
+
             if (audioCtx) {
+                // Fundamental voice frequencies
                 leftOsc.frequency.setValueAtTime(currentCarrierFreq, audioCtx.currentTime);
-                
-                const rightFreq = syncMode ? (currentCarrierFreq + currentBeatFreq) : parseFloat(rightNum.value);
                 rightOsc.frequency.setValueAtTime(rightFreq, audioCtx.currentTime);
+
+                // Harmonics voice frequencies (Synthesized to maintain perfectly locked beat separation)
+                if (harmonicFactor > 0) {
+                    const hVol = parseFloat(document.getElementById('harm-vol-slider').value);
+                    leftOsc2.frequency.setValueAtTime(currentCarrierFreq * harmonicFactor, audioCtx.currentTime);
+                    rightOsc2.frequency.setValueAtTime((currentCarrierFreq * harmonicFactor) + currentBeatFreq, audioCtx.currentTime);
+                    harmonicsGain.gain.setTargetAtTime(hVol, audioCtx.currentTime, 0.1);
+                } else {
+                    harmonicsGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.1);
+                }
             }
 
             // Update numerical text displays
             document.getElementById('overlay-left-freq').innerText = currentCarrierFreq.toFixed(1);
-            document.getElementById('overlay-right-freq').innerText = (syncMode ? (currentCarrierFreq + currentBeatFreq) : parseFloat(rightNum.value)).toFixed(1);
+            document.getElementById('overlay-right-freq').innerText = rightFreq.toFixed(1);
             document.getElementById('overlay-diff').innerText = Math.abs(currentBeatFreq).toFixed(1);
         }
 
@@ -811,18 +1097,87 @@
                     e.target.classList.replace('text-slate-400', activeTextClass);
                     e.target.classList.add('active');
 
-                    if (chan === 'left') {
-                        leftWaveType = type;
-                        setOscillatorWaveform('left', leftWaveType);
-                    } else {
-                        rightWaveType = type;
-                        setOscillatorWaveform('right', rightWaveType);
-                    }
+                    setOscillatorWaveform(chan, type);
                 });
             });
         }
         setupWaveSelectorListeners('left', '.wave-opt-left');
         setupWaveSelectorListeners('right', '.wave-opt-right');
+
+        // Parallel Harmonics selection UI (Presets)
+        document.querySelectorAll('.harm-opt').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.harm-opt').forEach(b => {
+                    b.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-400');
+                    b.classList.add('bg-slate-950', 'border-slate-800', 'text-slate-400');
+                });
+                e.target.classList.replace('bg-slate-950', 'bg-cyan-950/60');
+                e.target.classList.replace('border-slate-800', 'border-cyan-500/50');
+                e.target.classList.replace('text-slate-400', 'text-cyan-400');
+                e.target.classList.add('active');
+
+                const modeId = e.target.id;
+                if (modeId === 'harm-none') {
+                    harmonicFactor = 0.0;
+                    document.getElementById('harm-ratio-slider').value = 1.0;
+                    document.getElementById('harm-ratio-val').innerText = "Disabled";
+                } else {
+                    if (modeId === 'harm-sub') harmonicFactor = 0.5;
+                    else if (modeId === 'harm-fifth') harmonicFactor = 1.5;
+                    else if (modeId === 'harm-octave') harmonicFactor = 2.0;
+
+                    document.getElementById('harm-ratio-slider').value = harmonicFactor;
+                    document.getElementById('harm-ratio-val').innerText = harmonicFactor.toFixed(2) + "x";
+                }
+
+                updateAudioEngineValues();
+            });
+        });
+
+        // Granular ratio adjustments slider for Harmonics
+        document.getElementById('harm-ratio-slider').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            harmonicFactor = val;
+            document.getElementById('harm-ratio-val').innerText = val.toFixed(2) + "x";
+            
+            // Uncheck standard presets to reflect custom multipliers
+            document.querySelectorAll('.harm-opt').forEach(b => {
+                b.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-400');
+                b.classList.add('bg-slate-950', 'border-slate-800', 'text-slate-400');
+            });
+
+            updateAudioEngineValues();
+        });
+
+        // Harmonics volume level adjustments
+        document.getElementById('harm-vol-slider').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('harm-vol-val').innerText = Math.round(val * 100) + "%";
+            if (harmonicsGain && audioCtx) {
+                const targetValue = harmonicFactor > 0 ? val : 0.0;
+                harmonicsGain.gain.setValueAtTime(targetValue, audioCtx.currentTime);
+            }
+        });
+
+        // Harmonics Waveform selectors
+        document.querySelectorAll('.harm-wave-opt').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.harm-wave-opt').forEach(b => {
+                    b.classList.remove('active', 'bg-cyan-950/50', 'border-cyan-800/40', 'text-cyan-400');
+                    b.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+                });
+                e.target.classList.replace('bg-slate-900', 'bg-cyan-950/50');
+                e.target.classList.replace('border-slate-800', 'border-cyan-800/40');
+                e.target.classList.replace('text-slate-400', 'text-cyan-400');
+                e.target.classList.add('active');
+
+                harmonicWaveType = e.target.getAttribute('data-harm-wave');
+                if (leftOsc2 && rightOsc2) {
+                    leftOsc2.type = harmonicWaveType;
+                    rightOsc2.type = harmonicWaveType;
+                }
+            });
+        });
 
         // Mute buttons toggling
         document.getElementById('left-mute').addEventListener('click', (e) => {
@@ -855,7 +1210,6 @@
         document.getElementById('noise-vol').addEventListener('input', (e) => {
             const v = parseFloat(e.target.value);
             document.getElementById('noise-vol-val').innerText = Math.round((v / 0.5) * 100) + "%";
-            // Set base target gain node directly if ocean surge is disabled
             if (!enableOceanSurge && noiseGainNode && audioCtx) {
                 noiseGainNode.gain.setValueAtTime(v, audioCtx.currentTime);
             }
@@ -894,7 +1248,6 @@
             } else {
                 periodPanel.style.opacity = '0.4';
                 periodPanel.style.pointerEvents = 'none';
-                // Reset noise volume instantly back to pure manual slider value
                 if (noiseGainNode && audioCtx) {
                     const manualVol = parseFloat(document.getElementById('noise-vol').value);
                     noiseGainNode.gain.setValueAtTime(manualVol, audioCtx.currentTime);
@@ -905,6 +1258,551 @@
         document.getElementById('surge-period').addEventListener('input', (e) => {
             surgePeriod = parseFloat(e.target.value);
             document.getElementById('surge-period-val').innerText = surgePeriod.toFixed(1) + "s";
+        });
+
+        // --- SNAPSHOT GENERATOR SYSTEM (CRUD) ---
+        const snapshotInput = document.getElementById('snapshot-name');
+        const saveSnapshotBtn = document.getElementById('save-snapshot-btn');
+        const snapshotListContainer = document.getElementById('snapshot-list');
+        const seqStateSelect = document.getElementById('seq-state-select');
+
+        function rebuildSnapshotsUI() {
+            if (customSnapshots.length === 0) {
+                snapshotListContainer.innerHTML = `<p class="text-[11px] text-slate-500 italic text-center py-4">No custom snapshots saved yet. Design a state and capture it above!</p>`;
+            } else {
+                snapshotListContainer.innerHTML = '';
+                customSnapshots.forEach((snap, idx) => {
+                    const snapDiv = document.createElement('div');
+                    snapDiv.className = "flex items-center justify-between bg-slate-900 border border-slate-800/80 px-2.5 py-1.5 rounded-md text-xs font-mono";
+                    snapDiv.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-slate-200 font-semibold text-[11px] font-sans">${snap.name}</span>
+                            <span class="text-[10px] text-slate-400">Carrier: ${snap.carrier}Hz | Beat: ${snap.beat}Hz</span>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="loadSnapshotByIndex(${idx})" class="bg-indigo-950 hover:bg-indigo-900 border border-indigo-700/50 text-indigo-300 text-[10px] px-2 py-0.5 rounded font-sans transition">Load</button>
+                            <button onclick="deleteSnapshotByIndex(${idx})" class="bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/50 text-rose-300 text-[10px] px-1.5 py-0.5 rounded font-sans transition">Delete</button>
+                        </div>
+                    `;
+                    snapshotListContainer.appendChild(snapDiv);
+                });
+            }
+
+            // Sync snapshot options into Sequencer dropdown dynamically
+            seqStateSelect.innerHTML = `
+                <optgroup label="Default Presets">
+                    <option value="delta">Delta Session</option>
+                    <option value="theta">Theta Meditation</option>
+                    <option value="alpha">Alpha Reflection</option>
+                    <option value="beta">Beta Focus</option>
+                    <option value="gamma">Gamma Peak Insight</option>
+                </optgroup>
+            `;
+            if (customSnapshots.length > 0) {
+                const group = document.createElement('optgroup');
+                group.label = "Custom Snapshots";
+                customSnapshots.forEach((snap, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = `custom_${idx}`;
+                    opt.innerText = snap.name;
+                    group.appendChild(opt);
+                });
+                seqStateSelect.appendChild(group);
+            }
+        }
+
+        saveSnapshotBtn.addEventListener('click', () => {
+            const name = snapshotInput.value.trim() || `User State ${customSnapshots.length + 1}`;
+            const state = {
+                name: name,
+                carrier: currentCarrierFreq,
+                beat: currentBeatFreq,
+                leftWave: leftWaveType,
+                rightWave: rightWaveType,
+                harmonic: harmonicFactor,
+                harmonicVol: parseFloat(document.getElementById('harm-vol-slider').value),
+                harmonicWave: harmonicWaveType,
+                noiseVol: parseFloat(document.getElementById('noise-vol').value),
+                cutoff: parseFloat(document.getElementById('noise-cutoff').value)
+            };
+            customSnapshots.push(state);
+            snapshotInput.value = '';
+            rebuildSnapshotsUI();
+        });
+
+        window.loadSnapshotByIndex = function(idx) {
+            const snap = customSnapshots[idx];
+            if (!snap) return;
+
+            // Trigger linear slide to frequencies
+            targetCarrierFreq = snap.carrier;
+            targetBeatFreq = snap.beat;
+            
+            const glideTime = parseInt(document.getElementById('glide-duration').value);
+            if (glideTime <= 1) {
+                currentCarrierFreq = targetCarrierFreq;
+                currentBeatFreq = targetBeatFreq;
+                updateLeftFrequency(currentCarrierFreq);
+                updateRightFrequency(currentBeatFreq);
+            } else {
+                glideDurationSec = glideTime;
+                glideStartTime = performance.now();
+                
+                // FIXED: Store original starting frequencies strictly when glide is initiated
+                glideStartCarrierFreq = currentCarrierFreq;
+                glideStartBeatFreq = currentBeatFreq;
+
+                isGliding = true;
+            }
+
+            // Waveform profiles
+            setOscillatorWaveform('left', snap.leftWave);
+            setOscillatorWaveform('right', snap.rightWave);
+
+            // Sync visual active waveform buttons
+            document.querySelectorAll('.wave-opt-left').forEach(b => {
+                b.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-400');
+                b.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+                if (b.getAttribute('data-wave') === snap.leftWave) {
+                    b.classList.replace('bg-slate-900', 'bg-cyan-950/60');
+                    b.classList.replace('border-slate-800', 'border-cyan-500/50');
+                    b.classList.replace('text-slate-400', 'text-cyan-400');
+                    b.classList.add('active');
+                }
+            });
+            document.querySelectorAll('.wave-opt-right').forEach(b => {
+                b.classList.remove('active', 'bg-magenta-950/60', 'border-magenta-500/50', 'text-magenta-400');
+                b.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+                if (b.getAttribute('data-wave') === snap.rightWave) {
+                    b.classList.replace('bg-slate-900', 'bg-magenta-950/60');
+                    b.classList.replace('border-slate-800', 'border-magenta-500/50');
+                    b.classList.replace('text-slate-400', 'text-magenta-400');
+                    b.classList.add('active');
+                }
+            });
+
+            // Parallel Harmonics UI sync
+            harmonicFactor = snap.harmonic || 0.0;
+            document.getElementById('harm-ratio-slider').value = harmonicFactor;
+            document.getElementById('harm-ratio-val').innerText = harmonicFactor > 0 ? harmonicFactor.toFixed(2) + "x" : "Disabled";
+
+            document.querySelectorAll('.harm-opt').forEach(b => {
+                b.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-400');
+                b.classList.add('bg-slate-950', 'border-slate-800', 'text-slate-400');
+                const mid = b.id;
+                if ((mid === 'harm-none' && harmonicFactor === 0) ||
+                    (mid === 'harm-sub' && harmonicFactor === 0.5) ||
+                    (mid === 'harm-fifth' && harmonicFactor === 1.5) ||
+                    (mid === 'harm-octave' && harmonicFactor === 2)) {
+                    b.classList.replace('bg-slate-950', 'bg-cyan-950/60');
+                    b.classList.replace('border-slate-800', 'border-cyan-500/50');
+                    b.classList.replace('text-slate-400', 'text-cyan-400');
+                    b.classList.add('active');
+                }
+            });
+
+            // Harmonics volume / wave profiles restore
+            const hVol = (snap.harmonicVol !== undefined) ? snap.harmonicVol : 0.35;
+            document.getElementById('harm-vol-slider').value = hVol;
+            document.getElementById('harm-vol-val').innerText = Math.round(hVol * 100) + "%";
+            
+            harmonicWaveType = snap.harmonicWave || 'sine';
+            document.querySelectorAll('.harm-wave-opt').forEach(b => {
+                b.classList.remove('active', 'bg-cyan-950/50', 'border-cyan-800/40', 'text-cyan-400');
+                b.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+                if (b.getAttribute('data-harm-wave') === harmonicWaveType) {
+                    b.classList.replace('bg-slate-900', 'bg-cyan-950/50');
+                    b.classList.replace('border-slate-800', 'border-cyan-800/40');
+                    b.classList.replace('text-slate-400', 'text-cyan-400');
+                    b.classList.add('active');
+                }
+            });
+
+            if (leftOsc2 && rightOsc2) {
+                leftOsc2.type = harmonicWaveType;
+                rightOsc2.type = harmonicWaveType;
+            }
+
+            // Noise volume & Filter Cutoff
+            document.getElementById('noise-vol').value = snap.noiseVol;
+            document.getElementById('noise-vol-val').innerText = Math.round((snap.noiseVol / 0.5) * 100) + "%";
+            document.getElementById('noise-cutoff').value = snap.cutoff;
+            document.getElementById('noise-cutoff-val').innerText = snap.cutoff + " Hz";
+
+            if (audioCtx) {
+                if (noiseGainNode && !enableOceanSurge) {
+                    noiseGainNode.gain.setValueAtTime(snap.noiseVol, audioCtx.currentTime);
+                }
+                if (noiseFilterNode) {
+                    noiseFilterNode.frequency.setValueAtTime(snap.cutoff, audioCtx.currentTime);
+                }
+            }
+
+            updateAudioEngineValues();
+        };
+
+        window.deleteSnapshotByIndex = function(idx) {
+            customSnapshots.splice(idx, 1);
+            rebuildSnapshotsUI();
+        };
+
+        // --- WORKSPACE PORTER (JSON SAVE/LOAD WORKSPACE FILES) ---
+        const exportWorkspaceBtn = document.getElementById('export-workspace-btn');
+        const triggerImportBtn = document.getElementById('trigger-import-btn');
+        const importFileInput = document.getElementById('import-file-input');
+        const porterBanner = document.getElementById('porter-status-banner');
+
+        function showPorterMessage(msg, isError = false) {
+            porterBanner.classList.remove('hidden', 'bg-emerald-950/40', 'border-emerald-800/60', 'text-emerald-400', 'bg-rose-950/40', 'border-rose-800/60', 'text-rose-400');
+            if (isError) {
+                porterBanner.classList.add('bg-rose-950/40', 'border-rose-800/60', 'text-rose-400');
+            } else {
+                porterBanner.classList.add('bg-emerald-950/40', 'border-emerald-800/60', 'text-emerald-400');
+            }
+            porterBanner.innerText = msg;
+            setTimeout(() => {
+                porterBanner.classList.add('hidden');
+            }, 4000);
+        }
+
+        // Serializer & Exporter
+        exportWorkspaceBtn.addEventListener('click', () => {
+            const workspaceObj = {
+                metadata: {
+                    app: "Binaural Synapse",
+                    version: "1.4.0",
+                    timestamp: new Date().toISOString()
+                },
+                customSnapshots: customSnapshots,
+                sequencerSteps: sequencerSteps,
+                activeSettings: {
+                    carrier: currentCarrierFreq,
+                    beat: currentBeatFreq,
+                    leftWave: leftWaveType,
+                    rightWave: rightWaveType,
+                    harmonic: harmonicFactor,
+                    harmonicVol: parseFloat(document.getElementById('harm-vol-slider').value),
+                    harmonicWave: harmonicWaveType,
+                    noiseType: document.querySelector('.noise-type.active')?.id.replace('noise-', '') || 'pink',
+                    noiseVol: parseFloat(document.getElementById('noise-vol').value),
+                    cutoff: parseFloat(document.getElementById('noise-cutoff').value),
+                    oceanSurge: enableOceanSurge,
+                    surgePeriod: surgePeriod
+                }
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(workspaceObj, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "binaural_synapse_workspace.json");
+            dlAnchorElem.click();
+            showPorterMessage("Workspace exported successfully!");
+        });
+
+        // Trigger file select dialog
+        triggerImportBtn.addEventListener('click', () => {
+            importFileInput.click();
+        });
+
+        // Parse and populate imported workspace structure
+        importFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const workspace = JSON.parse(evt.target.result);
+                    if (workspace.app && workspace.app !== "Binaural Synapse" && !workspace.customSnapshots) {
+                        showPorterMessage("Error: Selected JSON is not a valid workspace profile.", true);
+                        return;
+                    }
+
+                    // Restore Custom Snapshots
+                    customSnapshots = workspace.customSnapshots || [];
+                    rebuildSnapshotsUI();
+
+                    // Restore Sequencer Queue Steps
+                    sequencerSteps = workspace.sequencerSteps || [];
+                    rebuildSequenceUI();
+
+                    // Restore Active layout values if present
+                    if (workspace.activeSettings) {
+                        const set = workspace.activeSettings;
+                        currentCarrierFreq = set.carrier || 200.0;
+                        currentBeatFreq = set.beat || 10.0;
+                        leftWaveType = set.leftWave || 'sine';
+                        rightWaveType = set.rightWave || 'sine';
+                        harmonicFactor = set.harmonic !== undefined ? set.harmonic : 0.0;
+                        harmonicWaveType = set.harmonicWave || 'sine';
+
+                        updateLeftFrequency(currentCarrierFreq);
+                        updateRightFrequency(currentBeatFreq);
+
+                        setOscillatorWaveform('left', leftWaveType);
+                        setOscillatorWaveform('right', rightWaveType);
+
+                        // Trigger sync visual sliders
+                        document.getElementById('harm-ratio-slider').value = harmonicFactor;
+                        document.getElementById('harm-ratio-val').innerText = harmonicFactor > 0 ? harmonicFactor.toFixed(2) + "x" : "Disabled";
+
+                        const hVol = set.harmonicVol !== undefined ? set.harmonicVol : 0.35;
+                        document.getElementById('harm-vol-slider').value = hVol;
+                        document.getElementById('harm-vol-val').innerText = Math.round(hVol * 100) + "%";
+
+                        // Update Active visualizer selectors
+                        document.querySelectorAll('.wave-opt-left').forEach(b => {
+                            b.classList.remove('active', 'bg-cyan-950/60', 'border-cyan-500/50', 'text-cyan-400');
+                            b.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+                            if (b.getAttribute('data-wave') === leftWaveType) {
+                                b.classList.replace('bg-slate-900', 'bg-cyan-950/60');
+                                b.classList.replace('border-slate-800', 'border-cyan-500/50');
+                                b.classList.replace('text-slate-400', 'text-cyan-400');
+                                b.classList.add('active');
+                            }
+                        });
+                        document.querySelectorAll('.wave-opt-right').forEach(b => {
+                            b.classList.remove('active', 'bg-magenta-950/60', 'border-magenta-500/50', 'text-magenta-400');
+                            b.classList.add('bg-slate-900', 'border-slate-800', 'text-slate-400');
+                            if (b.getAttribute('data-wave') === rightWaveType) {
+                                b.classList.replace('bg-slate-900', 'bg-magenta-950/60');
+                                b.classList.replace('border-slate-800', 'border-magenta-500/50');
+                                b.classList.replace('text-slate-400', 'text-magenta-400');
+                                b.classList.add('active');
+                            }
+                        });
+
+                        // Noise Profile
+                        const nType = set.noiseType || 'pink';
+                        document.querySelectorAll('.noise-type').forEach(b => {
+                            b.classList.remove('active', 'bg-emerald-950/60', 'border-emerald-500/50', 'text-emerald-400');
+                            b.classList.add('bg-slate-950', 'border-slate-800', 'text-slate-400');
+                            if (b.id === 'noise-' + nType) {
+                                b.classList.replace('bg-slate-950', 'bg-emerald-950/60');
+                                b.classList.replace('border-slate-800', 'border-emerald-500/50');
+                                b.classList.replace('text-slate-400', 'text-emerald-400');
+                                b.classList.add('active');
+                            }
+                        });
+
+                        document.getElementById('noise-vol').value = set.noiseVol || 0.15;
+                        document.getElementById('noise-vol-val').innerText = Math.round(((set.noiseVol || 0.15) / 0.5) * 100) + "%";
+                        document.getElementById('noise-cutoff').value = set.cutoff || 450;
+                        document.getElementById('noise-cutoff-val').innerText = (set.cutoff || 450) + " Hz";
+
+                        enableOceanSurge = set.oceanSurge !== undefined ? set.oceanSurge : true;
+                        document.getElementById('ocean-surge-toggle').checked = enableOceanSurge;
+                        surgePeriod = set.surgePeriod || 8.0;
+                        document.getElementById('surge-period').value = surgePeriod;
+                        document.getElementById('surge-period-val').innerText = surgePeriod.toFixed(1) + "s";
+
+                        // Update sub elements
+                        const periodPanel = document.getElementById('surge-period-panel');
+                        if (enableOceanSurge) {
+                            periodPanel.style.opacity = '1';
+                            periodPanel.style.pointerEvents = 'auto';
+                        } else {
+                            periodPanel.style.opacity = '0.4';
+                            periodPanel.style.pointerEvents = 'none';
+                        }
+
+                        if (audioCtx) {
+                            startNoiseLoop(nType);
+                            updateAudioEngineValues();
+                        }
+                    }
+
+                    showPorterMessage("Workspace loaded successfully!");
+                } catch(err) {
+                    showPorterMessage("Parse Error: Failed to unpack workspace.", true);
+                }
+            };
+            reader.readAsText(file);
+            importFileInput.value = ''; // Reset file input
+        });
+
+        // --- SESSION SEQUENCER CONTROLLER ENGINE ---
+        const addStepBtn = document.getElementById('add-seq-step-btn');
+        const seqTransitionSelect = document.getElementById('seq-transition-select');
+        const seqHoldSelect = document.getElementById('seq-hold-select');
+        const seqStepsListContainer = document.getElementById('sequence-steps-list');
+        const toggleSeqBtn = document.getElementById('toggle-sequence-btn');
+        const seqStatusPanel = document.getElementById('seq-status-panel');
+
+        function rebuildSequenceUI() {
+            if (sequencerSteps.length === 0) {
+                seqStepsListContainer.innerHTML = `<p class="text-[11px] text-slate-500 italic text-center py-3">Sequence empty. Append dynamic target steps above!</p>`;
+                toggleSeqBtn.disabled = true;
+            } else {
+                toggleSeqBtn.disabled = false;
+                seqStepsListContainer.innerHTML = '';
+                sequencerSteps.forEach((step, idx) => {
+                    const isActiveClass = (isSequencerActive && idx === activeSeqStepIndex) ? 'bg-emerald-950/30 border-emerald-500/50 neon-glow-emerald' : 'bg-slate-950/80 border-slate-850';
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = `flex items-center justify-between border px-2 py-1.5 rounded-lg text-xs font-sans transition-all duration-300 ${isActiveClass}`;
+                    stepDiv.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="h-4 w-4 rounded-full bg-slate-900 border border-slate-800 text-[9px] flex items-center justify-center font-bold text-slate-400 font-mono">${idx + 1}</span>
+                            <div class="flex flex-col">
+                                <span class="text-slate-100 font-semibold text-[11px]">${step.displayName}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">Glide: ${step.transitionTime}s | Hold: ${step.holdTime}s</span>
+                            </div>
+                        </div>
+                        <button onclick="removeSequenceStepByIndex(${idx})" class="text-[10px] text-slate-500 hover:text-red-400 transition font-bold px-1">&times;</button>
+                    `;
+                    seqStepsListContainer.appendChild(stepDiv);
+                });
+            }
+        }
+
+        addStepBtn.addEventListener('click', () => {
+            const selectedVal = seqStateSelect.value;
+            let displayName = '';
+            let stepData = null;
+
+            if (selectedVal.startsWith('custom_')) {
+                const idx = parseInt(selectedVal.split('_')[1]);
+                const snap = customSnapshots[idx];
+                displayName = snap.name;
+                stepData = { type: 'custom', index: idx };
+            } else {
+                displayName = seqStateSelect.options[seqStateSelect.selectedIndex].text;
+                stepData = { type: 'preset', key: selectedVal };
+            }
+
+            const step = {
+                displayName: displayName,
+                transitionTime: parseInt(seqTransitionSelect.value),
+                holdTime: parseInt(seqHoldSelect.value),
+                data: stepData
+            };
+
+            sequencerSteps.push(step);
+            rebuildSequenceUI();
+        });
+
+        window.removeSequenceStepByIndex = function(idx) {
+            if (isSequencerActive && idx === activeSeqStepIndex) {
+                stopSequenceEngine();
+            }
+            sequencerSteps.splice(idx, 1);
+            rebuildSequenceUI();
+        };
+
+        // Execution Sequencer Tick Loops
+        function startSequenceEngine() {
+            if (sequencerSteps.length === 0) return;
+            isSequencerActive = true;
+            activeSeqStepIndex = 0;
+            
+            // Auto start sound context if silent
+            if (!isPlaying) {
+                document.getElementById('audio-toggle').click();
+            }
+
+            toggleSeqBtn.innerHTML = `
+                <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H10a1 1 0 01-1-1v-4z" /></svg>
+                <span>STOP SEQUENCE</span>
+            `;
+            toggleSeqBtn.classList.replace('bg-emerald-600', 'bg-red-600');
+            toggleSeqBtn.classList.replace('hover:bg-emerald-500', 'hover:bg-red-500');
+
+            seqStatusPanel.classList.remove('hidden');
+            rebuildSequenceUI();
+            executeActiveSequenceStep();
+        }
+
+        function stopSequenceEngine() {
+            isSequencerActive = false;
+            activeSeqStepIndex = -1;
+            clearTimeout(seqTimeoutId);
+
+            toggleSeqBtn.innerHTML = `
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg>
+                <span>RUN SEQUENCE</span>
+            `;
+            toggleSeqBtn.classList.replace('bg-red-600', 'bg-emerald-600');
+            toggleSeqBtn.classList.replace('hover:bg-red-500', 'hover:bg-emerald-500');
+
+            seqStatusPanel.classList.add('hidden');
+            rebuildSequenceUI();
+        }
+
+        function executeActiveSequenceStep() {
+            if (!isSequencerActive || activeSeqStepIndex >= sequencerSteps.length) {
+                stopSequenceEngine();
+                return;
+            }
+
+            const step = sequencerSteps[activeSeqStepIndex];
+            
+            // 1. Fire snapshot configurations
+            if (step.data.type === 'custom') {
+                loadSnapshotByIndex(step.data.index);
+            } else {
+                // Preset loading logic mapping preset targets
+                const setup = presets[step.data.key];
+                if (setup) {
+                    targetCarrierFreq = setup.carrier;
+                    targetBeatFreq = setup.beat;
+                }
+            }
+
+            // 2. Trigger the linear glide over requested transition durations
+            glideDurationSec = step.transitionTime;
+            glideStartTime = performance.now();
+
+            // FIXED: Baseline transition starting values established explicitly for step transitions
+            glideStartCarrierFreq = currentCarrierFreq;
+            glideStartBeatFreq = currentBeatFreq;
+
+            isGliding = true;
+
+            seqStepStartTime = performance.now();
+            rebuildSequenceUI();
+
+            // Total step timer tracking (Transition + Hold block)
+            const totalDurationMs = (step.transitionTime + step.holdTime) * 1000;
+
+            function updateProgress() {
+                if (!isSequencerActive) return;
+                const elapsedMs = performance.now() - seqStepStartTime;
+                const stepProgress = Math.min(elapsedMs / totalDurationMs, 1.0);
+                
+                const remainingSec = Math.ceil((totalDurationMs - elapsedMs) / 1000);
+                
+                document.getElementById('seq-step-progress').style.width = (stepProgress * 100) + '%';
+                document.getElementById('seq-countdown').innerText = `Time remaining: ${remainingSec}s`;
+                document.getElementById('seq-step-counter').innerText = `STEP ${activeSeqStepIndex + 1} OF ${sequencerSteps.length}`;
+                document.getElementById('seq-active-step-name').innerText = step.displayName;
+
+                if (elapsedMs < step.transitionTime * 1000) {
+                    document.getElementById('seq-status-text').innerText = "GLIDING TO NEW TARGET STATE...";
+                    document.getElementById('seq-status-text').className = "text-cyan-400 uppercase font-bold";
+                } else {
+                    document.getElementById('seq-status-text').innerText = "HOLDING NEURAL FREQUENCY BLOCK";
+                    document.getElementById('seq-status-text').className = "text-emerald-400 uppercase font-bold";
+                }
+
+                if (elapsedMs < totalDurationMs) {
+                    seqTimeoutId = setTimeout(updateProgress, 100);
+                } else {
+                    // Progress to next queue item
+                    activeSeqStepIndex++;
+                    executeActiveSequenceStep();
+                }
+            }
+
+            clearTimeout(seqTimeoutId);
+            updateProgress();
+        }
+
+        toggleSeqBtn.addEventListener('click', () => {
+            if (isSequencerActive) {
+                stopSequenceEngine();
+            } else {
+                startSequenceEngine();
+            }
         });
 
         // --- Transition / Preset Interpolation Logic ---
@@ -920,17 +1818,20 @@
 
         document.querySelectorAll('.preset-card').forEach(card => {
             card.addEventListener('click', (e) => {
+                // If sequence is active, manual loading pauses sequencer to protect state boundaries
+                if (isSequencerActive) {
+                    stopSequenceEngine();
+                }
+
                 const targetKey = card.getAttribute('data-preset');
                 const setup = presets[targetKey];
                 
                 if (setup) {
-                    // Activate Transition Engine
                     targetCarrierFreq = setup.carrier;
                     targetBeatFreq = setup.beat;
                     
                     const dropdownSec = parseInt(document.getElementById('glide-duration').value);
                     if (dropdownSec <= 1) {
-                        // Instant jump
                         currentCarrierFreq = targetCarrierFreq;
                         currentBeatFreq = targetBeatFreq;
                         
@@ -939,9 +1840,13 @@
                         document.getElementById('glide-progress-bar').style.width = '0%';
                         isGliding = false;
                     } else {
-                        // Activate smooth glide path interpolation
                         glideDurationSec = dropdownSec;
                         glideStartTime = performance.now();
+
+                        // FIXED: Capture actual starting baseline values to avoid exponential math skewing
+                        glideStartCarrierFreq = currentCarrierFreq;
+                        glideStartBeatFreq = currentBeatFreq;
+
                         isGliding = true;
                     }
                 }
@@ -955,11 +1860,10 @@
             const elapsedSec = (timestamp - glideStartTime) / 1000;
             const progress = Math.min(elapsedSec / glideDurationSec, 1.0);
 
-            // Calculate current linear interpolation steps
-            currentCarrierFreq = currentCarrierFreq + (targetCarrierFreq - currentCarrierFreq) * progress;
-            currentBeatFreq = currentBeatFreq + (targetBeatFreq - currentBeatFreq) * progress;
+            // FIXED: Interpolated smoothly from static reference baselines instead of self-modifying positions
+            currentCarrierFreq = glideStartCarrierFreq + (targetCarrierFreq - glideStartCarrierFreq) * progress;
+            currentBeatFreq = glideStartBeatFreq + (targetBeatFreq - glideStartBeatFreq) * progress;
 
-            // Update UI elements silently
             leftFreqSlider.value = currentCarrierFreq;
             leftFreqNum.value = currentCarrierFreq.toFixed(1);
             rightSlider.value = currentBeatFreq;
@@ -967,14 +1871,13 @@
 
             updateAudioEngineValues();
 
-            // Progress bar
             document.getElementById('glide-progress-bar').style.width = (progress * 100) + '%';
 
             if (progress >= 1.0) {
                 isGliding = false;
                 setTimeout(() => {
                     document.getElementById('glide-progress-bar').style.width = '0%';
-                }, 800); // Clean fade-out look of progress bar
+                }, 800);
             }
         }
 
@@ -994,14 +1897,12 @@
         function selectVisualizerMode(modeName) {
             visualizerMode = modeName;
             
-            // Clear all button stylings
             const btns = ['vis-wave', 'vis-lissajous', 'vis-mandala', 'vis-tunnel'];
             btns.forEach(id => {
                 const b = document.getElementById(id);
                 b.className = "px-2.5 py-1 text-xs font-semibold rounded-md transition text-slate-400";
             });
 
-            // Set specific styling based on mode selection
             const activeBtn = document.getElementById('vis-' + modeName);
             let explanation = '';
 
@@ -1036,7 +1937,6 @@
         function animate(timestamp) {
             requestAnimationFrame(animate);
 
-            // Compute delta time
             if (!lastTime) lastTime = timestamp;
             const dt = (timestamp - lastTime) / 1000;
             lastTime = timestamp;
@@ -1044,16 +1944,12 @@
             // Handle transition interpolations
             processGlideTick(timestamp);
 
-            // Calculate current ocean surge (modulating noise programmatically on top of slider value)
+            // Calculate current ocean surge
             if (audioCtx && isPlaying && enableOceanSurge && noiseGainNode) {
                 const userNoiseGain = parseFloat(document.getElementById('noise-vol').value);
                 const surgeCycle = (timestamp / 1000) * (2 * Math.PI / surgePeriod);
-                
-                // Sinusoidal surging scaling LFO between 0.15 (trough) and 1.0 (peak)
                 const surgeFactor = 0.2 + 0.8 * (Math.sin(surgeCycle - Math.PI / 2) + 1.0) / 2;
                 const dynamicGain = userNoiseGain * surgeFactor;
-                
-                // Smoothly transition gain values to avoid pops
                 noiseGainNode.gain.setTargetAtTime(dynamicGain, audioCtx.currentTime, 0.15);
             }
 
@@ -1095,16 +1991,13 @@
 
             // Compute visual speed modifiers synced with difference frequencies
             const absBeat = Math.abs(currentBeatFreq);
-            // Lock visual cycles with frequency difference
             visualBeatPhase = (visualBeatPhase + dt * absBeat * 2 * Math.PI) % (2 * Math.PI);
-            // Spin direction matches positive/negative beat differences
             spiralRotation = (spiralRotation + dt * currentBeatFreq * 0.3) % (2 * Math.PI);
 
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
 
             if (visualizerMode === 'wave') {
-                // Wave Overlapped Drawing with additive blend modes
                 canvasCtx.globalCompositeOperation = 'screen';
 
                 // 1. Render Left Waveform (Cyan)
@@ -1143,11 +2036,9 @@
                 }
                 canvasCtx.stroke();
 
-                // Restore default blend mode
                 canvasCtx.globalCompositeOperation = 'source-over';
 
             } else if (visualizerMode === 'lissajous') {
-                // Vector / Lissajous Drawing Mode (Plotting X:Left, Y:Right)
                 canvasCtx.strokeStyle = 'rgba(129, 140, 248, 0.7)';
                 canvasCtx.lineWidth = 2;
                 canvasCtx.beginPath();
@@ -1158,7 +2049,6 @@
                 const renderHeight = canvas.height - (padding * 2);
 
                 for (let i = 0; i < limit; i++) {
-                    // Convert byte value to centered coordinate float (-1 to 1)
                     const valL = (leftData[i] - 128) / 128;
                     const valR = (rightData[i] - 128) / 128;
 
@@ -1174,20 +2064,16 @@
                 canvasCtx.stroke();
 
             } else if (visualizerMode === 'mandala') {
-                // Sacred Mandala Visual Metronome Mode
                 const baseRadius = Math.min(canvas.width, canvas.height) * 0.28;
-                // Scale breathes exactly in cycle with the difference frequency
                 const pulse = 1.0 + 0.12 * Math.sin(visualBeatPhase);
 
                 canvasCtx.save();
                 canvasCtx.translate(centerX, centerY);
                 canvasCtx.scale(pulse, pulse);
 
-                // Setup glowing vector properties
                 canvasCtx.shadowBlur = 12;
-                canvasCtx.shadowColor = 'rgba(245, 158, 11, 0.5)'; // Amber gold
+                canvasCtx.shadowColor = 'rgba(245, 158, 11, 0.5)';
 
-                // Ring layers
                 for (let r = 1; r <= 4; r++) {
                     canvasCtx.strokeStyle = `rgba(245, 158, 11, ${0.9 - r * 0.18})`;
                     canvasCtx.lineWidth = 1.5;
@@ -1195,7 +2081,6 @@
                     canvasCtx.arc(0, 0, baseRadius * (r / 4), 0, Math.PI * 2);
                     canvasCtx.stroke();
 
-                    // Inner orbiting ring vectors
                     canvasCtx.strokeStyle = `rgba(217, 70, 239, ${0.45 - r * 0.08})`;
                     canvasCtx.beginPath();
                     for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
@@ -1206,7 +2091,6 @@
                     canvasCtx.stroke();
                 }
 
-                // Center laser/star node
                 canvasCtx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
                 canvasCtx.lineWidth = 1;
                 canvasCtx.beginPath();
@@ -1220,7 +2104,6 @@
                 canvasCtx.restore();
 
             } else if (visualizerMode === 'tunnel') {
-                // Hypnotic Spiral Tunnel Mode
                 canvasCtx.save();
                 canvasCtx.translate(centerX, centerY);
                 canvasCtx.rotate(spiralRotation);
@@ -1228,7 +2111,7 @@
                 const maxDist = Math.max(canvas.width, canvas.height);
                 canvasCtx.lineWidth = 2.5;
                 canvasCtx.shadowBlur = 10;
-                canvasCtx.shadowColor = 'rgba(16, 185, 129, 0.4)'; // Emerald
+                canvasCtx.shadowColor = 'rgba(16, 185, 129, 0.4)';
 
                 canvasCtx.beginPath();
                 const numTurns = 12;
@@ -1237,8 +2120,6 @@
 
                 for (let theta = 0; theta < Math.PI * 2 * numTurns; theta += 0.08) {
                     const r = (theta / (Math.PI * 2 * numTurns)) * maxR;
-                    
-                    // Modulate concentric rings outward as wavy ripple locked to beat phase
                     const waveMod = 1.0 + 0.04 * Math.sin(theta * 2.5 - visualBeatPhase * 3.0);
                     const finalR = r * waveMod;
 
@@ -1253,7 +2134,6 @@
                     }
                 }
 
-                // Cycles continuous hues
                 const hue = (timestamp / 45) % 360;
                 canvasCtx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.85)`;
                 canvasCtx.stroke();
@@ -1262,7 +2142,9 @@
             }
         }
 
-        // Initialize animation cycle
+        // Initialize UI Elements & Active States
+        rebuildSnapshotsUI();
+        rebuildSequenceUI();
         requestAnimationFrame(animate);
     </script>
 </body>
