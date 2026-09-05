@@ -3,300 +3,759 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Wood Carver - Marble Drop Physics Game v8</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#140b06">
+    <title>Wood Carver 2.0 - Workshop Marble Odyssey</title>
+    
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
-        
-        html, body {
-            position: fixed;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
+        :root {
+            --bg-deep: #0e0805;
+            --bg-card: rgba(26, 17, 12, 0.94);
+            --wood-amber: #f59e0b;
+            --wood-amber-light: #fbbf24;
+            --wood-amber-dark: #b45309;
+            --wood-gold: #d97706;
+            --wood-border: rgba(245, 158, 11, 0.25);
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
-            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-deep);
+            color: #f3f4f6;
+            font-family: 'Outfit', sans-serif;
             user-select: none;
             -webkit-user-select: none;
-            background-color: #120e0b;
         }
 
-        .wood-bg {
-            background: radial-gradient(circle at 50% 35%, #2c1a10 0%, #140b06 100%);
+        body {
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at 50% 25%, #2a180e 0%, #110905 60%, #080402 100%);
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            padding-left: var(--safe-left);
+            padding-right: var(--safe-right);
         }
 
-        .glass-panel {
-            background: rgba(28, 20, 16, 0.95);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-right: 1px solid rgba(245, 158, 11, 0.2);
+        /* Top Navigation Header */
+        header {
+            height: 56px;
+            background: rgba(18, 11, 7, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--wood-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 40;
+            flex-shrink: 0;
+            gap: 8px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #fde68a;
+            white-space: nowrap;
+        }
+
+        .badge-v2 {
+            font-size: 0.65rem;
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+
+        /* Controls & Buttons */
+        .btn-ui {
+            touch-action: manipulation;
+            cursor: pointer;
+            border: 1px solid rgba(245, 158, 11, 0.28);
+            background: rgba(36, 23, 16, 0.9);
+            color: #fde68a;
+            border-radius: 10px;
+            height: 38px;
+            min-width: 38px;
+            padding: 0 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: transform 0.08s ease, background-color 0.15s ease, border-color 0.15s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .btn-ui:active {
+            transform: scale(0.94);
+            background: rgba(58, 36, 24, 0.95);
+            border-color: var(--wood-amber);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(180, 83, 9, 0.45);
+        }
+
+        .btn-primary:active {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+        }
+
+        .btn-mode {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #6ee7b7;
+        }
+
+        .btn-mode.editor-active {
+            background: rgba(245, 158, 11, 0.25);
+            border-color: rgba(245, 158, 11, 0.6);
+            color: #fef08a;
+        }
+
+        .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(14, 9, 6, 0.85);
+            border: 1px solid rgba(75, 50, 35, 0.6);
+            border-radius: 10px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hud-stat-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Level Selector Dropdown */
+        .level-select {
+            background: rgba(28, 17, 11, 0.95);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fde68a;
+            border-radius: 10px;
+            height: 38px;
+            padding: 0 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+            max-width: 170px;
+            touch-action: manipulation;
+        }
+
+        /* Main Workspace Container */
+        main {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            width: 100%;
+            height: calc(100% - 56px);
+            padding: 6px;
         }
 
         #canvas-wrapper {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 0 3px #3d2415, 0 0 0 6px #1c1009;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        input[type=range] {
-            accent-color: #f59e0b;
+        #game-canvas {
+            display: block;
+            border-radius: 16px;
+            box-shadow: 0 18px 45px -10px rgba(0, 0, 0, 0.9), 
+                        0 0 0 3px #3a2213, 
+                        0 0 0 7px #1a0f08;
+            touch-action: none; /* Pointer events handled manually with capture */
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            cursor: crosshair;
         }
 
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+        /* Editor Toolbar Drawer (Bottom or Float) */
+        #editor-bar {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(22, 14, 9, 0.95);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 16px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 50;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(14px);
+            max-width: 96%;
+            overflow-x: auto;
+            touch-action: pan-x;
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+
+        .editor-tool-btn {
+            touch-action: manipulation;
+            cursor: pointer;
+            border: 1px solid rgba(120, 80, 50, 0.4);
+            background: rgba(38, 24, 16, 0.9);
+            color: #d1d5db;
+            border-radius: 10px;
+            min-width: 44px;
+            height: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            padding: 0 6px;
+        }
+
+        .editor-tool-btn:active, .editor-tool-btn.active {
+            background: rgba(245, 158, 11, 0.28);
+            border-color: var(--wood-amber-light);
+            color: #fef08a;
+            transform: scale(0.96);
+        }
+
+        .tool-icon {
+            font-size: 1.15rem;
+            line-height: 1;
+        }
+
+        /* Modals (Win, Export/Import, Editor Settings) */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: linear-gradient(165deg, #241710 0%, #140c07 100%);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 20px;
+            padding: 24px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+            text-align: center;
+            transform: translateY(12px) scale(0.96);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.open .modal-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #fef08a;
+            margin-bottom: 6px;
+        }
+
+        .modal-subtitle {
+            font-size: 0.85rem;
+            color: #d1d5db;
+            margin-bottom: 18px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: rgba(14, 9, 6, 0.6);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .stat-box-label {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-box-val {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #34d399;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions .btn-ui {
+            flex: 1;
+            height: 44px;
+            font-size: 0.92rem;
+        }
+
+        /* Code/JSON Export Area */
+        .code-preview {
+            width: 100%;
+            height: 180px;
+            background: #090503;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px;
+            color: #a7f3d0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            padding: 10px;
+            resize: none;
+            outline: none;
+            margin-bottom: 14px;
+            user-select: text;
+            -webkit-user-select: text;
+            text-align: left;
+        }
+
+        /* Notice Banner */
+        .banner-guide {
+            position: absolute;
+            top: 12px;
+            background: rgba(22, 14, 9, 0.85);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fde68a;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            z-index: 30;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Hide elements dynamically */
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 540px) {
+            header {
+                padding: 0 8px;
+            }
+            .header-title span.text {
+                display: none;
+            }
+            .level-select {
+                max-width: 125px;
+                font-size: 0.75rem;
+            }
+            .btn-ui {
+                padding: 0 8px;
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
-<body class="w-full h-full overflow-hidden text-slate-100 flex flex-col justify-between wood-bg">
+<body>
 
-    <header class="w-full h-14 bg-stone-950/95 border-b border-stone-800 flex items-center justify-between px-3 z-40 shadow-lg shrink-0">
-        <div class="flex items-center gap-2">
-            <button id="toggle-sidebar" class="p-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 transition-all flex items-center justify-center active:scale-95 cursor-pointer pointer-events-auto">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </button>
-            <h1 class="text-sm md:text-lg font-extrabold tracking-wide text-amber-200 flex items-center gap-1.5">
-                <span>🪵</span> Wood Carver <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-full font-mono">v8.0</span>
-            </h1>
+    <!-- TOP HEADER / NAV -->
+    <header>
+        <div class="header-title">
+            <span style="font-size: 1.3rem;">🪵</span>
+            <span class="text">Wood Carver</span>
+            <span class="badge-v2">v2.0</span>
         </div>
 
-        <div class="flex items-center gap-1.5 md:gap-3">
-            <div class="bg-stone-900/90 px-2.5 py-1.5 rounded-lg border border-stone-800 text-xs font-semibold text-amber-300 shadow-inner hidden md:block">
-                <span id="level-display-name">1 - The Split Barrier</span>
+        <!-- Level Selector -->
+        <select id="level-select" class="level-select">
+            <!-- Populated dynamically via JS -->
+        </select>
+
+        <!-- Live Score Display -->
+        <div class="hud-stats">
+            <div class="hud-stat-item" title="Marbles collected">
+                <span style="color:#34d399;">🟢</span>
+                <span id="hud-score">0</span>/<span id="hud-total">0</span>
             </div>
-
-            <div class="bg-stone-900/90 px-2.5 py-1.5 rounded-lg border border-stone-800 text-xs font-semibold flex items-center gap-2 shadow-inner">
-                <span class="text-emerald-400 font-bold flex items-center gap-1">
-                    <span>🟢</span> <span id="score-display">0</span>/<span id="total-marbles-display">0</span>
-                </span>
-                <span class="text-stone-600">|</span>
-                <span class="text-rose-400 font-bold flex items-center gap-1" title="Marbles lost">
-                    <span>⚠️</span> <span id="lost-display">0</span>
-                </span>
+            <span style="color:#4b3223;">|</span>
+            <div class="hud-stat-item" title="Marbles lost">
+                <span style="color:#f87171;">⚠️</span>
+                <span id="hud-lost">0</span>
             </div>
+        </div>
 
-            <button id="toggle-sound" class="p-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-slate-300 border border-stone-800 transition-all active:scale-95 cursor-pointer pointer-events-auto" title="Toggle Sound">
-                <svg id="sound-icon-on" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                </svg>
-                <svg id="sound-icon-off" class="w-4 h-4 hidden text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
-                </svg>
+        <!-- Buttons: Editor Mode Toggle, Sound, Reset -->
+        <div style="display:flex; gap:6px; align-items:center;">
+            <button id="btn-mode-toggle" class="btn-ui btn-mode" title="Toggle Level Editor">
+                <span id="mode-icon">🛠️</span>
+                <span id="mode-label">Edit</span>
             </button>
-
-            <button id="toggle-fullscreen-btn" class="p-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 transition-all active:scale-95 cursor-pointer pointer-events-auto" title="Go Fullscreen">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-                </svg>
+            <button id="btn-sound" class="btn-ui" title="Toggle Audio">
+                <span id="sound-icon">🔊</span>
             </button>
-
-            <button id="restart-btn" class="p-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs shadow-md transition-all flex items-center gap-1 active:scale-95 cursor-pointer pointer-events-auto">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                <span>Reset</span>
+            <button id="btn-restart" class="btn-ui btn-primary" title="Restart Level">
+                <span>🔄</span>
             </button>
         </div>
     </header>
 
-    <div class="relative flex-1 flex overflow-hidden justify-center items-center p-2 w-full h-full">
-        <aside id="sidebar" class="absolute top-0 left-0 h-full w-80 md:w-88 glass-panel z-50 transition-transform duration-300 ease-in-out -translate-x-full flex flex-col p-5 shadow-2xl overflow-y-auto no-scrollbar pointer-events-auto">
-            <div class="flex items-center justify-between pb-4 border-b border-amber-900/40 mb-5">
-                <h2 class="text-lg font-bold text-amber-300 flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                    Level & Controls
-                </h2>
-                <button id="close-sidebar" class="p-2 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-white transition cursor-pointer">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-
-            <div class="space-y-5 pb-8">
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">Select Creative Stage</label>
-                    <select id="level-select" class="w-full bg-stone-900 border border-amber-900/50 rounded-xl p-3 text-sm text-stone-200 focus:outline-none focus:border-amber-500 cursor-pointer">
-                        <option value="1">Level 1: The Split Barrier</option>
-                        <option value="2">Level 2: Dual Chamber Sorter</option>
-                        <option value="3">Level 3: The Zigzag Switchback</option>
-                        <option value="4">Level 4: Triple Sorter Matrix</option>
-                        <option value="5">Level 5: The Funnel Gauntlet</option>
-                        <option value="6">Level 6: Dual Bridge Crossing</option>
-                        <option value="7">Level 7: The Obstacle Pillar</option>
-                        <option value="8">Level 8: Crossfire Sorter</option>
-                        <option value="9">Level 9: Staircase Descent</option>
-                        <option value="10">Level 10: Quad Color Mega Maze</option>
-                        <option value="11">Level 11: Spiral Labyrinth</option>
-                        <option value="12">Level 12: Ultimate Master Carver</option>
-                        <option value="custom">-- Custom Sandbox Mode --</option>
-                    </select>
-                </div>
-
-                <div id="custom-controls" class="space-y-4 bg-stone-900/80 p-4 rounded-xl border border-stone-800 hidden">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">Sandbox Generator</h3>
-                    
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-stone-300">Total Marbles</span>
-                            <span id="marble-count-val" class="text-amber-400 font-bold">18</span>
-                        </div>
-                        <input type="range" id="param-marbles" min="6" max="48" step="3" value="18" class="w-full h-2 bg-stone-800 rounded-lg appearance-none cursor-pointer">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-stone-300">Number of Colors</span>
-                            <span id="colors-count-val" class="text-amber-400 font-bold">2</span>
-                        </div>
-                        <input type="range" id="param-colors" min="1" max="4" step="1" value="2" class="w-full h-2 bg-stone-800 rounded-lg appearance-none cursor-pointer">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-stone-300">Scattered Pockets</span>
-                            <span id="pocket-count-val" class="text-amber-400 font-bold">4 Pockets</span>
-                        </div>
-                        <input type="range" id="param-pockets" min="2" max="10" step="1" value="4" class="w-full h-2 bg-stone-800 rounded-lg appearance-none cursor-pointer">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-stone-300">Carve Animation Speed</span>
-                            <span id="speed-val" class="text-amber-400 font-bold">Smooth (~3x)</span>
-                        </div>
-                        <input type="range" id="param-speed" min="1" max="6" step="1" value="3" class="w-full h-2 bg-stone-800 rounded-lg appearance-none cursor-pointer">
-                    </div>
-
-                    <div class="flex items-center justify-between pt-1">
-                        <span class="text-xs text-stone-300">Include Conveyor Sorter</span>
-                        <input type="checkbox" id="param-include-sorter" checked class="w-4 h-4 accent-amber-500 rounded cursor-pointer">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-stone-300">Router Chisel Size</span>
-                            <span id="carve-radius-val" class="text-amber-400 font-bold">22px</span>
-                        </div>
-                        <input type="range" id="param-tool-size" min="14" max="38" step="2" value="22" class="w-full h-2 bg-stone-800 rounded-lg appearance-none cursor-pointer">
-                    </div>
-
-                    <div class="flex gap-2 pt-2">
-                        <button id="randomize-layout-btn" class="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-amber-300 font-semibold text-xs rounded-xl border border-stone-700 transition active:scale-95 cursor-pointer">
-                            <span>🎲</span> Randomize
-                        </button>
-                        <button id="apply-custom-btn" class="flex-1 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer">
-                            Build Sandbox
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-amber-950/30 p-4 rounded-xl border border-amber-800/40 text-xs text-amber-200/90 leading-relaxed space-y-2">
-                    <p class="font-bold text-amber-300 flex items-center gap-1">
-                        💡 Carving Strategy:
-                    </p>
-                    <ul class="list-disc list-inside space-y-1 text-stone-300">
-                        <li><strong>Draw & Release:</strong> Swipe or drag to plan your channel. Release to watch the router carve smoothly!</li>
-                        <li><strong>Sorting Gates:</strong> Guide colors to matching sorting arrows and destination bins.</li>
-                        <li><strong>Mobile Optimized:</strong> Fullscreen mode enables comfortable thumb gameplay.</li>
-                    </ul>
-                </div>
-            </div>
-        </aside>
-
-        <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden transition-opacity pointer-events-auto"></div>
-
-        <div id="canvas-wrapper" class="relative rounded-2xl overflow-hidden bg-stone-950 flex items-center justify-center w-full h-full max-w-full max-h-full">
-            <canvas id="game-canvas" width="600" height="780" class="block cursor-crosshair touch-none w-full h-full object-contain"></canvas>
+    <!-- MAIN GAME WORKSPACE -->
+    <main>
+        <div id="guide-banner" class="banner-guide">
+            <span>✏️</span> Drag to trace a path, then release to watch the router carve!
         </div>
 
-        <div id="win-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden p-4 backdrop-blur-sm pointer-events-auto">
-            <div class="bg-stone-900 border-2 border-amber-500/50 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform transition-all scale-95 opacity-0" id="win-modal-card">
-                <div class="text-5xl mb-2">🏆</div>
-                <h2 class="text-2xl font-black text-amber-300 mb-1">Stage Completed!</h2>
-                <p id="win-summary" class="text-xs text-stone-300 mb-4">Paths successfully routed.</p>
-                
-                <div class="bg-stone-800/80 p-3.5 rounded-xl mb-6 border border-stone-700 flex justify-around">
-                    <div>
-                        <div class="text-xs text-stone-400">Accuracy</div>
-                        <div id="win-accuracy" class="text-xl font-bold text-emerald-400">100%</div>
-                    </div>
-                    <div class="border-r border-stone-700"></div>
-                    <div>
-                        <div class="text-xs text-stone-400">Marbles Saved</div>
-                        <div id="win-count" class="text-xl font-bold text-amber-300">0/0</div>
-                    </div>
-                </div>
+        <div id="canvas-wrapper">
+            <canvas id="game-canvas" width="600" height="780"></canvas>
+        </div>
 
-                <div class="flex gap-3">
-                    <button id="modal-retry-btn" class="flex-1 py-3 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-xl border border-stone-700 transition active:scale-95 cursor-pointer pointer-events-auto">
-                        Retry
-                    </button>
-                    <button id="modal-next-btn" class="flex-1 py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 cursor-pointer pointer-events-auto">
-                        Next Level
-                    </button>
+        <!-- LEVEL EDITOR TOOLBAR (Only shown in Editor Mode) -->
+        <div id="editor-bar" class="hidden">
+            <button class="editor-tool-btn active" data-tool="pocket" title="Place Marble Pocket">
+                <span class="tool-icon">📌</span>
+                <span>Pocket</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="bucket" title="Place Destination Bucket">
+                <span class="tool-icon">📥</span>
+                <span>Bucket</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="sorter" title="Place Color Sorter">
+                <span class="tool-icon">🔀</span>
+                <span>Sorter</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="conveyor" title="Place Lift Conveyor Elevator">
+                <span class="tool-icon">🏗️</span>
+                <span>Lift</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="peg" title="Place Pachinko Wooden Pegs">
+                <span class="tool-icon">🪵</span>
+                <span>Peg</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="bumper" title="Place Bouncy Rubber Bumper">
+                <span class="tool-icon">🟡</span>
+                <span>Bumper</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="spinner" title="Place Rotating Turnstile">
+                <span class="tool-icon">⚙️</span>
+                <span>Spinner</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="tnt" title="Place Touch-Sensitive TNT Block">
+                <span class="tool-icon">🧨</span>
+                <span>TNT</span>
+            </button>
+            <button class="editor-tool-btn" data-tool="erase" title="Eraser / Delete Item">
+                <span class="tool-icon">❌</span>
+                <span>Erase</span>
+            </button>
+
+            <div style="height:28px; width:1px; background:rgba(245,158,11,0.25); margin:0 4px;"></div>
+
+            <button id="btn-export-code" class="btn-ui" style="height:44px;" title="Export Level Code / JSON">
+                <span>📋 Export</span>
+            </button>
+            <button id="btn-import-code" class="btn-ui" style="height:44px;" title="Import Level Code">
+                <span>📥 Import</span>
+            </button>
+            <button id="btn-test-level" class="btn-ui btn-primary" style="height:44px;" title="Test Level Run">
+                <span>▶️ Playtest</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- WIN STAGE MODAL -->
+    <div id="modal-win" class="modal-overlay">
+        <div class="modal-card">
+            <div style="font-size:3rem; margin-bottom: 6px;">🏆</div>
+            <h2 class="modal-title">Stage Complete!</h2>
+            <p id="win-message" class="modal-subtitle">Superb woodworking! All marbles routed smoothly.</p>
+
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-box-label">Accuracy</div>
+                    <div id="win-accuracy" class="stat-box-val">100%</div>
                 </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">Marbles Routed</div>
+                    <div id="win-collected" class="stat-box-val">12/12</div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button id="btn-modal-retry" class="btn-ui">
+                    <span>🔄 Retry</span>
+                </button>
+                <button id="btn-modal-next" class="btn-ui btn-primary">
+                    <span>Next Level ➔</span>
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- EXPORT / IMPORT JSON MODAL -->
+    <div id="modal-json" class="modal-overlay">
+        <div class="modal-card">
+            <h2 id="modal-json-title" class="modal-title">Level Code & JSON</h2>
+            <p class="modal-subtitle" id="modal-json-sub">
+                Copy this code to paste into <code>BUILTIN_LEVELS</code> in your file, or share with friends!
+            </p>
+
+            <textarea id="json-text-area" class="code-preview" spellcheck="false"></textarea>
+
+            <div class="modal-actions">
+                <button id="btn-json-copy" class="btn-ui btn-primary">
+                    <span>📋 Copy to Clipboard</span>
+                </button>
+                <button id="btn-json-apply" class="btn-ui hidden">
+                    <span>Load Level</span>
+                </button>
+                <button id="btn-json-close" class="btn-ui">
+                    <span>Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT GAME ENGINE -->
     <script>
-        const canvas = document.getElementById('game-canvas');
-        const ctx = canvas.getContext('2d');
+        /* ==========================================================================
+           1. BUILT-IN LEVELS (EASILY EXTENDABLE & PASTABLE)
+           ==========================================================================
+           HOW TO ADD NEW LEVELS:
+           Simply design your level in the Editor, click "Export", and paste the resulting
+           object below into this BUILTIN_LEVELS array!
+        */
+        const COLOR_PALETTE = {
+            gold:     { id: 'gold',     name: 'Gold',     main: '#f59e0b', dark: '#b45309', light: '#fef08a', rim: '#fcd34d' },
+            ruby:     { id: 'ruby',     name: 'Ruby',     main: '#ef4444', dark: '#991b1b', light: '#fca5a5', rim: '#f87171' },
+            emerald:  { id: 'emerald',  name: 'Emerald',  main: '#10b981', dark: '#065f46', light: '#6ee7b7', rim: '#34d399' },
+            sapphire: { id: 'sapphire', name: 'Sapphire', main: '#3b82f6', dark: '#1e40af', light: '#93c5fd', rim: '#60a5fa' }
+        };
 
-        const CANVAS_WIDTH = 600;
-        const CANVAS_HEIGHT = 780;
-        const WOOD_MAX_Y = 690;
-
-        const GRID_SCALE = 1;
-        const GRID_COLS = Math.floor(CANVAS_WIDTH / GRID_SCALE);
-        const GRID_ROWS = Math.floor(CANVAS_HEIGHT / GRID_SCALE);
-        const WOOD_MAX_ROW = Math.floor(WOOD_MAX_Y / GRID_SCALE);
-
-        const CELL_AIR = 0;
-        const CELL_WOOD = 1;
-
-        let woodGrid = new Uint8Array(GRID_COLS * GRID_ROWS);
-        let woodTextureCanvas = null;
-        let woodLayerCanvas = null;
-        let woodLayerCtx = null;
-
-        const COLOR_PALETTE = [
-            { id: 'gold', name: 'Gold', main: '#f59e0b', dark: '#b45309', light: '#fef08a', rim: '#fcd34d' },
-            { id: 'ruby', name: 'Ruby', main: '#ef4444', dark: '#991b1b', light: '#fca5a5', rim: '#f87171' },
-            { id: 'emerald', name: 'Emerald', main: '#10b981', dark: '#065f46', light: '#6ee7b7', rim: '#34d399' },
-            { id: 'sapphire', name: 'Sapphire', main: '#3b82f6', dark: '#1e40af', light: '#93c5fd', rim: '#60a5fa' }
+        const BUILTIN_LEVELS = [
+            {
+                id: 1,
+                name: "1 - Workshop Gateway",
+                description: "Carve a smooth curving channel down to the golden bin.",
+                buckets: [
+                    { x: 230, y: 715, width: 140, height: 55, color: 'gold' }
+                ],
+                pockets: [
+                    { x: 300, y: 80, radius: 36, count: 12, color: 'gold' }
+                ],
+                sorters: [],
+                conveyors: [],
+                pegs: [
+                    { x: 250, y: 380, r: 9 }, { x: 350, y: 380, r: 9 }
+                ],
+                bumpers: [],
+                spinners: [],
+                tnts: [],
+                cuts: []
+            },
+            {
+                id: 2,
+                name: "2 - Lift Conveyor Ascender",
+                description: "Marbles on the right drop into the elevator and return to the top!",
+                buckets: [
+                    { x: 70, y: 715, width: 110, height: 55, color: 'ruby' },
+                    { x: 420, y: 715, width: 110, height: 55, color: 'gold' }
+                ],
+                pockets: [
+                    { x: 180, y: 90, radius: 32, count: 8, color: 'ruby' },
+                    { x: 450, y: 320, radius: 30, count: 8, color: 'gold' }
+                ],
+                sorters: [],
+                conveyors: [
+                    // Lift conveyor on right side: intake at bottom right (x:510, y:660), height: 490
+                    { x: 535, intakeY: 670, height: 490, width: 44, speed: 2.5 }
+                ],
+                pegs: [
+                    { x: 180, y: 360, r: 9 }, { x: 240, y: 360, r: 9 }
+                ],
+                bumpers: [
+                    { x: 210, y: 460, radius: 20, force: 4.8 }
+                ],
+                spinners: [],
+                tnts: [],
+                cuts: [
+                    { x: 300, y: 250, w: 30, h: 180 }
+                ]
+            },
+            {
+                id: 3,
+                name: "3 - Pachinko & Color Splitter",
+                description: "Navigate pegs and the dual sorting gate.",
+                buckets: [
+                    { x: 60, y: 715, width: 100, height: 55, color: 'gold' },
+                    { x: 440, y: 715, width: 100, height: 55, color: 'emerald' }
+                ],
+                pockets: [
+                    { x: 250, y: 70, radius: 28, count: 7, color: 'gold' },
+                    { x: 350, y: 70, radius: 28, count: 7, color: 'emerald' }
+                ],
+                sorters: [
+                    { x: 300, y: 360, left: 'gold', right: 'emerald' }
+                ],
+                conveyors: [],
+                pegs: [
+                    { x: 220, y: 180, r: 8 }, { x: 300, y: 180, r: 8 }, { x: 380, y: 180, r: 8 },
+                    { x: 260, y: 230, r: 8 }, { x: 340, y: 230, r: 8 },
+                    { x: 180, y: 500, r: 8 }, { x: 420, y: 500, r: 8 }
+                ],
+                bumpers: [
+                    { x: 120, y: 440, radius: 22, force: 4.5 },
+                    { x: 480, y: 440, radius: 22, force: 4.5 }
+                ],
+                spinners: [],
+                tnts: [],
+                cuts: []
+            },
+            {
+                id: 4,
+                name: "4 - TNT Blast Junction",
+                description: "Strike the touch-sensitive TNT blocks to blast open blocked channels!",
+                buckets: [
+                    { x: 50, y: 715, width: 90, height: 55, color: 'gold' },
+                    { x: 255, y: 715, width: 90, height: 55, color: 'ruby' },
+                    { x: 460, y: 715, width: 90, height: 55, color: 'sapphire' }
+                ],
+                pockets: [
+                    { x: 300, y: 70, radius: 36, count: 12, color: 'ruby' },
+                    { x: 100, y: 100, radius: 28, count: 6, color: 'gold' },
+                    { x: 500, y: 100, radius: 28, count: 6, color: 'sapphire' }
+                ],
+                sorters: [],
+                conveyors: [],
+                pegs: [
+                    { x: 300, y: 260, r: 9 }
+                ],
+                bumpers: [],
+                spinners: [
+                    { x: 300, y: 480, radius: 32 }
+                ],
+                tnts: [
+                    { x: 210, y: 340, radius: 22, blastRadius: 65 },
+                    { x: 390, y: 340, radius: 22, blastRadius: 65 }
+                ],
+                cuts: [
+                    { x: 300, y: 340, w: 90, h: 30 }
+                ]
+            },
+            {
+                id: 5,
+                name: "5 - The Grand Pinwheel & Lift",
+                description: "Full workshop mastery with conveyor elevator, spinners, and 3 colors.",
+                buckets: [
+                    { x: 50, y: 715, width: 90, height: 55, color: 'emerald' },
+                    { x: 255, y: 715, width: 90, height: 55, color: 'gold' },
+                    { x: 420, y: 715, width: 90, height: 55, color: 'ruby' }
+                ],
+                pockets: [
+                    { x: 180, y: 70, radius: 30, count: 6, color: 'emerald' },
+                    { x: 420, y: 70, radius: 30, count: 6, color: 'ruby' },
+                    { x: 300, y: 460, radius: 28, count: 6, color: 'gold' }
+                ],
+                sorters: [
+                    { x: 300, y: 260, left: 'emerald', right: 'ruby', center: 'gold' }
+                ],
+                conveyors: [
+                    { x: 540, intakeY: 660, height: 520, width: 44, speed: 2.8 }
+                ],
+                pegs: [
+                    { x: 150, y: 400, r: 8 }, { x: 450, y: 400, r: 8 }
+                ],
+                bumpers: [
+                    { x: 300, y: 620, radius: 24, force: 5.0 }
+                ],
+                spinners: [
+                    { x: 160, y: 520, radius: 28 },
+                    { x: 440, y: 520, radius: 28 }
+                ],
+                tnts: [
+                    { x: 300, y: 360, radius: 20, blastRadius: 60 }
+                ],
+                cuts: []
+            }
         ];
 
-        let currentLevel = 1;
-        let marbles = [];
-        let buckets = [];
-        let sorters = [];
-        let woodChips = [];
-        let particles = [];
-        
-        let isDrawingPath = false;
-        let currentDrawPath = [];
-        let activeCarveTasks = []; // Segments awaiting animation
-        let chiselAnimHead = null; // Current router chisel position during post-release carving
-
-        let carveRadius = 22;
-        let carveSpeedParam = 4;
-        let gravity = 0.22;
-        let bounciness = 0.35;
-        let audioMuted = false;
-        let gameFinished = false;
-
-        class SoundEngine {
+        /* ==========================================================================
+           2. SOUND ENGINE (PROCEDURAL WEB AUDIO - ZERO ASSETS)
+           ========================================================================== */
+        class ProceduralSoundEngine {
             constructor() {
                 this.ctx = null;
                 this.routerOsc = null;
                 this.routerGain = null;
                 this.routerFilter = null;
+                this.conveyorOsc = null;
+                this.conveyorGain = null;
+                this.isMuted = false;
             }
 
             init() {
@@ -309,34 +768,33 @@
                 }
             }
 
+            // Router Chisel Hum
             startRouter() {
-                if (audioMuted || !this.ctx || this.routerOsc) return;
+                if (this.isMuted || !this.ctx || this.routerOsc) return;
                 try {
                     this.routerOsc = this.ctx.createOscillator();
                     this.routerOsc.type = 'sawtooth';
-                    this.routerOsc.frequency.value = 90;
-                    
-                    this.routerGain = this.ctx.createGain();
-                    this.routerGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
-                    this.routerGain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.08);
+                    this.routerOsc.frequency.setValueAtTime(105, this.ctx.currentTime);
                     
                     this.routerFilter = this.ctx.createBiquadFilter();
                     this.routerFilter.type = 'lowpass';
-                    this.routerFilter.frequency.value = 1400;
-                    
+                    this.routerFilter.frequency.setValueAtTime(1200, this.ctx.currentTime);
+
+                    this.routerGain = this.ctx.createGain();
+                    this.routerGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+                    this.routerGain.gain.linearRampToValueAtTime(0.09, this.ctx.currentTime + 0.08);
+
                     this.routerOsc.connect(this.routerFilter);
                     this.routerFilter.connect(this.routerGain);
                     this.routerGain.connect(this.ctx.destination);
-                    
                     this.routerOsc.start();
                 } catch(e){}
             }
 
             stopRouter() {
-                if (this.routerOsc && this.routerGain) {
+                if (this.routerOsc && this.routerGain && this.ctx) {
                     try {
                         this.routerGain.gain.cancelScheduledValues(this.ctx.currentTime);
-                        this.routerGain.gain.setValueAtTime(this.routerGain.gain.value, this.ctx.currentTime);
                         this.routerGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
                         this.routerOsc.stop(this.ctx.currentTime + 0.12);
                     } catch(e){}
@@ -344,153 +802,221 @@
                 }
             }
 
-            playCarve() {
-                if (audioMuted || !this.ctx) return;
+            playChipSound() {
+                if (this.isMuted || !this.ctx) return;
                 try {
-                    const bufferSize = this.ctx.sampleRate * 0.04;
-                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-                    const output = buffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+                    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.03, this.ctx.sampleRate);
+                    const data = buf.getChannelData(0);
+                    for (let i = 0; i < data.length; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.25));
                     }
-                    const noise = this.ctx.createBufferSource();
-                    noise.buffer = buffer;
+                    const src = this.ctx.createBufferSource();
+                    src.buffer = buf;
                     const filter = this.ctx.createBiquadFilter();
                     filter.type = 'bandpass';
-                    filter.frequency.value = 800 + Math.random() * 300;
-                    filter.Q.value = 3.0;
+                    filter.frequency.value = 1100 + Math.random() * 400;
+                    filter.Q.value = 3;
                     const gain = this.ctx.createGain();
-                    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
-                    noise.connect(filter);
+                    gain.gain.setValueAtTime(0.045, this.ctx.currentTime);
+                    src.connect(filter);
                     filter.connect(gain);
                     gain.connect(this.ctx.destination);
-                    noise.start();
+                    src.start();
                 } catch(e){}
             }
 
-            playMarbleClick(vol = 0.1) {
-                if (audioMuted || !this.ctx) return;
+            playClack(vol = 0.1, pitchMod = 1.0) {
+                if (this.isMuted || !this.ctx) return;
                 try {
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(1300 + Math.random() * 400, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(350, this.ctx.currentTime + 0.025);
+                    const baseFreq = (1400 + Math.random() * 300) * pitchMod;
+                    osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(260 * pitchMod, this.ctx.currentTime + 0.03);
                     gain.gain.setValueAtTime(Math.min(0.2, vol), this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.025);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.025);
+                    osc.stop(this.ctx.currentTime + 0.03);
                 } catch(e){}
             }
 
-            playSorterPass() {
-                if (audioMuted || !this.ctx) return;
+            playPegClink() {
+                this.playClack(0.14, 1.35);
+            }
+
+            playBumperBounce() {
+                if (this.isMuted || !this.ctx) return;
                 try {
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.08);
-                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.08);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(650, this.ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.08);
+                    osc.stop(this.ctx.currentTime + 0.12);
                 } catch(e){}
             }
 
-            playLostMarble() {
-                if (audioMuted || !this.ctx) return;
+            playTntExplode() {
+                if (this.isMuted || !this.ctx) return;
                 try {
+                    // Deep explosion sound
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.25);
-                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.25);
+                    osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.45);
+                    gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.45);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.25);
+                    osc.stop(this.ctx.currentTime + 0.45);
+
+                    // Explosion noise crackle
+                    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.4, this.ctx.sampleRate);
+                    const data = buf.getChannelData(0);
+                    for (let i = 0; i < data.length; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (data.length * 0.3));
+                    }
+                    const src = this.ctx.createBufferSource();
+                    src.buffer = buf;
+                    const noiseGain = this.ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+                    src.connect(noiseGain);
+                    noiseGain.connect(this.ctx.destination);
+                    src.start();
                 } catch(e){}
             }
 
-            playBucketScore(matched = true) {
-                if (audioMuted || !this.ctx) return;
+            playConveyorHum() {
+                if (this.isMuted || !this.ctx || this.conveyorOsc) return;
+                try {
+                    this.conveyorOsc = this.ctx.createOscillator();
+                    this.conveyorOsc.type = 'triangle';
+                    this.conveyorOsc.frequency.setValueAtTime(60, this.ctx.currentTime);
+                    this.conveyorGain = this.ctx.createGain();
+                    this.conveyorGain.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                    this.conveyorOsc.connect(this.conveyorGain);
+                    this.conveyorGain.connect(this.ctx.destination);
+                    this.conveyorOsc.start();
+                } catch(e){}
+            }
+
+            stopConveyorHum() {
+                if (this.conveyorOsc && this.conveyorGain && this.ctx) {
+                    try {
+                        this.conveyorOsc.stop();
+                    } catch(e){}
+                    this.conveyorOsc = null;
+                }
+            }
+
+            playBucketScore(correct = true) {
+                if (this.isMuted || !this.ctx) return;
                 try {
                     const osc = this.ctx.createOscillator();
                     const gain = this.ctx.createGain();
-                    osc.type = matched ? 'triangle' : 'sawtooth';
-                    osc.frequency.setValueAtTime(matched ? 523.25 : 180, this.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(matched ? 1046.50 : 100, this.ctx.currentTime + 0.18);
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+                    osc.type = correct ? 'triangle' : 'sawtooth';
+                    osc.frequency.setValueAtTime(correct ? 523.25 : 180, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(correct ? 1046.5 : 90, this.ctx.currentTime + 0.16);
+                    gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.16);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
                     osc.start();
-                    osc.stop(this.ctx.currentTime + 0.2);
+                    osc.stop(this.ctx.currentTime + 0.16);
                 } catch(e){}
             }
 
-            playWinFanfare() {
-                if (audioMuted || !this.ctx) return;
-                try {
-                    const notes = [523.25, 659.25, 783.99, 1046.50];
-                    notes.forEach((freq, idx) => {
+            playWinChime() {
+                if (this.isMuted || !this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((f, idx) => {
+                    try {
                         const osc = this.ctx.createOscillator();
                         const gain = this.ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.value = freq;
-                        const startTime = this.ctx.currentTime + idx * 0.09;
-                        gain.gain.setValueAtTime(0.2, startTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
+                        osc.type = 'sine';
+                        osc.frequency.value = f;
+                        const start = this.ctx.currentTime + idx * 0.08;
+                        gain.gain.setValueAtTime(0.15, start);
+                        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
                         osc.connect(gain);
                         gain.connect(this.ctx.destination);
-                        osc.start(startTime);
-                        osc.stop(startTime + 0.25);
-                    });
-                } catch(e){}
+                        osc.start(start);
+                        osc.stop(start + 0.35);
+                    } catch(e){}
+                });
             }
         }
 
-        const sound = new SoundEngine();
+        const sound = new ProceduralSoundEngine();
 
-        function initWoodTexture() {
+        /* ==========================================================================
+           3. CANVAS SETUP & TEXTURE GENERATION
+           ========================================================================== */
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const CANVAS_WIDTH = 600;
+        const CANVAS_HEIGHT = 780;
+        const WOOD_MAX_Y = 700;
+
+        const GRID_COLS = CANVAS_WIDTH;
+        const GRID_ROWS = CANVAS_HEIGHT;
+        const WOOD_MAX_ROW = WOOD_MAX_Y;
+
+        const CELL_AIR = 0;
+        const CELL_WOOD = 1;
+
+        let woodGrid = new Uint8Array(GRID_COLS * GRID_ROWS);
+        let woodTextureCanvas = null;
+        let woodLayerCanvas = null;
+        let woodLayerCtx = null;
+
+        function createWoodTexture() {
             woodTextureCanvas = document.createElement('canvas');
             woodTextureCanvas.width = CANVAS_WIDTH;
             woodTextureCanvas.height = WOOD_MAX_Y;
             const wCtx = woodTextureCanvas.getContext('2d');
 
+            // Rich warm walnut / oak gradient
             const grad = wCtx.createLinearGradient(0, 0, CANVAS_WIDTH, WOOD_MAX_Y);
-            grad.addColorStop(0, '#deaf75');
-            grad.addColorStop(0.5, '#c99251');
-            grad.addColorStop(1, '#b57a38');
+            grad.addColorStop(0, '#cca068');
+            grad.addColorStop(0.3, '#bb894d');
+            grad.addColorStop(0.7, '#a9753c');
+            grad.addColorStop(1, '#8e5b29');
             wCtx.fillStyle = grad;
             wCtx.fillRect(0, 0, CANVAS_WIDTH, WOOD_MAX_Y);
 
-            wCtx.strokeStyle = 'rgba(110, 55, 15, 0.11)';
-            wCtx.lineWidth = 2.5;
-            for (let i = -120; i < CANVAS_WIDTH + 120; i += 8) {
+            // Wood grain curving lines
+            wCtx.lineWidth = 2.2;
+            for (let i = -100; i < CANVAS_WIDTH + 100; i += 7) {
+                wCtx.strokeStyle = 'rgba(75, 36, 12, 0.12)';
                 wCtx.beginPath();
                 wCtx.moveTo(i, 0);
-                wCtx.bezierCurveTo(i + 50, WOOD_MAX_Y * 0.35, i - 40, WOOD_MAX_Y * 0.7, i + 30, WOOD_MAX_Y);
+                wCtx.bezierCurveTo(i + 45, WOOD_MAX_Y * 0.3, i - 40, WOOD_MAX_Y * 0.7, i + 35, WOOD_MAX_Y);
                 wCtx.stroke();
             }
 
+            // Natural knots
             const knots = [
-                {x: CANVAS_WIDTH * 0.18, y: WOOD_MAX_Y * 0.25, r: 28},
-                {x: CANVAS_WIDTH * 0.82, y: WOOD_MAX_Y * 0.65, r: 36}
+                { x: CANVAS_WIDTH * 0.22, y: WOOD_MAX_Y * 0.28, r: 24 },
+                { x: CANVAS_WIDTH * 0.78, y: WOOD_MAX_Y * 0.62, r: 30 }
             ];
             knots.forEach(k => {
-                wCtx.strokeStyle = 'rgba(90, 40, 10, 0.14)';
-                for (let r = 6; r < k.r; r += 4) {
+                wCtx.strokeStyle = 'rgba(60, 26, 8, 0.16)';
+                for (let r = 5; r < k.r; r += 4) {
                     wCtx.beginPath();
-                    wCtx.ellipse(k.x, k.y, r, r * 1.4, Math.PI / 5, 0, Math.PI * 2);
+                    wCtx.ellipse(k.x, k.y, r, r * 1.35, Math.PI / 6, 0, Math.PI * 2);
                     wCtx.stroke();
                 }
             });
@@ -509,26 +1035,35 @@
             woodLayerCtx.drawImage(woodTextureCanvas, 0, 0);
         }
 
+        /* ==========================================================================
+           4. GAME ENTITIES & PHYSICS CLASSES
+           ========================================================================== */
+        
+        // MARBLE
         class Marble {
-            constructor(x, y, radius, colorObj) {
+            constructor(x, y, radius, colorKey) {
                 this.x = x;
                 this.y = y;
-                this.vx = (Math.random() - 0.5) * 0.8;
+                this.vx = (Math.random() - 0.5) * 0.6;
                 this.vy = 0;
-                this.radius = radius;
-                this.color = colorObj;
+                this.radius = radius || 9.5;
+                this.colorKey = colorKey;
+                this.color = COLOR_PALETTE[colorKey] || COLOR_PALETTE.gold;
                 this.inBucket = false;
                 this.isLost = false;
+                this.inConveyor = false;
                 this.cooldownSorter = 0;
-                this.stuckTimer = 0;
+                this.stuckFrames = 0;
             }
 
-            update() {
-                if (this.inBucket || this.isLost) return;
+            update(gravityVal, bounceVal) {
+                if (this.inBucket || this.isLost || this.inConveyor) return;
+
                 if (this.cooldownSorter > 0) this.cooldownSorter--;
 
-                this.vy += gravity;
+                this.vy += gravityVal;
 
+                // Sub-step movement for crisp collision resolution
                 const SUB_STEPS = 4;
                 const dtX = this.vx / SUB_STEPS;
                 const dtY = this.vy / SUB_STEPS;
@@ -537,37 +1072,48 @@
                     this.x += dtX;
                     this.y += dtY;
                     if (this.y - this.radius < WOOD_MAX_Y) {
-                        this.resolveWoodCollision();
+                        this.resolveWoodCollision(bounceVal);
                     }
                 }
 
-                this.vx *= 0.995;
+                // Air resistance
+                this.vx *= 0.996;
                 this.vy *= 0.998;
 
-                if (Math.abs(this.vx) < 0.08 && Math.abs(this.vy) < 0.08) {
-                    this.stuckTimer++;
-                    if (this.stuckTimer > 15) {
-                        this.vx += (Math.random() - 0.5) * 0.6;
+                // Marble un-jamming nudge if trapped
+                if (Math.abs(this.vx) < 0.05 && Math.abs(this.vy) < 0.05) {
+                    this.stuckFrames++;
+                    if (this.stuckFrames > 20) {
+                        this.vx += (Math.random() - 0.5) * 0.7;
                         this.vy += 0.35 + Math.random() * 0.2;
-                        this.stuckTimer = 0;
+                        this.stuckFrames = 0;
                     }
                 } else {
-                    this.stuckTimer = 0;
+                    this.stuckFrames = 0;
                 }
 
+                // Wall bounds
                 if (this.x - this.radius < 0) {
                     this.x = this.radius;
-                    this.vx = Math.abs(this.vx) * bounciness;
+                    this.vx = Math.abs(this.vx) * bounceVal;
                 } else if (this.x + this.radius > CANVAS_WIDTH) {
                     this.x = CANVAS_WIDTH - this.radius;
-                    this.vx = -Math.abs(this.vx) * bounciness;
+                    this.vx = -Math.abs(this.vx) * bounceVal;
                 }
 
-                sorters.forEach(sorter => sorter.interact(this));
+                // Check interactions with obstacles
+                activePegs.forEach(peg => peg.interact(this, bounceVal));
+                activeBumpers.forEach(bumper => bumper.interact(this));
+                activeSpinners.forEach(spinner => spinner.interact(this));
+                activeTnts.forEach(tnt => tnt.interact(this));
+                activeSorters.forEach(sorter => sorter.interact(this));
+                activeConveyors.forEach(conveyor => conveyor.interact(this));
+
+                // Bottom check (Bucket or Lost)
                 this.checkBottomStatus();
             }
 
-            resolveWoodCollision() {
+            resolveWoodCollision(bounceVal) {
                 const samples = 14;
                 let overlapX = 0;
                 let overlapY = 0;
@@ -600,46 +1146,47 @@
                     nx /= nLen;
                     ny /= nLen;
 
-                    const pushDist = 1.2 * (hitCount / samples);
+                    const pushDist = 1.25 * (hitCount / samples);
                     this.x += nx * pushDist;
                     this.y += ny * pushDist;
 
                     const dot = this.vx * nx + this.vy * ny;
                     if (dot < 0) {
-                        if (Math.abs(dot) > 1.0) {
-                            sound.playMarbleClick(Math.min(0.2, Math.abs(dot) * 0.04));
+                        if (Math.abs(dot) > 0.8) {
+                            sound.playClack(Math.min(0.2, Math.abs(dot) * 0.04));
                         }
-                        this.vx -= (1 + bounciness) * dot * nx;
-                        this.vy -= (1 + bounciness) * dot * ny;
+                        this.vx -= (1 + bounceVal) * dot * nx;
+                        this.vy -= (1 + bounceVal) * dot * ny;
 
+                        // Surface friction
                         const tangentX = -ny;
                         const tangentY = nx;
                         const tDot = this.vx * tangentX + this.vy * tangentY;
-                        this.vx -= tangentX * tDot * 0.02;
-                        this.vy -= tangentY * tDot * 0.02;
+                        this.vx -= tangentX * tDot * 0.03;
+                        this.vy -= tangentY * tDot * 0.03;
                     }
                 }
             }
 
             checkBottomStatus() {
-                if (this.y > WOOD_MAX_Y + 10) {
+                if (this.y > WOOD_MAX_Y) {
                     let landedInBucket = false;
-                    buckets.forEach(bucket => {
-                        if (this.x >= bucket.x - 5 && this.x <= bucket.x + bucket.width + 5 &&
-                            this.y >= bucket.y - 15 && this.y <= bucket.y + bucket.height + 25) {
+                    activeBuckets.forEach(b => {
+                        if (this.x >= b.x - 4 && this.x <= b.x + b.width + 4 &&
+                            this.y >= b.y - 12 && this.y <= b.y + b.height + 25) {
                             landedInBucket = true;
                             this.inBucket = true;
-                            const isCorrect = (bucket.color.id === this.color.id);
-                            bucket.contents.push({ color: this.color, correct: isCorrect });
+                            const isCorrect = (b.colorKey === this.colorKey);
+                            b.contents.push({ colorKey: this.colorKey, correct: isCorrect });
                             sound.playBucketScore(isCorrect);
                             spawnScoreParticles(this.x, this.y, isCorrect ? '#34d399' : '#f87171');
                             checkGameCompletion();
                         }
                     });
 
-                    if (!landedInBucket && this.y > CANVAS_HEIGHT - 35) {
+                    if (!landedInBucket && this.y > CANVAS_HEIGHT - 30) {
                         this.isLost = true;
-                        sound.playLostMarble();
+                        sound.playClack(0.18, 0.6);
                         spawnScoreParticles(this.x, CANVAS_HEIGHT - 20, '#f87171');
                         checkGameCompletion();
                     }
@@ -663,71 +1210,135 @@
                 ctx.fillStyle = grad;
                 ctx.fill();
 
+                // Specular gloss shine
                 ctx.beginPath();
-                ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.3, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.28, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 ctx.fill();
 
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.strokeStyle = this.color.rim;
-                ctx.lineWidth = 1.2;
+                ctx.lineWidth = 1.1;
                 ctx.stroke();
                 ctx.restore();
             }
         }
 
-        class ColorSorter {
-            constructor(x, y, leftColor, rightColor, centerColor = null) {
-                this.x = x;
-                this.y = y;
-                this.width = 115;
-                this.height = 56;
-                this.leftColor = leftColor;
-                this.rightColor = rightColor;
-                this.centerColor = centerColor;
+        // BUCKET
+        class Bucket {
+            constructor(config) {
+                this.x = config.x;
+                this.y = config.y || 715;
+                this.width = config.width || 100;
+                this.height = config.height || 55;
+                this.colorKey = config.color || 'gold';
+                this.color = COLOR_PALETTE[this.colorKey] || COLOR_PALETTE.gold;
+                this.contents = [];
+            }
 
-                carveRectInstant(this.x, this.y, this.width - 8, this.height + 12);
-                carveRectInstant(this.x - 75, this.y, 85, 38); 
-                carveRectInstant(this.x + 75, this.y, 85, 38);
-                
-                if (centerColor) {
-                    carveRectInstant(this.x, this.y + 42, 48, 65);
+            draw(ctx) {
+                ctx.save();
+                // Interior deep well
+                ctx.fillStyle = 'rgba(18, 12, 8, 0.9)';
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, [0, 0, 10, 10]);
+                ctx.fill();
+
+                // Draw collected mini marbles inside bucket
+                const cols = Math.max(2, Math.floor((this.width - 16) / 12));
+                this.contents.forEach((item, idx) => {
+                    const c = idx % cols;
+                    const r = Math.floor(idx / cols);
+                    const mbX = this.x + 12 + c * 12;
+                    const mbY = this.y + this.height - 12 - r * 10;
+                    const clr = COLOR_PALETTE[item.colorKey] || COLOR_PALETTE.gold;
+
+                    ctx.beginPath();
+                    ctx.arc(mbX, mbY, 4.8, 0, Math.PI * 2);
+                    ctx.fillStyle = clr.main;
+                    ctx.fill();
+                    ctx.strokeStyle = clr.light;
+                    ctx.lineWidth = 0.8;
+                    ctx.stroke();
+                });
+
+                // Bucket outer rim
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = this.color.rim;
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, [0, 0, 10, 10]);
+                ctx.stroke();
+
+                // Top colored lip
+                ctx.fillStyle = this.color.main;
+                ctx.beginPath();
+                ctx.roundRect(this.x + 2, this.y - 4, this.width - 4, 8, 3);
+                ctx.fill();
+
+                // Count badge
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px "Outfit", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.contents.length, this.x + this.width / 2, this.y + this.height - 6);
+                ctx.restore();
+            }
+        }
+
+        // COLOR SORTER
+        class ColorSorter {
+            constructor(config) {
+                this.x = config.x;
+                this.y = config.y;
+                this.width = 110;
+                this.height = 54;
+                this.leftColorKey = config.left;
+                this.rightColorKey = config.right;
+                this.centerColorKey = config.center || null;
+
+                this.leftColor = COLOR_PALETTE[this.leftColorKey];
+                this.rightColor = COLOR_PALETTE[this.rightColorKey];
+                this.centerColor = this.centerColorKey ? COLOR_PALETTE[this.centerColorKey] : null;
+
+                // Pre-carve entry and side chutes
+                carveRectInstant(this.x, this.y, this.width - 6, this.height + 14);
+                carveRectInstant(this.x - 70, this.y, 80, 36);
+                carveRectInstant(this.x + 70, this.y, 80, 36);
+                if (this.centerColor) {
+                    carveRectInstant(this.x, this.y + 40, 48, 60);
                 }
             }
 
             interact(marble) {
                 const dx = marble.x - this.x;
                 const dy = marble.y - this.y;
-                
-                if (Math.abs(dx) < this.width * 0.65 && Math.abs(dy) < this.height * 0.85) {
+
+                if (Math.abs(dx) < this.width * 0.65 && Math.abs(dy) < this.height * 0.8) {
                     let targetVx = 0;
                     let targetVy = 0;
-                    let directed = false;
+                    let matched = false;
 
-                    if (this.leftColor && marble.color.id === this.leftColor.id) {
+                    if (this.leftColor && marble.colorKey === this.leftColorKey) {
                         targetVx = -4.5;
                         targetVy = 0.5;
-                        directed = true;
-                    } else if (this.rightColor && marble.color.id === this.rightColor.id) {
+                        matched = true;
+                    } else if (this.rightColor && marble.colorKey === this.rightColorKey) {
                         targetVx = 4.5;
                         targetVy = 0.5;
-                        directed = true;
-                    } else if (this.centerColor && marble.color.id === this.centerColor.id) {
+                        matched = true;
+                    } else if (this.centerColor && marble.colorKey === this.centerColorKey) {
                         targetVx = 0;
                         targetVy = 5.2;
-                        directed = true;
+                        matched = true;
                     } else {
                         targetVx = 0;
-                        targetVy = 4.0;
+                        targetVy = 3.8;
                     }
 
-                    marble.vx += (targetVx - marble.vx) * 0.25;
-                    marble.vy += (targetVy - marble.vy) * 0.25;
+                    marble.vx += (targetVx - marble.vx) * 0.28;
+                    marble.vy += (targetVy - marble.vy) * 0.28;
 
-                    if (directed && marble.cooldownSorter === 0) {
-                        marble.cooldownSorter = 20;
-                        sound.playSorterPass();
+                    if (matched && marble.cooldownSorter === 0) {
+                        marble.cooldownSorter = 22;
+                        sound.playClack(0.15, 1.6);
                         spawnScoreParticles(marble.x, marble.y, marble.color.main);
                     }
                 }
@@ -736,31 +1347,28 @@
             draw(ctx) {
                 ctx.save();
                 ctx.translate(this.x, this.y);
-                
-                ctx.fillStyle = '#1e293b';
+
+                // Body frame
+                ctx.fillStyle = '#1e1610';
                 ctx.beginPath();
                 ctx.roundRect(-this.width/2, -this.height/2, this.width, this.height, 8);
                 ctx.fill();
-                ctx.lineWidth = 2.5;
-                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#854d0e';
                 ctx.stroke();
-                
-                ctx.fillStyle = '#0f172a';
+
+                // Arrow guides
+                if (this.leftColor) this.drawArrow(ctx, -28, 0, Math.PI, this.leftColor.main);
+                if (this.rightColor) this.drawArrow(ctx, 28, 0, 0, this.rightColor.main);
+                if (this.centerColor) this.drawArrow(ctx, 0, 14, Math.PI / 2, this.centerColor.main);
+
+                // Center indicator light
                 ctx.beginPath();
-                ctx.roundRect(-this.width/2 + 6, -this.height/2 + 6, this.width - 12, this.height - 12, 4);
-                ctx.fill();
-                
-                if (this.leftColor) this.drawArrow(ctx, -30, 0, Math.PI, this.leftColor.main);
-                if (this.rightColor) this.drawArrow(ctx, 30, 0, 0, this.rightColor.main);
-                if (this.centerColor) this.drawArrow(ctx, 0, 16, Math.PI / 2, this.centerColor.main);
-                
-                ctx.beginPath();
-                ctx.arc(0, -this.height/2 + 12, 3.5, 0, Math.PI*2);
-                ctx.fillStyle = '#10b981';
+                ctx.arc(0, -this.height/2 + 10, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#34d399';
                 ctx.shadowColor = '#34d399';
-                ctx.shadowBlur = 6;
+                ctx.shadowBlur = 8;
                 ctx.fill();
-                
                 ctx.restore();
             }
 
@@ -770,92 +1378,470 @@
                 ctx.rotate(angle);
                 ctx.fillStyle = color;
                 ctx.beginPath();
-                ctx.moveTo(-8, -8);
+                ctx.moveTo(-8, -7);
                 ctx.lineTo(8, 0);
-                ctx.lineTo(-8, 8);
+                ctx.lineTo(-8, 7);
                 ctx.closePath();
                 ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+                ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.restore();
             }
         }
 
-        class Bucket {
-            constructor(x, y, width, height, colorObj) {
-                this.x = x;
-                this.y = y;
-                this.width = width;
-                this.height = height;
-                this.color = colorObj;
-                this.contents = [];
+        // VERTICAL LIFT CONVEYOR (ELEVATOR)
+        class LiftConveyor {
+            constructor(config) {
+                this.x = config.x;
+                this.intakeY = config.intakeY || 660;
+                this.height = config.height || 480;
+                this.width = config.width || 44;
+                this.speed = config.speed || 2.5;
+                this.beltOffset = 0;
+                this.carriedMarbles = []; // { marble, targetY }
+
+                this.topY = this.intakeY - this.height;
+
+                // Pre-carve lower intake and upper exit
+                carveRectInstant(this.x, this.intakeY, this.width + 30, 48);
+                carveRectInstant(this.x - 30, this.topY, 70, 36);
+                carveRectInstant(this.x, this.topY + this.height / 2, this.width, this.height);
+            }
+
+            interact(marble) {
+                if (marble.inConveyor || marble.inBucket || marble.isLost) return;
+
+                // Marble entering bottom intake funnel
+                const dx = marble.x - this.x;
+                const dy = marble.y - this.intakeY;
+
+                if (Math.abs(dx) < this.width && Math.abs(dy) < 26) {
+                    marble.inConveyor = true;
+                    marble.vx = 0;
+                    marble.vy = 0;
+                    marble.x = this.x;
+                    this.carriedMarbles.push(marble);
+                    sound.playClack(0.12, 1.2);
+                }
+            }
+
+            update() {
+                this.beltOffset = (this.beltOffset + this.speed) % 24;
+
+                // Move carried marbles up to the top exit chute
+                for (let i = this.carriedMarbles.length - 1; i >= 0; i--) {
+                    const m = this.carriedMarbles[i];
+                    m.y -= this.speed;
+                    m.x = this.x + Math.sin(m.y * 0.1) * 2;
+
+                    if (m.y <= this.topY + 12) {
+                        // Release marble into top chute
+                        m.inConveyor = false;
+                        m.vx = -3.2; // Eject left into wood channel
+                        m.vy = -1.0;
+                        this.carriedMarbles.splice(i, 1);
+                        sound.playClack(0.15, 1.8);
+                        spawnScoreParticles(m.x, m.y, m.color.main);
+                    }
+                }
             }
 
             draw(ctx) {
                 ctx.save();
-                ctx.fillStyle = 'rgba(15, 10, 8, 0.85)';
+                const halfW = this.width / 2;
+
+                // Conveyor casing & tower
+                ctx.fillStyle = '#1c130c';
                 ctx.beginPath();
-                ctx.roundRect(this.x, this.y, this.width, this.height, [0, 0, 10, 10]);
+                ctx.roundRect(this.x - halfW, this.topY, this.width, this.height, 8);
                 ctx.fill();
-
-                const cols = Math.max(2, Math.floor((this.width - 16) / 13));
-                this.contents.forEach((item, idx) => {
-                    const col = idx % cols;
-                    const row = Math.floor(idx / cols);
-                    const mbX = this.x + 12 + col * 13;
-                    const mbY = this.y + this.height - 12 - row * 11;
-
-                    ctx.beginPath();
-                    ctx.arc(mbX, mbY, 5.5, 0, Math.PI * 2);
-                    ctx.fillStyle = item.color.main;
-                    ctx.fill();
-                    ctx.strokeStyle = item.color.light;
-                    ctx.lineWidth = 0.8;
-                    ctx.stroke();
-                });
-
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = this.color.rim;
-                ctx.beginPath();
-                ctx.roundRect(this.x, this.y, this.width, this.height, [0, 0, 10, 10]);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#b45309';
                 ctx.stroke();
 
-                ctx.fillStyle = this.color.main;
+                // Animated moving slats / buckets
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2.5;
+                for (let y = this.topY + this.beltOffset; y < this.intakeY; y += 24) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - halfW + 4, y);
+                    ctx.lineTo(this.x + halfW - 4, y);
+                    ctx.stroke();
+                }
+
+                // Top & bottom pulleys
+                ctx.fillStyle = '#78350f';
                 ctx.beginPath();
-                ctx.roundRect(this.x + 2, this.y - 5, this.width - 4, 9, 3);
+                ctx.arc(this.x, this.topY + 10, 8, 0, Math.PI * 2);
+                ctx.arc(this.x, this.intakeY - 10, 8, 0, Math.PI * 2);
                 ctx.fill();
 
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 11px Inter, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(this.contents.length, this.x + this.width / 2, this.y + this.height - 6);
+                // Intake funnel arrows
+                ctx.fillStyle = '#34d399';
+                ctx.beginPath();
+                ctx.moveTo(this.x - 10, this.intakeY + 8);
+                ctx.lineTo(this.x + 10, this.intakeY + 8);
+                ctx.lineTo(this.x, this.intakeY - 6);
+                ctx.closePath();
+                ctx.fill();
+
+                // Exit arrow at top
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(this.x - 6, this.topY + 4);
+                ctx.lineTo(this.x - 22, this.topY + 14);
+                ctx.lineTo(this.x - 6, this.topY + 24);
+                ctx.closePath();
+                ctx.fill();
+
                 ctx.restore();
             }
         }
 
-        function spawnWoodChips(x, y) {
-            const count = 3 + Math.floor(Math.random() * 3);
+        // PACHINKO WOODEN PEG
+        class PachinkoPeg {
+            constructor(config) {
+                this.x = config.x;
+                this.y = config.y;
+                this.radius = config.r || 8.5;
+                carveCircleInstant(this.x, this.y, this.radius + 6);
+            }
+
+            interact(marble, bounceVal) {
+                const dx = marble.x - this.x;
+                const dy = marble.y - this.y;
+                const dist = Math.hypot(dx, dy);
+                const minDist = this.radius + marble.radius;
+
+                if (dist < minDist) {
+                    const nx = (dx / dist) || 0;
+                    const ny = (dy / dist) || -1;
+                    marble.x = this.x + nx * minDist;
+                    marble.y = this.y + ny * minDist;
+
+                    const dot = marble.vx * nx + marble.vy * ny;
+                    if (dot < 0) {
+                        marble.vx -= (1 + bounceVal * 1.3) * dot * nx;
+                        marble.vy -= (1 + bounceVal * 1.3) * dot * ny;
+                        // Add slight deflection chaos
+                        marble.vx += (Math.random() - 0.5) * 0.8;
+                        sound.playPegClink();
+                        spawnWoodChips(this.x, this.y, 2);
+                    }
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                // Outer wooden pin
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#78350f';
+                ctx.fill();
+
+                // Brass polished cap
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.65, 0, Math.PI * 2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(this.x - 2, this.y - 2, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+
+                ctx.strokeStyle = '#b45309';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // BOUNCY RUBBER BUMPER
+        class Bumper {
+            constructor(config) {
+                this.x = config.x;
+                this.y = config.y;
+                this.radius = config.radius || 22;
+                this.force = config.force || 5.0;
+                this.hitAnim = 0;
+                carveCircleInstant(this.x, this.y, this.radius + 6);
+            }
+
+            interact(marble) {
+                const dx = marble.x - this.x;
+                const dy = marble.y - this.y;
+                const dist = Math.hypot(dx, dy);
+                const minDist = this.radius + marble.radius;
+
+                if (dist < minDist) {
+                    const nx = (dx / dist) || 0;
+                    const ny = (dy / dist) || -1;
+                    marble.x = this.x + nx * minDist;
+                    marble.y = this.y + ny * minDist;
+
+                    marble.vx = nx * this.force + (Math.random() - 0.5);
+                    marble.vy = ny * this.force;
+                    this.hitAnim = 1.0;
+                    sound.playBumperBounce();
+                    spawnScoreParticles(this.x, this.y, '#f59e0b');
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                if (this.hitAnim > 0) this.hitAnim -= 0.08;
+
+                const r = this.radius + this.hitAnim * 5;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+                ctx.fillStyle = this.hitAnim > 0 ? '#fbbf24' : '#d97706';
+                ctx.fill();
+
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#fef08a';
+                ctx.stroke();
+
+                // Inner core ring
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, r * 0.45, 0, Math.PI * 2);
+                ctx.fillStyle = '#78350f';
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ROTATING TURNSTILE
+        class Turnstile {
+            constructor(config) {
+                this.x = config.x;
+                this.y = config.y;
+                this.radius = config.radius || 30;
+                this.angle = 0;
+                this.angularVelocity = 0;
+                carveCircleInstant(this.x, this.y, this.radius + 8);
+            }
+
+            interact(marble) {
+                const dx = marble.x - this.x;
+                const dy = marble.y - this.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < this.radius + marble.radius) {
+                    // Tangential push
+                    const cross = dx * marble.vy - dy * marble.vx;
+                    this.angularVelocity += cross * 0.003;
+                    marble.vx *= 0.95;
+                    marble.vy *= 0.95;
+                    marble.vx += -dy * 0.08;
+                    marble.vy += dx * 0.08;
+                    sound.playClack(0.08, 0.9);
+                }
+            }
+
+            update() {
+                this.angle += this.angularVelocity;
+                this.angularVelocity *= 0.97; // Drag
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+
+                // 4 wooden paddles
+                ctx.fillStyle = '#b45309';
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.beginPath();
+                    ctx.roundRect(-4, 0, 8, this.radius, 3);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+
+                // Center hub
+                ctx.beginPath();
+                ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#fde68a';
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // TOUCH-SENSITIVE TNT BLOCK
+        class TntBlock {
+            constructor(config) {
+                this.x = config.x;
+                this.y = config.y;
+                this.radius = config.radius || 22;
+                this.blastRadius = config.blastRadius || 65;
+                this.exploded = false;
+                this.fuseTimer = -1; // -1: ready, >0: blinking fuse
+                carveCircleInstant(this.x, this.y, this.radius + 6);
+            }
+
+            triggerExplosion() {
+                if (this.exploded || this.fuseTimer >= 0) return;
+                this.fuseTimer = 18; // Short fuse
+            }
+
+            interact(marble) {
+                if (this.exploded) return;
+                const dist = Math.hypot(marble.x - this.x, marble.y - this.y);
+                if (dist < this.radius + marble.radius) {
+                    const nx = (marble.x - this.x) / dist;
+                    const ny = (marble.y - this.y) / dist;
+                    marble.vx += nx * 2;
+                    marble.vy += ny * 2;
+                    this.triggerExplosion();
+                }
+            }
+
+            update() {
+                if (this.exploded) return;
+                if (this.fuseTimer > 0) {
+                    this.fuseTimer--;
+                    if (this.fuseTimer === 0) {
+                        this.detonate();
+                    }
+                }
+            }
+
+            detonate() {
+                this.exploded = true;
+                sound.playTntExplode();
+                // Blast hole in wood
+                carveCircleInstant(this.x, this.y, this.blastRadius);
+
+                // Disperse nearby marbles with blast wave
+                activeMarbles.forEach(m => {
+                    const dx = m.x - this.x;
+                    const dy = m.y - this.y;
+                    const dist = Math.hypot(dx, dy) || 1;
+                    if (dist < this.blastRadius * 1.5) {
+                        const force = (1 - dist / (this.blastRadius * 1.5)) * 12;
+                        m.vx += (dx / dist) * force;
+                        m.vy += (dy / dist) * force - 2;
+                    }
+                });
+
+                // Spawn explosion particles
+                spawnExplosionFX(this.x, this.y, this.blastRadius);
+            }
+
+            draw(ctx) {
+                if (this.exploded) return;
+                ctx.save();
+                const isBlinking = (this.fuseTimer > 0 && Math.floor(this.fuseTimer / 3) % 2 === 0);
+
+                ctx.translate(this.x, this.y);
+                ctx.fillStyle = isBlinking ? '#fef08a' : '#ef4444';
+                ctx.beginPath();
+                ctx.roundRect(-this.radius, -this.radius, this.radius * 2, this.radius * 2, 6);
+                ctx.fill();
+
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = isBlinking ? '#ffffff' : '#991b1b';
+                ctx.stroke();
+
+                // TNT Label
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 11px "Outfit", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('TNT', 0, 0);
+
+                ctx.restore();
+            }
+        }
+
+        /* ==========================================================================
+           5. ACTIVE GAME STATE & CONTROLS
+           ========================================================================== */
+        let currentLevelIndex = 0;
+        let isEditorMode = false;
+        let isPlaytesting = false;
+        let selectedTool = 'pocket';
+        let customUserLevels = [];
+
+        let activeMarbles = [];
+        let activeBuckets = [];
+        let activeSorters = [];
+        let activeConveyors = [];
+        let activePegs = [];
+        let activeBumpers = [];
+        let activeSpinners = [];
+        let activeTnts = [];
+        let woodChips = [];
+        let scoreParticles = [];
+
+        // Carving Path Queue
+        let isDrawingPath = false;
+        let currentDrawPath = [];
+        let activeCarveQueue = [];
+        let chiselAnimHead = null;
+
+        // Settings
+        let carveRadius = 22;
+        let carveStepBatch = 2; // Cinematic slow reward speed!
+        let gravityVal = 0.22;
+        let bounceVal = 0.35;
+        let levelFinished = false;
+
+        /* ==========================================================================
+           6. PARTICLES & CARVING FUNCTIONS
+           ========================================================================== */
+        function spawnWoodChips(x, y, count = 4) {
             for (let i = 0; i < count; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = 0.6 + Math.random() * 2.5;
+                const speed = 0.8 + Math.random() * 2.8;
                 woodChips.push({
-                    x: x + (Math.random() - 0.5) * 8, y: y + (Math.random() - 0.5) * 8,
-                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 0.5,
-                    size: 2 + Math.random() * 3,
-                    color: Math.random() > 0.5 ? '#92400e' : '#d97706',
-                    life: 1.0, decay: 0.04 + Math.random() * 0.03
+                    x: x + (Math.random() - 0.5) * 6,
+                    y: y + (Math.random() - 0.5) * 6,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 0.6,
+                    size: 2.2 + Math.random() * 3.5,
+                    color: Math.random() > 0.5 ? '#b45309' : '#f59e0b',
+                    life: 1.0,
+                    decay: 0.04 + Math.random() * 0.03
                 });
             }
         }
 
         function spawnScoreParticles(x, y, color) {
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 14; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = 1 + Math.random() * 3;
-                particles.push({
-                    x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-                    size: 3 + Math.random() * 3, color, life: 1.0, decay: 0.02 + Math.random() * 0.02
+                const speed = 1.2 + Math.random() * 3.2;
+                scoreParticles.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: 3 + Math.random() * 3,
+                    color,
+                    life: 1.0,
+                    decay: 0.03 + Math.random() * 0.02
+                });
+            }
+        }
+
+        function spawnExplosionFX(x, y, radius) {
+            for (let i = 0; i < 35; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 7;
+                scoreParticles.push({
+                    x: x + Math.cos(angle) * 10,
+                    y: y + Math.sin(angle) * 10,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 1.5,
+                    size: 4 + Math.random() * 5,
+                    color: Math.random() > 0.4 ? '#ef4444' : '#fbbf24',
+                    life: 1.0,
+                    decay: 0.025 + Math.random() * 0.02
                 });
             }
         }
@@ -865,16 +1851,16 @@
             const maxX = Math.min(GRID_COLS - 1, Math.ceil(cx + radius));
             const minY = Math.max(0, Math.floor(cy - radius));
             const maxY = Math.min(WOOD_MAX_ROW, Math.ceil(cy + radius));
-
             const rSq = radius * radius;
+
             for (let gy = minY; gy <= maxY; gy++) {
                 const dy = gy + 0.5 - cy;
                 const dySq = dy * dy;
-                const rowOffset = gy * GRID_COLS;
+                const row = gy * GRID_COLS;
                 for (let gx = minX; gx <= maxX; gx++) {
                     const dx = gx + 0.5 - cx;
                     if (dx * dx + dySq <= rSq) {
-                        woodGrid[rowOffset + gx] = CELL_AIR;
+                        woodGrid[row + gx] = CELL_AIR;
                     }
                 }
             }
@@ -894,14 +1880,14 @@
             const maxX = Math.min(GRID_COLS - 1, Math.floor(cx + w/2));
             const minY = Math.max(0, Math.floor(cy - h/2));
             const maxY = Math.min(WOOD_MAX_ROW, Math.floor(cy + h/2));
-            
+
             for (let gy = minY; gy <= maxY; gy++) {
-                const rowOffset = gy * GRID_COLS;
+                const row = gy * GRID_COLS;
                 for (let gx = minX; gx <= maxX; gx++) {
-                    woodGrid[rowOffset + gx] = CELL_AIR;
+                    woodGrid[row + gx] = CELL_AIR;
                 }
             }
-            
+
             if (woodLayerCtx) {
                 woodLayerCtx.save();
                 woodLayerCtx.globalCompositeOperation = 'destination-out';
@@ -912,30 +1898,33 @@
             }
         }
 
-        function carvePoint(cx, cy, radius) {
+        function carvePointAnimated(cx, cy, radius) {
             const minX = Math.max(0, Math.floor(cx - radius));
             const maxX = Math.min(GRID_COLS - 1, Math.ceil(cx + radius));
             const minY = Math.max(0, Math.floor(cy - radius));
             const maxY = Math.min(WOOD_MAX_ROW, Math.ceil(cy + radius));
             const rSq = radius * radius;
-            
-            let carvedAny = false;
+            let didCarve = false;
+
             for (let gy = minY; gy <= maxY; gy++) {
                 const dy = gy + 0.5 - cy;
                 const dySq = dy * dy;
-                const rowOffset = gy * GRID_COLS;
+                const row = gy * GRID_COLS;
                 for (let gx = minX; gx <= maxX; gx++) {
                     const dx = gx + 0.5 - cx;
                     if (dx * dx + dySq <= rSq) {
-                        const idx = rowOffset + gx;
+                        const idx = row + gx;
                         if (woodGrid[idx] === CELL_WOOD) {
                             woodGrid[idx] = CELL_AIR;
-                            carvedAny = true;
+                            didCarve = true;
                         }
                     }
                 }
             }
-            if (carvedAny) spawnWoodChips(cx, cy);
+
+            if (didCarve) {
+                spawnWoodChips(cx, cy, 2);
+            }
 
             if (woodLayerCtx) {
                 woodLayerCtx.save();
@@ -947,262 +1936,363 @@
             }
         }
 
-        function spawnPocketLayout(pocketConfigs) {
-            pocketConfigs.forEach(p => {
-                carveCircleInstant(p.x, p.y, p.radius || 32);
-                const count = p.count || 5;
-                for (let i = 0; i < count; i++) {
-                    const offsetR = Math.random() * ((p.radius || 32) - 12);
-                    const angle = Math.random() * Math.PI * 2;
-                    const mx = p.x + Math.cos(angle) * offsetR;
-                    const my = p.y + Math.sin(angle) * offsetR;
-                    marbles.push(new Marble(mx, my, 10, p.color));
-                }
-            });
+        /* ==========================================================================
+           7. LEVEL LOADING & SAVING
+           ========================================================================== */
+        function getAllLevels() {
+            return [...BUILTIN_LEVELS, ...customUserLevels];
         }
 
-        function loadLevel(levelNum) {
-            currentLevel = levelNum;
-            gameFinished = false;
+        function loadLevel(index) {
+            const levels = getAllLevels();
+            if (index < 0 || index >= levels.length) index = 0;
+            currentLevelIndex = index;
+            levelFinished = false;
+
+            const lvl = levels[currentLevelIndex];
+            document.getElementById('level-select').value = index;
+
+            // Reset wood grid & layer
             resetWoodLayer();
             woodGrid.fill(CELL_WOOD);
-            marbles = []; buckets = []; sorters = []; woodChips = []; particles = [];
-            activeCarveTasks = []; chiselAnimHead = null; currentDrawPath = []; isDrawingPath = false;
+
+            // Clear entities
+            activeMarbles = [];
+            activeBuckets = [];
+            activeSorters = [];
+            activeConveyors = [];
+            activePegs = [];
+            activeBumpers = [];
+            activeSpinners = [];
+            activeTnts = [];
+            woodChips = [];
+            scoreParticles = [];
+            activeCarveQueue = [];
+            chiselAnimHead = null;
+            currentDrawPath = [];
+            isDrawingPath = false;
             sound.stopRouter();
 
-            document.getElementById('win-modal').classList.add('hidden');
-            document.getElementById('win-modal-card').classList.remove('scale-100', 'opacity-100');
+            // Hide win modal
+            document.getElementById('modal-win').classList.remove('open');
 
-            const bucketY = CANVAS_HEIGHT - 65;
-            const bucketHeight = 55;
-
-            const cGold = COLOR_PALETTE[0];
-            const cRuby = COLOR_PALETTE[1];
-            const cEmerald = COLOR_PALETTE[2];
-            const cSapphire = COLOR_PALETTE[3];
-
-            if (levelNum === 1) {
-                document.getElementById('level-display-name').innerText = "1 - The Split Barrier";
-                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cGold));
-                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cRuby));
-                carveRectInstant(CANVAS_WIDTH / 2, 280, 50, 160);
-                spawnPocketLayout([
-                    { x: CANVAS_WIDTH / 2, y: 80, radius: 34, count: 10, color: cGold }
-                ]);
-            } else if (levelNum === 2) {
-                document.getElementById('level-display-name').innerText = "2 - Dual Chamber Sorter";
-                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cGold));
-                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cRuby));
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 340, cGold, cRuby));
-                spawnPocketLayout([
-                    { x: CANVAS_WIDTH / 3, y: 80, radius: 28, count: 6, color: cGold },
-                    { x: (CANVAS_WIDTH / 3) * 2, y: 80, radius: 28, count: 6, color: cRuby }
-                ]);
-            } else if (levelNum === 3) {
-                document.getElementById('level-display-name').innerText = "3 - The Zigzag Switchback";
-                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 45, bucketY, 90, bucketHeight, cEmerald));
-                carveRectInstant(CANVAS_WIDTH / 2 - 80, 200, 220, 30);
-                carveRectInstant(CANVAS_WIDTH / 2 + 80, 360, 220, 30);
-                carveRectInstant(CANVAS_WIDTH / 2 - 80, 520, 220, 30);
-                spawnPocketLayout([
-                    { x: 100, y: 80, radius: 30, count: 10, color: cEmerald }
-                ]);
-            } else if (levelNum === 4) {
-                document.getElementById('level-display-name').innerText = "4 - Triple Sorter Matrix";
-                buckets.push(new Bucket(40, bucketY, 75, bucketHeight, cGold));
-                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 37, bucketY, 75, bucketHeight, cEmerald));
-                buckets.push(new Bucket(CANVAS_WIDTH - 115, bucketY, 75, bucketHeight, cRuby));
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 350, cGold, cRuby, cEmerald));
-                spawnPocketLayout([
-                    { x: 150, y: 80, radius: 26, count: 4, color: cGold },
-                    { x: 300, y: 130, radius: 26, count: 4, color: cEmerald },
-                    { x: 450, y: 80, radius: 26, count: 4, color: cRuby }
-                ]);
-            } else if (levelNum === 5) {
-                document.getElementById('level-display-name').innerText = "5 - The Funnel Gauntlet";
-                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 45, bucketY, 90, bucketHeight, cSapphire));
-                carveRectInstant(CANVAS_WIDTH / 2, 260, 320, 35);
-                carveRectInstant(CANVAS_WIDTH / 2, 450, 180, 35);
-                spawnPocketLayout([
-                    { x: 120, y: 75, radius: 26, count: 5, color: cSapphire },
-                    { x: 480, y: 75, radius: 26, count: 5, color: cSapphire }
-                ]);
-            } else if (levelNum === 6) {
-                document.getElementById('level-display-name').innerText = "6 - Dual Bridge Crossing";
-                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cGold));
-                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cEmerald));
-                sorters.push(new ColorSorter(200, 260, cGold, cEmerald));
-                sorters.push(new ColorSorter(400, 440, cEmerald, cGold));
-                spawnPocketLayout([
-                    { x: CANVAS_WIDTH / 2, y: 80, radius: 32, count: 12, color: cGold }
-                ]);
-            } else if (levelNum === 7) {
-                document.getElementById('level-display-name').innerText = "7 - The Obstacle Pillar";
-                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cRuby));
-                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cGold));
-                carveRectInstant(CANVAS_WIDTH / 2, 320, 80, 200);
-                spawnPocketLayout([
-                    { x: CANVAS_WIDTH / 2, y: 80, radius: 34, count: 14, color: cRuby }
-                ]);
-            } else if (levelNum === 8) {
-                document.getElementById('level-display-name').innerText = "8 - Crossfire Sorter";
-                buckets.push(new Bucket(40, bucketY, 75, bucketHeight, cGold));
-                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 37, bucketY, 75, bucketHeight, cEmerald));
-                buckets.push(new Bucket(CANVAS_WIDTH - 115, bucketY, 75, bucketHeight, cRuby));
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 3, 280, cGold, cEmerald));
-                sorters.push(new ColorSorter((CANVAS_WIDTH / 3) * 2, 460, cEmerald, cRuby));
-                spawnPocketLayout([
-                    { x: 100, y: 80, radius: 26, count: 6, color: cGold },
-                    { x: 500, y: 80, radius: 26, count: 6, color: cRuby }
-                ]);
-            } else if (levelNum === 9) {
-                document.getElementById('level-display-name').innerText = "9 - Staircase Descent";
-                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cSapphire));
-                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cGold));
-                carveRectInstant(180, 220, 240, 25);
-                carveRectInstant(420, 380, 240, 25);
-                spawnPocketLayout([
-                    { x: 100, y: 75, radius: 28, count: 6, color: cGold },
-                    { x: 500, y: 75, radius: 28, count: 6, color: cSapphire }
-                ]);
-            } else if (levelNum === 10) {
-                document.getElementById('level-display-name').innerText = "10 - Quad Color Mega Maze";
-                buckets.push(new Bucket(25, bucketY, 65, bucketHeight, cGold));
-                buckets.push(new Bucket(170, bucketY, 65, bucketHeight, cRuby));
-                buckets.push(new Bucket(315, bucketY, 65, bucketHeight, cEmerald));
-                buckets.push(new Bucket(460, bucketY, 65, bucketHeight, cSapphire));
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 300, cGold, cRuby, cEmerald));
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 480, cRuby, cSapphire, cEmerald));
-                spawnPocketLayout([
-                    { x: 150, y: 70, radius: 24, count: 4, color: cGold },
-                    { x: 450, y: 70, radius: 24, count: 4, color: cSapphire }
-                ]);
-            } else if (levelNum === 11) {
-                document.getElementById('level-display-name').innerText = "11 - Spiral Labyrinth";
-                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 45, bucketY, 90, bucketHeight, cRuby));
-                carveRectInstant(CANVAS_WIDTH / 2, 240, 280, 30);
-                carveRectInstant(CANVAS_WIDTH / 2 - 60, 380, 240, 30);
-                carveRectInstant(CANVAS_WIDTH / 2 + 60, 520, 240, 30);
-                spawnPocketLayout([
-                    { x: CANVAS_WIDTH / 2, y: 70, radius: 32, count: 14, color: cRuby }
-                ]);
-            } else if (levelNum === 12) {
-                document.getElementById('level-display-name').innerText = "12 - Ultimate Master Carver";
-                buckets.push(new Bucket(30, bucketY, 70, bucketHeight, cGold));
-                buckets.push(new Bucket(175, bucketY, 70, bucketHeight, cEmerald));
-                buckets.push(new Bucket(320, bucketY, 70, bucketHeight, cRuby));
-                buckets.push(new Bucket(465, bucketY, 70, bucketHeight, cSapphire));
-                sorters.push(new ColorSorter(200, 260, cGold, cEmerald));
-                sorters.push(new ColorSorter(400, 420, cRuby, cSapphire));
-                carveRectInstant(CANVAS_WIDTH / 2, 340, 60, 100);
-                spawnPocketLayout([
-                    { x: 120, y: 75, radius: 25, count: 5, color: cGold },
-                    { x: 480, y: 75, radius: 25, count: cSapphire.id ? cSapphire : cRuby, color: cSapphire }
-                ]);
-            } else if (levelNum === 'custom') {
-                document.getElementById('level-display-name').innerText = "Custom Sandbox";
-                buildCustomLevel();
+            // 1. Buckets
+            if (lvl.buckets) {
+                lvl.buckets.forEach(b => activeBuckets.push(new Bucket(b)));
             }
 
-            document.getElementById('total-marbles-display').innerText = marbles.length;
-            document.getElementById('score-display').innerText = 0;
-            document.getElementById('lost-display').innerText = 0;
+            // 2. Pre-cuts (Air channels)
+            if (lvl.cuts) {
+                lvl.cuts.forEach(c => carveRectInstant(c.x, c.y, c.w, c.h));
+            }
+
+            // 3. Sorters
+            if (lvl.sorters) {
+                lvl.sorters.forEach(s => activeSorters.push(new ColorSorter(s)));
+            }
+
+            // 4. Lift Conveyors
+            if (lvl.conveyors) {
+                lvl.conveyors.forEach(c => activeConveyors.push(new LiftConveyor(c)));
+            }
+
+            // 5. Pachinko Pegs
+            if (lvl.pegs) {
+                lvl.pegs.forEach(p => activePegs.push(new PachinkoPeg(p)));
+            }
+
+            // 6. Bumpers
+            if (lvl.bumpers) {
+                lvl.bumpers.forEach(b => activeBumpers.push(new Bumper(b)));
+            }
+
+            // 7. Turnstiles
+            if (lvl.spinners) {
+                lvl.spinners.forEach(s => activeSpinners.push(new Turnstile(s)));
+            }
+
+            // 8. TNT Blocks
+            if (lvl.tnts) {
+                lvl.tnts.forEach(t => activeTnts.push(new TntBlock(t)));
+            }
+
+            // 9. Marble Pockets (Spawners)
+            if (lvl.pockets) {
+                lvl.pockets.forEach(p => {
+                    const count = p.count || 8;
+                    const r = p.radius || 32;
+                    carveCircleInstant(p.x, p.y, r);
+                    for (let i = 0; i < count; i++) {
+                        const offset = Math.random() * (r - 12);
+                        const ang = Math.random() * Math.PI * 2;
+                        const mx = p.x + Math.cos(ang) * offset;
+                        const my = p.y + Math.sin(ang) * offset;
+                        activeMarbles.push(new Marble(mx, my, 9.5, p.color));
+                    }
+                });
+            }
+
+            updateHudDisplay();
         }
 
-        function buildCustomLevel() {
-            const marbleCount = parseInt(document.getElementById('param-marbles').value);
-            const colorCount = parseInt(document.getElementById('param-colors').value);
-            const pocketCount = parseInt(document.getElementById('param-pockets').value);
-            const includeSorter = document.getElementById('param-include-sorter').checked;
+        function updateHudDisplay() {
+            const total = activeMarbles.length;
+            let correct = 0;
+            let lost = 0;
 
-            const bucketY = CANVAS_HEIGHT - 65;
-            const bucketW = Math.floor(480 / colorCount);
-            for (let i = 0; i < colorCount; i++) {
-                buckets.push(new Bucket(60 + i * bucketW, bucketY, bucketW - 10, 55, COLOR_PALETTE[i]));
-            }
-
-            if (includeSorter && colorCount >= 2) {
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 340, COLOR_PALETTE[0], COLOR_PALETTE[1], colorCount > 2 ? COLOR_PALETTE[2] : null));
-            }
-
-            const pocketConfigs = [];
-            for (let i = 0; i < pocketCount; i++) {
-                const px = 80 + Math.random() * (CANVAS_WIDTH - 160);
-                const py = 70 + Math.random() * 220;
-                const pColor = COLOR_PALETTE[Math.floor(Math.random() * colorCount)];
-                pocketConfigs.push({ x: px, y: py, radius: 26, count: Math.ceil(marbleCount / pocketCount), color: pColor });
-            }
-            spawnPocketLayout(pocketConfigs);
-        }
-
-        function checkGameCompletion() {
-            if (gameFinished) return;
-            const total = marbles.length;
-            let finishedCount = 0;
-            let correctTotal = 0;
-            let lostCount = 0;
-
-            marbles.forEach(m => {
-                if (m.inBucket || m.isLost) finishedCount++;
-            });
-
-            buckets.forEach(b => {
-                b.contents.forEach(item => {
-                    if (item.correct) correctTotal++;
+            activeBuckets.forEach(b => {
+                b.contents.forEach(c => {
+                    if (c.correct) correct++;
                 });
             });
 
-            marbles.forEach(m => {
-                if (m.isLost) lostCount++;
+            activeMarbles.forEach(m => {
+                if (m.isLost) lost++;
             });
 
-            document.getElementById('score-display').innerText = correctTotal;
-            document.getElementById('lost-display').innerText = lostCount;
+            document.getElementById('hud-score').innerText = correct;
+            document.getElementById('hud-total').innerText = total;
+            document.getElementById('hud-lost').innerText = lost;
+        }
+
+        function checkGameCompletion() {
+            if (levelFinished || isEditorMode) return;
+            const total = activeMarbles.length;
+            let finishedCount = 0;
+            let correctCount = 0;
+
+            activeMarbles.forEach(m => {
+                if (m.inBucket || m.isLost) finishedCount++;
+            });
+
+            activeBuckets.forEach(b => {
+                b.contents.forEach(c => {
+                    if (c.correct) correctCount++;
+                });
+            });
+
+            updateHudDisplay();
 
             if (finishedCount >= total && total > 0) {
-                gameFinished = true;
+                levelFinished = true;
                 sound.stopRouter();
-                sound.playWinFanfare();
+                sound.playWinChime();
 
-                const accuracy = Math.round((correctTotal / total) * 100);
+                const accuracy = Math.round((correctCount / total) * 100);
                 document.getElementById('win-accuracy').innerText = accuracy + '%';
-                document.getElementById('win-count').innerText = `${correctTotal}/${total}`;
-                document.getElementById('win-summary').innerText = `Successfully routed ${correctTotal} of ${total} marbles!`;
+                document.getElementById('win-collected').innerText = `${correctCount}/${total}`;
+                document.getElementById('win-message').innerText = 
+                    `Brilliantly routed ${correctCount} of ${total} marbles into their proper matching bins!`;
 
-                const modal = document.getElementById('win-modal');
-                const card = document.getElementById('win-modal-card');
-                modal.classList.remove('hidden');
                 setTimeout(() => {
-                    card.classList.add('scale-100', 'opacity-100');
-                }, 20);
+                    document.getElementById('modal-win').classList.add('open');
+                }, 400);
             }
         }
 
+        function populateLevelDropdown() {
+            const select = document.getElementById('level-select');
+            select.innerHTML = '';
+            const all = getAllLevels();
+
+            all.forEach((lvl, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.innerText = lvl.name;
+                select.appendChild(opt);
+            });
+        }
+
+        /* ==========================================================================
+           8. CANVAS INPUT & POINTER EVENTS (FIXED FOR MOBILE)
+           ========================================================================== */
+        
+        // Precise Coordinate Translation with object-fit: contain compensation
+        function getCanvasPoint(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX;
+            const clientY = e.clientY;
+
+            const renderWidth = rect.width;
+            const renderHeight = rect.height;
+            const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
+            const renderAspect = renderWidth / renderHeight;
+
+            let displayW = renderWidth;
+            let displayH = renderHeight;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            if (renderAspect > canvasAspect) {
+                displayW = renderHeight * canvasAspect;
+                offsetX = (renderWidth - displayW) / 2;
+            } else {
+                displayH = renderWidth / canvasAspect;
+                offsetY = (renderHeight - displayH) / 2;
+            }
+
+            const mouseX = clientX - rect.left - offsetX;
+            const mouseY = clientY - rect.top - offsetY;
+
+            return {
+                x: Math.max(0, Math.min(CANVAS_WIDTH, (mouseX / displayW) * CANVAS_WIDTH)),
+                y: Math.max(0, Math.min(CANVAS_HEIGHT, (mouseY / displayH) * CANVAS_HEIGHT))
+            };
+        }
+
+        // Pointer Events Bound EXCLUSIVELY to Canvas (Zero Global Touch Hijacking)
+        canvas.addEventListener('pointerdown', (e) => {
+            sound.init();
+            canvas.setPointerCapture(e.pointerId);
+
+            const pt = getCanvasPoint(e);
+
+            if (isEditorMode && !isPlaytesting) {
+                handleEditorCanvasClick(pt);
+                return;
+            }
+
+            isDrawingPath = true;
+            currentDrawPath = [pt];
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!isDrawingPath) return;
+            const pt = getCanvasPoint(e);
+            const last = currentDrawPath[currentDrawPath.length - 1];
+            if (last) {
+                const dist = Math.hypot(pt.x - last.x, pt.y - last.y);
+                if (dist > 3) {
+                    currentDrawPath.push(pt);
+                }
+            }
+        });
+
+        canvas.addEventListener('pointerup', (e) => {
+            if (canvas.hasPointerCapture(e.pointerId)) {
+                canvas.releasePointerCapture(e.pointerId);
+            }
+            if (!isDrawingPath) return;
+            isDrawingPath = false;
+
+            // Interpolate points for smooth router carve animation
+            if (currentDrawPath.length > 1) {
+                const interpolated = [];
+                for (let i = 0; i < currentDrawPath.length - 1; i++) {
+                    const p0 = currentDrawPath[i];
+                    const p1 = currentDrawPath[i + 1];
+                    const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+                    const steps = Math.max(1, Math.ceil(dist / (carveRadius * 0.35)));
+                    for (let s = 0; s <= steps; s++) {
+                        const t = s / steps;
+                        interpolated.push({
+                            x: p0.x + (p1.x - p0.x) * t,
+                            y: p0.y + (p1.y - p0.y) * t,
+                            r: carveRadius
+                        });
+                    }
+                }
+                activeCarveQueue = interpolated;
+            }
+            currentDrawPath = [];
+        });
+
+        canvas.addEventListener('pointercancel', (e) => {
+            if (canvas.hasPointerCapture(e.pointerId)) {
+                canvas.releasePointerCapture(e.pointerId);
+            }
+            isDrawingPath = false;
+            currentDrawPath = [];
+        });
+
+        /* ==========================================================================
+           9. LEVEL EDITOR FUNCTIONALITY
+           ========================================================================== */
+        function handleEditorCanvasClick(pt) {
+            const curLvl = getAllLevels()[currentLevelIndex];
+
+            if (selectedTool === 'erase') {
+                // Erase nearest entity
+                const checkAndRemove = (arr, distLimit = 35) => {
+                    for (let i = 0; i < arr.length; i++) {
+                        if (Math.hypot(arr[i].x - pt.x, arr[i].y - pt.y) < distLimit) {
+                            arr.splice(i, 1);
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                if (checkAndRemove(curLvl.pockets)) return loadLevel(currentLevelIndex);
+                if (checkAndRemove(curLvl.buckets)) return loadLevel(currentLevelIndex);
+                if (checkAndRemove(curLvl.sorters)) return loadLevel(currentLevelIndex);
+                if (checkAndRemove(curLvl.conveyors, 45)) return loadLevel(currentLevelIndex);
+                if (checkAndRemove(curLvl.pegs, 20)) return loadLevel(currentLevelIndex);
+                if (checkAndRemove(curLvl.bumpers, 30)) return loadLevel(currentLevelIndex);
+                if (checkAndRemove(curLvl.spinners, 35)) return loadLevel(currentLevelIndex);
+                if (checkAndRemove(curLvl.tnts, 25)) return loadLevel(currentLevelIndex);
+                return;
+            }
+
+            // Add elements
+            if (!curLvl.pockets) curLvl.pockets = [];
+            if (!curLvl.buckets) curLvl.buckets = [];
+            if (!curLvl.sorters) curLvl.sorters = [];
+            if (!curLvl.conveyors) curLvl.conveyors = [];
+            if (!curLvl.pegs) curLvl.pegs = [];
+            if (!curLvl.bumpers) curLvl.bumpers = [];
+            if (!curLvl.spinners) curLvl.spinners = [];
+            if (!curLvl.tnts) curLvl.tnts = [];
+
+            if (selectedTool === 'pocket') {
+                curLvl.pockets.push({ x: Math.round(pt.x), y: Math.round(pt.y), radius: 32, count: 8, color: 'gold' });
+            } else if (selectedTool === 'bucket') {
+                curLvl.buckets.push({ x: Math.round(pt.x - 45), y: 715, width: 90, height: 55, color: 'gold' });
+            } else if (selectedTool === 'sorter') {
+                curLvl.sorters.push({ x: Math.round(pt.x), y: Math.round(pt.y), left: 'gold', right: 'ruby' });
+            } else if (selectedTool === 'conveyor') {
+                curLvl.conveyors.push({ x: Math.round(pt.x), intakeY: 660, height: 480, width: 44, speed: 2.6 });
+            } else if (selectedTool === 'peg') {
+                curLvl.pegs.push({ x: Math.round(pt.x), y: Math.round(pt.y), r: 8.5 });
+            } else if (selectedTool === 'bumper') {
+                curLvl.bumpers.push({ x: Math.round(pt.x), y: Math.round(pt.y), radius: 22, force: 5.0 });
+            } else if (selectedTool === 'spinner') {
+                curLvl.spinners.push({ x: Math.round(pt.x), y: Math.round(pt.y), radius: 30 });
+            } else if (selectedTool === 'tnt') {
+                curLvl.tnts.push({ x: Math.round(pt.x), y: Math.round(pt.y), radius: 22, blastRadius: 65 });
+            }
+
+            loadLevel(currentLevelIndex);
+        }
+
+        /* ==========================================================================
+           10. MAIN ANIMATION & GAME LOOP
+           ========================================================================== */
         function gameLoop() {
             ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+            // 1. Draw Wood Background Texture
             if (woodLayerCanvas) {
                 ctx.drawImage(woodLayerCanvas, 0, 0);
             }
 
-            // Post-release smooth carving animation along user path
-            if (activeCarveTasks.length > 0) {
-                const batchCount = Math.max(1, carveSpeedParam);
-                for (let b = 0; b < batchCount && activeCarveTasks.length > 0; b++) {
-                    const task = activeCarveTasks.shift();
-                    carvePoint(task.x, task.y, task.radius);
-                    chiselAnimHead = { x: task.x, y: task.y, radius: task.radius };
-                }
+            // 2. Slow, Rewarding Carve Animation
+            if (activeCarveQueue.length > 0) {
                 sound.startRouter();
-                sound.playCarve();
+                for (let b = 0; b < carveStepBatch && activeCarveQueue.length > 0; b++) {
+                    const task = activeCarveQueue.shift();
+                    carvePointAnimated(task.x, task.y, task.r);
+                    chiselAnimHead = { x: task.x, y: task.y, r: task.r };
+                }
+                sound.playChipSound();
 
-                if (activeCarveTasks.length === 0) {
+                if (activeCarveQueue.length === 0) {
                     sound.stopRouter();
                     chiselAnimHead = null;
                 }
             }
 
-            // Draw active user touch path preview while dragging
+            // 3. User Path Preview during drag
             if (isDrawingPath && currentDrawPath.length > 1) {
                 ctx.save();
                 ctx.beginPath();
@@ -1210,25 +2300,31 @@
                 for (let i = 1; i < currentDrawPath.length; i++) {
                     ctx.lineTo(currentDrawPath[i].x, currentDrawPath[i].y);
                 }
-                ctx.strokeStyle = 'rgba(245, 158, 11, 0.85)';
+                ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
                 ctx.lineWidth = carveRadius * 2;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
                 ctx.stroke();
+
+                // Subtle inner glow line
+                ctx.strokeStyle = '#fef08a';
+                ctx.lineWidth = 3;
+                ctx.stroke();
                 ctx.restore();
             }
 
-            // Draw animated router chisel bit when carving
+            // 4. Animated Router Bit Head
             if (chiselAnimHead) {
                 ctx.save();
                 ctx.beginPath();
-                ctx.arc(chiselAnimHead.x, chiselAnimHead.y, chiselAnimHead.radius + 3, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(245, 158, 11, 0.4)';
+                ctx.arc(chiselAnimHead.x, chiselAnimHead.y, chiselAnimHead.r + 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.35)';
                 ctx.fill();
                 ctx.strokeStyle = '#fef08a';
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
 
+                // Spinning carbide teeth
                 ctx.beginPath();
                 ctx.arc(chiselAnimHead.x, chiselAnimHead.y, 6, 0, Math.PI * 2);
                 ctx.fillStyle = '#dc2626';
@@ -1236,19 +2332,36 @@
                 ctx.restore();
             }
 
-            // Update & Draw Sorters
-            sorters.forEach(s => s.draw(ctx));
+            // 5. Update & Draw Dynamic Entities
+            activeConveyors.forEach(c => {
+                c.update();
+                c.draw(ctx);
+            });
 
-            // Update & Draw Marbles
-            marbles.forEach(m => {
-                m.update();
+            activeSorters.forEach(s => s.draw(ctx));
+            activePegs.forEach(p => p.draw(ctx));
+            activeBumpers.forEach(b => b.draw(ctx));
+            activeSpinners.forEach(s => {
+                s.update();
+                s.draw(ctx);
+            });
+            activeTnts.forEach(t => {
+                t.update();
+                t.draw(ctx);
+            });
+
+            // 6. Marbles Update & Render
+            activeMarbles.forEach(m => {
+                if (!isEditorMode || isPlaytesting) {
+                    m.update(gravityVal, bounceVal);
+                }
                 m.draw(ctx);
             });
 
-            // Draw Buckets
-            buckets.forEach(b => b.draw(ctx));
+            // 7. Destination Buckets
+            activeBuckets.forEach(b => b.draw(ctx));
 
-            // Wood chips particles
+            // 8. Wood Chips Particles
             for (let i = woodChips.length - 1; i >= 0; i--) {
                 const chip = woodChips[i];
                 chip.x += chip.vx;
@@ -1265,15 +2378,15 @@
                 ctx.globalAlpha = 1.0;
             }
 
-            // Score particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
+            // 9. Score / Explosion FX Particles
+            for (let i = scoreParticles.length - 1; i >= 0; i--) {
+                const p = scoreParticles[i];
                 p.x += p.vx;
                 p.y += p.vy;
                 p.vy += 0.1;
                 p.life -= p.decay;
                 if (p.life <= 0) {
-                    particles.splice(i, 1);
+                    scoreParticles.splice(i, 1);
                     continue;
                 }
                 ctx.fillStyle = p.color;
@@ -1287,200 +2400,154 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Precise touch/mouse canvas coordinate mapping with object-fit: contain scaling correction
-        function getCanvasPoint(e) {
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            
-            // Compute rendered aspect ratio vs internal aspect ratio
-            const renderWidth = rect.width;
-            const renderHeight = rect.height;
-            const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
-            const renderAspect = renderWidth / renderHeight;
+        /* ==========================================================================
+           11. UI EVENT BINDINGS (OPTIMIZED FOR FAST MOBILE TAPS)
+           ========================================================================== */
+        
+        // Mode Toggle (Play vs Editor)
+        document.getElementById('btn-mode-toggle').addEventListener('click', () => {
+            isEditorMode = !isEditorMode;
+            isPlaytesting = false;
+            const btn = document.getElementById('btn-mode-toggle');
+            const icon = document.getElementById('mode-icon');
+            const label = document.getElementById('mode-label');
+            const editorBar = document.getElementById('editor-bar');
+            const guide = document.getElementById('guide-banner');
 
-            let displayW = renderWidth;
-            let displayH = renderHeight;
-            let offsetX = 0;
-            let offsetY = 0;
-
-            if (renderAspect > canvasAspect) {
-                // Letterboxed horizontally (wider window)
-                displayW = renderHeight * canvasAspect;
-                offsetX = (renderWidth - displayW) / 2;
+            if (isEditorMode) {
+                btn.classList.add('editor-active');
+                icon.innerText = '🎮';
+                label.innerText = 'Play';
+                editorBar.classList.remove('hidden');
+                guide.innerText = '🛠️ Tap board to place objects. Switch tools below.';
             } else {
-                // Letterboxed vertically (taller window)
-                displayH = renderWidth / canvasAspect;
-                offsetY = (renderHeight - displayH) / 2;
+                btn.classList.remove('editor-active');
+                icon.innerText = '🛠️';
+                label.innerText = 'Edit';
+                editorBar.classList.add('hidden');
+                guide.innerText = '✏️ Drag to trace a path, then release to watch the router carve!';
+                loadLevel(currentLevelIndex);
             }
-
-            const mouseX = clientX - rect.left - offsetX;
-            const mouseY = clientY - rect.top - offsetY;
-
-            return {
-                x: Math.max(0, Math.min(CANVAS_WIDTH, (mouseX / displayW) * CANVAS_WIDTH)),
-                y: Math.max(0, Math.min(CANVAS_HEIGHT, (mouseY / displayH) * CANVAS_HEIGHT))
-            };
-        }
-
-        canvas.addEventListener('mousedown', startCarve);
-        canvas.addEventListener('mousemove', moveCarve);
-        window.addEventListener('mouseup', endCarve);
-
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startCarve(e); }, { passive: false });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); moveCarve(e); }, { passive: false });
-        window.addEventListener('touchend', (e) => { e.preventDefault(); endCarve(e); }, { passive: false });
-
-        function startCarve(e) {
-            sound.init();
-            isDrawingPath = true;
-            const pt = getCanvasPoint(e);
-            currentDrawPath = [pt];
-        }
-
-        function moveCarve(e) {
-            if (!isDrawingPath) return;
-            const pt = getCanvasPoint(e);
-            const lastPt = currentDrawPath[currentDrawPath.length - 1];
-            const dist = Math.hypot(pt.x - lastPt.x, pt.y - lastPt.y);
-
-            if (dist > 3) {
-                currentDrawPath.push(pt);
-            }
-        }
-
-        function endCarve() {
-            if (!isDrawingPath) return;
-            isDrawingPath = false;
-
-            if (currentDrawPath.length > 1) {
-                // Interpolate points along the path for smooth animation queueing
-                const interpolatedPoints = [];
-                for (let i = 0; i < currentDrawPath.length - 1; i++) {
-                    const p0 = currentDrawPath[i];
-                    const p1 = currentDrawPath[i + 1];
-                    const dist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
-                    const steps = Math.max(1, Math.ceil(dist / (carveRadius * 0.35)));
-                    for (let s = 0; s <= steps; s++) {
-                        const t = s / steps;
-                        interpolatedPoints.push({
-                            x: p0.x + (p1.x - p0.x) * t,
-                            y: p0.y + (p1.y - p0.y) * t,
-                            radius: carveRadius
-                        });
-                    }
-                }
-                activeCarveTasks = interpolatedPoints;
-            }
-            currentDrawPath = [];
-        }
-
-        // UI Event Listeners
-        document.getElementById('toggle-sidebar').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('sidebar-backdrop').classList.toggle('hidden');
         });
 
-        document.getElementById('close-sidebar').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            document.getElementById('sidebar-backdrop').classList.add('hidden');
+        // Editor Tool Selection
+        document.querySelectorAll('.editor-tool-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.editor-tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedTool = btn.dataset.tool;
+            });
         });
 
-        document.getElementById('sidebar-backdrop').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            document.getElementById('sidebar-backdrop').classList.add('hidden');
+        // Playtest Button
+        document.getElementById('btn-test-level').addEventListener('click', () => {
+            isPlaytesting = !isPlaytesting;
+            const btn = document.getElementById('btn-test-level');
+            if (isPlaytesting) {
+                btn.innerHTML = '<span>⏸️ Reset</span>';
+            } else {
+                btn.innerHTML = '<span>▶️ Playtest</span>';
+                loadLevel(currentLevelIndex);
+            }
         });
 
+        // Export Code Button
+        document.getElementById('btn-export-code').addEventListener('click', () => {
+            const currentLvl = getAllLevels()[currentLevelIndex];
+            const cleanObj = JSON.parse(JSON.stringify(currentLvl));
+            // Format cleanly
+            const codeStr = JSON.stringify(cleanObj, null, 2);
+
+            document.getElementById('modal-json-title').innerText = 'Export Level JSON';
+            document.getElementById('modal-json-sub').innerHTML = 
+                'Copy this JSON code below. You can paste it straight into <code>BUILTIN_LEVELS</code> in your <code>index.html</code>!';
+            document.getElementById('json-text-area').value = codeStr;
+            document.getElementById('btn-json-apply').classList.add('hidden');
+            document.getElementById('modal-json').classList.add('open');
+        });
+
+        // Import Code Button
+        document.getElementById('btn-import-code').addEventListener('click', () => {
+            document.getElementById('modal-json-title').innerText = 'Import Custom Level';
+            document.getElementById('modal-json-sub').innerText = 
+                'Paste any exported Level JSON into the box below and press Load:';
+            document.getElementById('json-text-area').value = '';
+            document.getElementById('btn-json-apply').classList.remove('hidden');
+            document.getElementById('modal-json').classList.add('open');
+        });
+
+        // Copy to Clipboard
+        document.getElementById('btn-json-copy').addEventListener('click', () => {
+            const text = document.getElementById('json-text-area').value;
+            navigator.clipboard.writeText(text).then(() => {
+                const copyBtn = document.getElementById('btn-json-copy');
+                const orig = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<span>✅ Copied!</span>';
+                setTimeout(() => { copyBtn.innerHTML = orig; }, 1800);
+            }).catch(() => {
+                alert('Copied to clipboard!');
+            });
+        });
+
+        // Apply Imported JSON
+        document.getElementById('btn-json-apply').addEventListener('click', () => {
+            try {
+                const text = document.getElementById('json-text-area').value;
+                const parsed = JSON.parse(text);
+                if (!parsed.name) parsed.name = "Custom Level " + (customUserLevels.length + 1);
+                customUserLevels.push(parsed);
+                populateLevelDropdown();
+                document.getElementById('modal-json').classList.remove('open');
+                loadLevel(getAllLevels().length - 1);
+            } catch(e) {
+                alert('Invalid JSON! Please check the format.');
+            }
+        });
+
+        // Close Modal
+        document.getElementById('btn-json-close').addEventListener('click', () => {
+            document.getElementById('modal-json').classList.remove('open');
+        });
+
+        // Level Dropdown Changed
         document.getElementById('level-select').addEventListener('change', (e) => {
-            const val = e.target.value;
-            const customCtrl = document.getElementById('custom-controls');
-            if (val === 'custom') {
-                customCtrl.classList.remove('hidden');
-                loadLevel('custom');
-            } else {
-                customCtrl.classList.add('hidden');
-                loadLevel(parseInt(val));
-            }
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            document.getElementById('sidebar-backdrop').classList.add('hidden');
+            loadLevel(parseInt(e.target.value));
         });
 
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            loadLevel(currentLevel);
+        // Sound Toggle
+        document.getElementById('btn-sound').addEventListener('click', () => {
+            sound.init();
+            sound.isMuted = !sound.isMuted;
+            document.getElementById('sound-icon').innerText = sound.isMuted ? '🔇' : '🔊';
         });
 
-        document.getElementById('modal-retry-btn').addEventListener('click', () => {
-            loadLevel(currentLevel);
+        // Restart
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            loadLevel(currentLevelIndex);
         });
 
-        document.getElementById('modal-next-btn').addEventListener('click', () => {
-            if (typeof currentLevel === 'number' && currentLevel < 12) {
-                currentLevel++;
-                document.getElementById('level-select').value = currentLevel;
-                loadLevel(currentLevel);
-            } else {
-                loadLevel(1);
-                document.getElementById('level-select').value = 1;
-            }
+        // Win Modal Buttons
+        document.getElementById('btn-modal-retry').addEventListener('click', () => {
+            document.getElementById('modal-win').classList.remove('open');
+            loadLevel(currentLevelIndex);
         });
 
-        document.getElementById('toggle-sound').addEventListener('click', () => {
-            audioMuted = !audioMuted;
-            document.getElementById('sound-icon-on').classList.toggle('hidden', audioMuted);
-            document.getElementById('sound-icon-off').classList.toggle('hidden', !audioMuted);
+        document.getElementById('btn-modal-next').addEventListener('click', () => {
+            document.getElementById('modal-win').classList.remove('open');
+            const total = getAllLevels().length;
+            const nextIdx = (currentLevelIndex + 1) % total;
+            loadLevel(nextIdx);
         });
 
-        document.getElementById('toggle-fullscreen-btn').addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log('Error attempting to enable fullscreen:', err.message);
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-            }
-        });
-
-        // Sandbox Range Sliders
-        document.getElementById('param-marbles').addEventListener('input', (e) => {
-            document.getElementById('marble-count-val').innerText = e.target.value;
-        });
-        document.getElementById('param-colors').addEventListener('input', (e) => {
-            document.getElementById('colors-count-val').innerText = e.target.value;
-        });
-        document.getElementById('param-pockets').addEventListener('input', (e) => {
-            document.getElementById('pocket-count-val').innerText = e.target.value + ' Pockets';
-        });
-        document.getElementById('param-speed').addEventListener('input', (e) => {
-            carveSpeedParam = parseInt(e.target.value);
-            const labels = ['Fastest', 'Fast', 'Smooth (~3x)', 'Slow', 'Slower', 'Cinematic'];
-            document.getElementById('speed-val').innerText = labels[carveSpeedParam - 1] || 'Smooth';
-        });
-        document.getElementById('param-tool-size').addEventListener('input', (e) => {
-            carveRadius = parseInt(e.target.value);
-            document.getElementById('carve-radius-val').innerText = carveRadius + 'px';
-        });
-        document.getElementById('apply-custom-btn').addEventListener('click', () => {
-            loadLevel('custom');
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            document.getElementById('sidebar-backdrop').classList.add('hidden');
-        });
-        document.getElementById('randomize-layout-btn').addEventListener('click', () => {
-            document.getElementById('param-marbles').value = [12, 18, 24, 30][Math.floor(Math.random() * 4)];
-            document.getElementById('marble-count-val').innerText = document.getElementById('param-marbles').value;
-            document.getElementById('param-colors').value = Math.floor(Math.random() * 3) + 2;
-            document.getElementById('colors-count-val').innerText = document.getElementById('param-colors').value;
-            document.getElementById('param-pockets').value = Math.floor(Math.random() * 5) + 3;
-            document.getElementById('pocket-count-val').innerText = document.getElementById('param-pockets').value + ' Pockets';
-            loadLevel('custom');
-        });
-
-        window.onload = function() {
-            initWoodTexture();
-            loadLevel(1);
+        /* ==========================================================================
+           12. INITIALIZATION
+           ========================================================================== */
+        window.addEventListener('load', () => {
+            createWoodTexture();
+            populateLevelDropdown();
+            loadLevel(0);
             requestAnimationFrame(gameLoop);
-        };
+        });
     </script>
 </body>
 </html>
