@@ -2,14 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wood Carver - Marble Drop Physics Game v6</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wood Carver - Marble Drop Physics Game v7</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
         
-        body {
+        html, body {
+            position: fixed;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
             touch-action: none;
             user-select: none;
@@ -22,14 +28,14 @@
         }
 
         .glass-panel {
-            background: rgba(28, 20, 16, 0.92);
+            background: rgba(28, 20, 16, 0.95);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-right: 1px solid rgba(245, 158, 11, 0.15);
+            border-right: 1px solid rgba(245, 158, 11, 0.2);
         }
 
         #canvas-wrapper {
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 0 4px #3d2415, 0 0 0 8px #1c1009;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 0 3px #3d2415, 0 0 0 6px #1c1009;
         }
 
         input[type=range] {
@@ -45,27 +51,27 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden text-slate-100 flex flex-col justify-between wood-bg">
+<body class="w-full h-full overflow-hidden text-slate-100 flex flex-col justify-between wood-bg">
 
-    <header class="w-full h-16 bg-stone-950/90 border-b border-stone-800/80 flex items-center justify-between px-4 z-20 shadow-lg">
+    <header class="w-full h-16 bg-stone-950/95 border-b border-stone-800 flex items-center justify-between px-4 z-40 shadow-lg shrink-0">
         <div class="flex items-center gap-3">
-            <button id="toggle-sidebar" class="p-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 transition-all flex items-center justify-center active:scale-95">
+            <button id="toggle-sidebar" class="p-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-400 border border-amber-500/30 transition-all flex items-center justify-center active:scale-95 cursor-pointer pointer-events-auto">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
             </button>
-            <h1 class="text-lg md:text-xl font-extrabold tracking-wide text-amber-200 flex items-center gap-2">
-                <span>🪵</span> Wood Carver <span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-mono">v6.0</span>
+            <h1 class="text-base md:text-xl font-extrabold tracking-wide text-amber-200 flex items-center gap-2">
+                <span>🪵</span> Wood Carver <span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-mono">v7.0</span>
             </h1>
         </div>
 
         <div class="flex items-center gap-2 md:gap-4">
-            <div class="bg-stone-900/90 px-3 py-1.5 rounded-lg border border-stone-800 text-xs md:text-sm font-semibold text-amber-300 shadow-inner">
+            <div class="bg-stone-900/90 px-2.5 py-1.5 rounded-lg border border-stone-800 text-xs md:text-sm font-semibold text-amber-300 shadow-inner hidden sm:block">
                 Level: <span id="level-display-name">1 - Smooth Curves</span>
             </div>
 
-            <div class="bg-stone-900/90 px-3 py-1.5 rounded-lg border border-stone-800 text-xs md:text-sm font-semibold flex items-center gap-2 shadow-inner">
+            <div class="bg-stone-900/90 px-2.5 py-1.5 rounded-lg border border-stone-800 text-xs md:text-sm font-semibold flex items-center gap-2 shadow-inner">
                 <span class="text-emerald-400 font-bold flex items-center gap-1">
                     <span>🟢</span> <span id="score-display">0</span>/<span id="total-marbles-display">0</span>
                 </span>
@@ -75,7 +81,7 @@
                 </span>
             </div>
 
-            <button id="toggle-sound" class="p-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-slate-300 border border-stone-800 transition-all active:scale-95">
+            <button id="toggle-sound" class="p-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-slate-300 border border-stone-800 transition-all active:scale-95 cursor-pointer pointer-events-auto">
                 <svg id="sound-icon-on" class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
                 </svg>
@@ -84,7 +90,7 @@
                 </svg>
             </button>
 
-            <button id="restart-btn" class="p-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs md:text-sm shadow-md transition-all flex items-center gap-1.5 active:scale-95">
+            <button id="restart-btn" class="p-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs md:text-sm shadow-md transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer pointer-events-auto">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -93,26 +99,34 @@
         </div>
     </header>
 
-    <div class="relative flex-1 flex overflow-hidden justify-center items-center p-2 md:p-4">
-        <aside id="sidebar" class="absolute top-0 left-0 h-full w-80 md:w-88 glass-panel z-30 transition-transform duration-300 ease-in-out -translate-x-full flex flex-col p-5 shadow-2xl overflow-y-auto no-scrollbar">
+    <div class="relative flex-1 flex overflow-hidden justify-center items-center p-2 w-full h-full">
+        <aside id="sidebar" class="absolute top-0 left-0 h-full w-80 md:w-88 glass-panel z-50 transition-transform duration-300 ease-in-out -translate-x-full flex flex-col p-5 shadow-2xl overflow-y-auto no-scrollbar pointer-events-auto">
             <div class="flex items-center justify-between pb-4 border-b border-amber-900/40 mb-5">
                 <h2 class="text-lg font-bold text-amber-300 flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                     Level & Controls
                 </h2>
-                <button id="close-sidebar" class="p-1 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-white transition">
+                <button id="close-sidebar" class="p-2 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-white transition cursor-pointer">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
-            <div class="space-y-6">
+            <div class="space-y-6 pb-8">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">Select Game Level</label>
-                    <select id="level-select" class="w-full bg-stone-900 border border-amber-900/50 rounded-lg p-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500">
-                        <option value="1">Level 1: Smooth Carver (1 Color)</option>
-                        <option value="2">Level 2: Dual Chambers (2 Colors)</option>
-                        <option value="3">Level 3: Color Sorter Box (2 Colors)</option>
-                        <option value="4">Level 4: Triple Sorter Hub (3 Colors)</option>
+                    <select id="level-select" class="w-full bg-stone-900 border border-amber-900/50 rounded-lg p-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500 cursor-pointer">
+                        <option value="1">Level 1: Smooth Curves</option>
+                        <option value="2">Level 2: Dual Chambers</option>
+                        <option value="3">Level 3: Color Sorter Gate</option>
+                        <option value="4">Level 4: Triple Sorter Matrix</option>
+                        <option value="5">Level 5: Dual Gateway Split</option>
+                        <option value="6">Level 6: Funnel Cascade</option>
+                        <option value="7">Level 7: The Obstacle Pillar</option>
+                        <option value="8">Level 8: Crossfire Sorter</option>
+                        <option value="9">Level 9: Staircase Descent</option>
+                        <option value="10">Level 10: Quad-Color Mega Grid</option>
+                        <option value="11">Level 11: Spiral Labyrinth</option>
+                        <option value="12">Level 12: Ultimate Master Carver</option>
                         <option value="custom">-- Custom Sandbox Mode --</option>
                     </select>
                 </div>
@@ -147,9 +161,9 @@
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-stone-300">Router Carve Speed</span>
-                            <span id="speed-val" class="text-amber-400 font-bold">Medium (~1.5s)</span>
+                            <span id="speed-val" class="text-amber-400 font-bold">Slow (~2.5s)</span>
                         </div>
-                        <input type="range" id="param-speed" min="1" max="6" step="1" value="3" class="w-full h-1.5 bg-stone-800 rounded-lg appearance-none cursor-pointer">
+                        <input type="range" id="param-speed" min="1" max="6" step="1" value="2" class="w-full h-1.5 bg-stone-800 rounded-lg appearance-none cursor-pointer">
                     </div>
 
                     <div class="flex items-center justify-between pt-1">
@@ -160,16 +174,16 @@
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-stone-300">Router Chisel Size</span>
-                            <span id="carve-radius-val" class="text-amber-400 font-bold">30px</span>
+                            <span id="carve-radius-val" class="text-amber-400 font-bold">22px</span>
                         </div>
-                        <input type="range" id="param-tool-size" min="18" max="42" step="4" value="30" class="w-full h-1.5 bg-stone-800 rounded-lg appearance-none cursor-pointer">
+                        <input type="range" id="param-tool-size" min="14" max="38" step="2" value="22" class="w-full h-1.5 bg-stone-800 rounded-lg appearance-none cursor-pointer">
                     </div>
 
                     <div class="flex gap-2 pt-2">
-                        <button id="randomize-layout-btn" class="flex-1 py-2 bg-stone-800 hover:bg-stone-700 text-amber-300 font-semibold text-xs rounded-lg border border-stone-700 transition active:scale-95 flex items-center justify-center gap-1">
-                            <span>🎲</span> Randomize Layout
+                        <button id="randomize-layout-btn" class="flex-1 py-2 bg-stone-800 hover:bg-stone-700 text-amber-300 font-semibold text-xs rounded-lg border border-stone-700 transition active:scale-95 cursor-pointer">
+                            <span>🎲</span> Randomize
                         </button>
-                        <button id="apply-custom-btn" class="flex-1 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg transition-all active:scale-95">
+                        <button id="apply-custom-btn" class="flex-1 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg transition-all active:scale-95 cursor-pointer">
                             Build Sandbox
                         </button>
                     </div>
@@ -180,20 +194,21 @@
                         💡 How to play:
                     </p>
                     <ul class="list-disc list-inside space-y-1 text-stone-300">
-                        <li><strong>Animated Carving:</strong> Draw a path and watch the router bit take 1.5–2+ seconds to carve out wood smoothly.</li>
-                        <li><strong>Unstuck Physics:</strong> Sorters direct marbles smoothly in all directions (Left, Right, DOWN) with continuous momentum.</li>
+                        <li><strong>Draw Paths:</strong> Drag finger across wood to carve channels.</li>
+                        <li><strong>Sorters:</strong> Route correct colors to matching bins.</li>
+                        <li><strong>Safe Drop:</strong> Lowered floor gives marbles smooth entry into buckets!</li>
                     </ul>
                 </div>
             </div>
         </aside>
 
-        <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-20 hidden transition-opacity"></div>
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden transition-opacity pointer-events-auto"></div>
 
-        <div id="canvas-wrapper" class="relative rounded-2xl overflow-hidden bg-stone-950 flex items-center justify-center">
-            <canvas id="game-canvas" width="600" height="750" class="block cursor-crosshair touch-none"></canvas>
+        <div id="canvas-wrapper" class="relative rounded-2xl overflow-hidden bg-stone-950 flex items-center justify-center max-w-full max-h-full">
+            <canvas id="game-canvas" width="600" height="750" class="block cursor-crosshair touch-none w-full h-auto object-contain max-h-[calc(100vh-5rem)]"></canvas>
         </div>
 
-        <div id="win-modal" class="fixed inset-0 bg-black/80 z-40 flex items-center justify-center hidden p-4 backdrop-blur-sm">
+        <div id="win-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hidden p-4 backdrop-blur-sm pointer-events-auto">
             <div class="bg-stone-900 border-2 border-amber-500/50 rounded-2xl p-6 max-w-sm w-full text-center shadow-2xl transform transition-all scale-95 opacity-0" id="win-modal-card">
                 <div class="text-5xl mb-2">🏆</div>
                 <h2 class="text-2xl font-black text-amber-300 mb-1">Stage Completed!</h2>
@@ -212,10 +227,10 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button id="modal-retry-btn" class="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-xl border border-stone-700 transition active:scale-95">
+                    <button id="modal-retry-btn" class="flex-1 py-2.5 bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold rounded-xl border border-stone-700 transition active:scale-95 cursor-pointer pointer-events-auto">
                         Retry
                     </button>
-                    <button id="modal-next-btn" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95">
+                    <button id="modal-next-btn" class="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-xl shadow-lg transition active:scale-95 cursor-pointer pointer-events-auto">
                         Next Level
                     </button>
                 </div>
@@ -229,7 +244,7 @@
 
         const CANVAS_WIDTH = 600;
         const CANVAS_HEIGHT = 750;
-        const WOOD_MAX_Y = 620;
+        const WOOD_MAX_Y = 665; // Lowered wood bottom boundary so marbles enter buckets smoothly
 
         const GRID_SCALE = 1;
         const GRID_COLS = Math.floor(CANVAS_WIDTH / GRID_SCALE);
@@ -262,8 +277,8 @@
         let currentDrawPath = [];
         let activeCarveTasks = [];
 
-        let carveRadius = 30;
-        let carveSpeedParam = 3; // Step increment per frame for smooth 1.5-2s carved animation
+        let carveRadius = 22; // Default smaller chisel size
+        let carveSpeedParam = 5; // Default slower carving speed (~2.5s)
         let gravity = 0.22;
         let bounciness = 0.35;
         let audioMuted = false;
@@ -604,8 +619,8 @@
                 if (this.y > WOOD_MAX_Y + 10) {
                     let landedInBucket = false;
                     buckets.forEach(bucket => {
-                        if (this.x >= bucket.x && this.x <= bucket.x + bucket.width &&
-                            this.y >= bucket.y && this.y <= bucket.y + bucket.height + 20) {
+                        if (this.x >= bucket.x - 5 && this.x <= bucket.x + bucket.width + 5 &&
+                            this.y >= bucket.y - 15 && this.y <= bucket.y + bucket.height + 25) {
                             landedInBucket = true;
                             this.inBucket = true;
                             const isCorrect = (bucket.color.id === this.color.id);
@@ -616,7 +631,7 @@
                         }
                     });
 
-                    if (!landedInBucket && this.y > CANVAS_HEIGHT - 30) {
+                    if (!landedInBucket && this.y > CANVAS_HEIGHT - 35) {
                         this.isLost = true;
                         sound.playLostMarble();
                         spawnScoreParticles(this.x, CANVAS_HEIGHT - 20, '#f87171');
@@ -679,7 +694,6 @@
                 const dx = marble.x - this.x;
                 const dy = marble.y - this.y;
                 
-                // Generous bounding check around the sorter hub so marbles never get stuck
                 if (Math.abs(dx) < this.width * 0.65 && Math.abs(dy) < this.height * 0.85) {
                     let targetVx = 0;
                     let targetVy = 0;
@@ -695,15 +709,13 @@
                         directed = true;
                     } else if (this.centerColor && marble.color.id === this.centerColor.id) {
                         targetVx = 0;
-                        targetVy = 5.2; // Robust downward impulse so marbles never stall vertically
+                        targetVy = 5.2;
                         directed = true;
                     } else {
-                        // Default exit path downward if color doesn't match lateral slots
                         targetVx = 0;
                         targetVy = 4.0;
                     }
 
-                    // Apply active steering force combined with gravity support
                     marble.vx += (targetVx - marble.vx) * 0.25;
                     marble.vy += (targetVy - marble.vy) * 0.25;
 
@@ -956,6 +968,7 @@
             });
         }
 
+        // Highly diverse and creative 12 levels with unique puzzle setups
         function loadLevel(levelNum) {
             currentLevel = levelNum;
             gameFinished = false;
@@ -968,61 +981,128 @@
             document.getElementById('win-modal').classList.add('hidden');
             document.getElementById('win-modal-card').classList.remove('scale-100', 'opacity-100');
 
-            const bucketY = CANVAS_HEIGHT - 80;
-            const bucketHeight = 65;
+            const bucketY = CANVAS_HEIGHT - 65;
+            const bucketHeight = 55;
+
+            const cGold = COLOR_PALETTE[0];
+            const cRuby = COLOR_PALETTE[1];
+            const cEmerald = COLOR_PALETTE[2];
+            const cSapphire = COLOR_PALETTE[3];
 
             if (levelNum === 1) {
-                document.getElementById('level-display-name').innerText = "1 - Multi-Pocket Curves";
-                const colGold = COLOR_PALETTE[0];
-                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 45, bucketY, 90, bucketHeight, colGold));
+                document.getElementById('level-display-name').innerText = "1 - Smooth Curves";
+                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 45, bucketY, 90, bucketHeight, cGold));
                 spawnPocketLayout([
-                    { x: CANVAS_WIDTH / 2, y: 90, radius: 36, count: 5, color: colGold },
-                    { x: 150, y: 220, radius: 34, count: 5, color: colGold },
-                    { x: 450, y: 220, radius: 34, count: 5, color: colGold }
+                    { x: CANVAS_WIDTH / 2, y: 90, radius: 32, count: 6, color: cGold },
+                    { x: 150, y: 220, radius: 30, count: 6, color: cGold },
+                    { x: 450, y: 220, radius: 30, count: 6, color: cGold }
                 ]);
             } else if (levelNum === 2) {
-                document.getElementById('level-display-name').innerText = "2 - Staggered Chambers";
-                const cGold = COLOR_PALETTE[0]; const cRuby = COLOR_PALETTE[1];
+                document.getElementById('level-display-name').innerText = "2 - Dual Chambers";
                 buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cGold));
                 buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cRuby));
                 spawnPocketLayout([
-                    { x: 180, y: 90, radius: 34, count: 5, color: cGold },
-                    { x: 420, y: 90, radius: 34, count: 5, color: cRuby },
-                    { x: 140, y: 260, radius: 34, count: 5, color: cRuby },
-                    { x: 460, y: 260, radius: 34, count: 5, color: cGold }
+                    { x: 180, y: 90, radius: 30, count: 7, color: cGold },
+                    { x: 420, y: 90, radius: 30, count: 7, color: cRuby }
                 ]);
             } else if (levelNum === 3) {
-                document.getElementById('level-display-name').innerText = "3 - Sorter Box";
-                const cGold = COLOR_PALETTE[0]; const cRuby = COLOR_PALETTE[1];
-                buckets.push(new Bucket(80, bucketY, 85, bucketHeight, cGold));
-                buckets.push(new Bucket(CANVAS_WIDTH - 165, bucketY, 85, bucketHeight, cRuby));
-                
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 350, cGold, cRuby));
-                
+                document.getElementById('level-display-name').innerText = "3 - Color Sorter Gate";
+                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cGold));
+                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cRuby));
+                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 320, cGold, cRuby));
                 spawnPocketLayout([
-                    { x: CANVAS_WIDTH / 2, y: 80, radius: 32, count: 4, color: cGold },
-                    { x: 140, y: 150, radius: 32, count: 4, color: cRuby },
-                    { x: 460, y: 150, radius: 32, count: 4, color: cGold },
-                    { x: 140, y: 290, radius: 32, count: 4, color: cGold },
-                    { x: 460, y: 290, radius: 32, count: 4, color: cRuby },
-                    { x: CANVAS_WIDTH / 2, y: 210, radius: 32, count: 4, color: cRuby }
+                    { x: CANVAS_WIDTH / 2, y: 90, radius: 34, count: 12, color: cGold } // mixed or gold batch
                 ]);
             } else if (levelNum === 4) {
                 document.getElementById('level-display-name').innerText = "4 - Triple Sorter Matrix";
-                const cGold = COLOR_PALETTE[0]; const cRuby = COLOR_PALETTE[1]; const cEmerald = COLOR_PALETTE[2];
                 buckets.push(new Bucket(40, bucketY, 75, bucketHeight, cGold));
                 buckets.push(new Bucket(CANVAS_WIDTH / 2 - 37, bucketY, 75, bucketHeight, cEmerald));
                 buckets.push(new Bucket(CANVAS_WIDTH - 115, bucketY, 75, bucketHeight, cRuby));
-
-                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 350, cGold, cRuby, cEmerald));
-
+                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 340, cGold, cRuby, cEmerald));
                 spawnPocketLayout([
-                    { x: 120, y: 85, radius: 32, count: 4, color: cGold },
-                    { x: CANVAS_WIDTH / 2, y: 85, radius: 32, count: 4, color: cEmerald },
-                    { x: 480, y: 85, radius: 32, count: 4, color: cRuby },
-                    { x: 160, y: 220, radius: 32, count: 4, color: cRuby },
-                    { x: 440, y: 220, radius: 32, count: 4, color: cGold },
-                    { x: CANVAS_WIDTH / 2, y: 190, radius: 32, count: 4, color: cEmerald }
+                    { x: 150, y: 80, radius: 28, count: 5, color: cGold },
+                    { x: 300, y: 140, radius: 28, count: 5, color: cEmerald },
+                    { x: 450, y: 80, radius: 28, count: 5, color: cRuby }
+                ]);
+            } else if (levelNum === 5) {
+                document.getElementById('level-display-name').innerText = "5 - Dual Gateway Split";
+                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cGold));
+                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cRuby));
+                sorters.push(new ColorSorter(200, 240, cGold, cRuby));
+                sorters.push(new ColorSorter(400, 420, cRuby, cGold));
+                spawnPocketLayout([
+                    { x: CANVAS_WIDTH / 2, y: 80, radius: 32, count: 10, color: cGold }
+                ]);
+            } else if (levelNum === 6) {
+                document.getElementById('level-display-name').innerText = "6 - Funnel Cascade";
+                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 45, bucketY, 90, bucketHeight, cEmerald));
+                spawnPocketLayout([
+                    { x: 120, y: 100, radius: 26, count: 5, color: cEmerald },
+                    { x: 480, y: 100, radius: 26, count: 5, color: cEmerald },
+                    { x: CANVAS_WIDTH / 2, y: 220, radius: 30, count: 6, color: cEmerald }
+                ]);
+            } else if (levelNum === 7) {
+                document.getElementById('level-display-name').innerText = "7 - The Obstacle Pillar";
+                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cGold));
+                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cRuby));
+                // Carve a solid wood pillar right in the center to force clever carving around it
+                carveRectInstant(CANVAS_WIDTH / 2, 300, 70, 180);
+                spawnPocketLayout([
+                    { x: CANVAS_WIDTH / 2, y: 80, radius: 32, count: 12, color: cGold }
+                ]);
+            } else if (levelNum === 8) {
+                document.getElementById('level-display-name').innerText = "8 - Crossfire Sorter";
+                buckets.push(new Bucket(40, bucketY, 75, bucketHeight, cGold));
+                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 37, bucketY, 75, bucketHeight, cEmerald));
+                buckets.push(new Bucket(CANVAS_WIDTH - 115, bucketY, 75, bucketHeight, cRuby));
+                sorters.push(new ColorSorter(CANVAS_WIDTH / 3, 280, cGold, cEmerald));
+                sorters.push(new ColorSorter((CANVAS_WIDTH / 3) * 2, 440, cEmerald, cRuby));
+                spawnPocketLayout([
+                    { x: 100, y: 100, radius: 26, count: 5, color: cGold },
+                    { x: 500, y: 100, radius: 26, count: 5, color: cRuby }
+                ]);
+            } else if (levelNum === 9) {
+                document.getElementById('level-display-name').innerText = "9 - Staircase Descent";
+                buckets.push(new Bucket(70, bucketY, 85, bucketHeight, cRuby));
+                buckets.push(new Bucket(CANVAS_WIDTH - 155, bucketY, 85, bucketHeight, cGold));
+                spawnPocketLayout([
+                    { x: 100, y: 80, radius: 25, count: 4, color: cGold },
+                    { x: 500, y: 200, radius: 25, count: 4, color: cRuby },
+                    { x: 100, y: 320, radius: 25, count: 4, color: cGold }
+                ]);
+            } else if (levelNum === 10) {
+                document.getElementById('level-display-name').innerText = "10 - Quad-Color Mega Grid";
+                buckets.push(new Bucket(20, bucketY, 65, bucketHeight, cGold));
+                buckets.push(new Bucket(170, bucketY, 65, bucketHeight, cRuby));
+                buckets.push(new Bucket(320, bucketY, 65, bucketHeight, cEmerald));
+                buckets.push(new Bucket(470, bucketY, 65, bucketHeight, cSapphire));
+                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 340, cGold, cRuby, cEmerald));
+                spawnPocketLayout([
+                    { x: 150, y: 80, radius: 26, count: 4, color: cGold },
+                    { x: 450, y: 80, radius: 26, count: 4, color: cSapphire },
+                    { x: CANVAS_WIDTH / 2, y: 200, radius: 28, count: 6, color: cEmerald }
+                ]);
+            } else if (levelNum === 11) {
+                document.getElementById('level-display-name').innerText = "11 - Spiral Labyrinth";
+                buckets.push(new Bucket(40, bucketY, 75, bucketHeight, cGold));
+                buckets.push(new Bucket(CANVAS_WIDTH / 2 - 37, bucketY, 75, bucketHeight, cEmerald));
+                buckets.push(new Bucket(CANVAS_WIDTH - 115, bucketY, 75, bucketHeight, cRuby));
+                sorters.push(new ColorSorter(CANVAS_WIDTH / 2, 380, cGold, cRuby, cEmerald));
+                spawnPocketLayout([
+                    { x: CANVAS_WIDTH / 2, y: 70, radius: 34, count: 12, color: cRuby }
+                ]);
+            } else if (levelNum === 12) {
+                document.getElementById('level-display-name').innerText = "12 - Ultimate Master Carver";
+                buckets.push(new Bucket(20, bucketY, 65, bucketHeight, cGold));
+                buckets.push(new Bucket(170, bucketY, 65, bucketHeight, cRuby));
+                buckets.push(new Bucket(320, bucketY, 65, bucketHeight, cEmerald));
+                buckets.push(new Bucket(470, bucketY, 65, bucketHeight, cSapphire));
+                sorters.push(new ColorSorter(200, 260, cGold, cRuby, cEmerald));
+                sorters.push(new ColorSorter(400, 420, cEmerald, cSapphire, cRuby));
+                spawnPocketLayout([
+                    { x: 120, y: 70, radius: 26, count: 4, color: cGold },
+                    { x: 480, y: 70, radius: 26, count: 4, color: cSapphire },
+                    { x: CANVAS_WIDTH / 2, y: 160, radius: 28, count: 6, color: cRuby }
                 ]);
             } else {
                 document.getElementById('level-display-name').innerText = "Custom Sandbox";
@@ -1044,8 +1124,8 @@
             activeCarveTasks = []; currentDrawPath = []; isDrawingPath = false;
             sound.stopRouter();
 
-            const bucketY = CANVAS_HEIGHT - 80;
-            const bucketHeight = 65;
+            const bucketY = CANVAS_HEIGHT - 65;
+            const bucketHeight = 55;
             const bucketWidth = Math.min(85, (CANVAS_WIDTH - 40) / numColors - 10);
             const gap = (CANVAS_WIDTH - (numColors * bucketWidth)) / (numColors + 1);
             const activeColors = COLOR_PALETTE.slice(0, numColors);
@@ -1186,7 +1266,6 @@
                 for (let i = activeCarveTasks.length - 1; i >= 0; i--) {
                     const task = activeCarveTasks[i];
                     const startIndex = task.index;
-                    // Controlled step increment ensures carving takes ~1.5 to 2+ seconds for full paths
                     const endIndex = Math.min(task.path.length - 1, startIndex + carveSpeedParam);
                     
                     for (let j = startIndex; j < endIndex; j++) {
@@ -1310,14 +1389,12 @@
         }
 
         function handlePointerStart(e) {
-            e.preventDefault();
             sound.init();
             isDrawingPath = true;
             currentDrawPath = [getPointerPos(e)];
         }
 
         function handlePointerMove(e) {
-            e.preventDefault();
             if (isDrawingPath) {
                 const pos = getPointerPos(e);
                 const lastPos = currentDrawPath[currentDrawPath.length - 1];
@@ -1328,7 +1405,6 @@
         }
 
         function handlePointerEnd(e) {
-            e.preventDefault();
             if (isDrawingPath && currentDrawPath.length > 0) {
                 if (currentDrawPath.length === 1) {
                     carveCircleInstant(currentDrawPath[0].x, currentDrawPath[0].y, carveRadius);
@@ -1343,9 +1419,9 @@
         canvas.addEventListener('mousedown', handlePointerStart);
         canvas.addEventListener('mousemove', handlePointerMove);
         window.addEventListener('mouseup', handlePointerEnd);
-        canvas.addEventListener('touchstart', handlePointerStart, { passive: false });
-        canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
-        window.addEventListener('touchend', handlePointerEnd, { passive: false });
+        canvas.addEventListener('touchstart', handlePointerStart, { passive: true });
+        canvas.addEventListener('touchmove', handlePointerMove, { passive: true });
+        window.addEventListener('touchend', handlePointerEnd, { passive: true });
         canvas.addEventListener('mouseleave', handlePointerEnd);
 
         const sidebar = document.getElementById('sidebar');
@@ -1366,7 +1442,6 @@
         });
         document.getElementById('param-speed').addEventListener('input', (e) => {
             const val = parseInt(e.target.value);
-            // Map slider (1 to 6) to carving step increment for ~1.5s duration
             carveSpeedParam = Math.max(1, 7 - val);
             const label = carveSpeedParam >= 5 ? 'Fast (~0.8s)' : carveSpeedParam <= 2 ? 'Slow (~2.5s)' : 'Medium (~1.5s)';
             document.getElementById('speed-val').innerText = label;
@@ -1415,7 +1490,7 @@
         });
 
         document.getElementById('modal-next-btn').addEventListener('click', () => {
-            if (currentLevel < 4) {
+            if (currentLevel < 12) {
                 currentLevel++;
                 document.getElementById('level-select').value = currentLevel;
                 loadLevel(currentLevel);
